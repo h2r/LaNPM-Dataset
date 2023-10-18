@@ -4,7 +4,7 @@ from datetime import datetime
 import logging
 import numpy as np
 import json
-
+import zipfile
 
 
 class get_data():
@@ -46,9 +46,6 @@ class get_data():
         dic = {}
         dic['sim_time'] = event.metadata['currentTime']
         dic['wall-clock_time'] = datetime.utcnow().strftime('%H:%M:%S.%f')[:-3]
-        # dic['rgb'] = event.frame
-        # dic['depth'] = event.depth_frame
-        # dic['seg'] = event.instance_segmentation_frame
         dic['action'] = event.metadata['lastAction']
         global_coord_agent = event.metadata['agent']['position']
         yaw_agent =  event.metadata['agent']['rotation']['y'] #degrees
@@ -60,6 +57,9 @@ class get_data():
         dic['held_objs'] = event.metadata['arm']['heldObjects']
         pos_rot_dic = self._get_objs_pos(event.metadata['arm']['heldObjects'], event.metadata["objects"])
         dic['held_objs_state'] =  pos_rot_dic
+        dic['rgb'] = event.frame
+        dic['depth'] = event.depth_frame
+        dic['inst_seg'] = event.instance_segmentation_frame
 
         if self.prev_state_body == dic['state_body'] and self.prev_state_ee == dic['state_ee'] and self.prev_hand_sphere_center == dic['hand_sphere_center'] and self.prev_held_objs == dic['held_objs'] and self.prev_held_objs_state == dic['held_objs_state']:
             return
@@ -75,7 +75,7 @@ class get_data():
     def _ndarray_to_list(self,obj):
             logging.info("Processing an object of type %s", type(obj))
             if isinstance(obj, dict):
-                return {key: self._ndarray_to_list(value) if key in ['seg', 'depth', 'rgb'] or isinstance(value, (dict, list)) else value
+                return {key: self._ndarray_to_list(value) if key in ['inst_seg', 'depth', 'rgb'] or isinstance(value, (dict, list)) else value
                         for key, value in obj.items()}
             elif isinstance(obj, list):
                 return [self._ndarray_to_list(element) for element in obj]
@@ -84,9 +84,36 @@ class get_data():
             else:
                 return obj
 
+
+    def _chunk_dict(self, data, chunk_size):
+        """Yield successive chunk_size chunks from the dictionary."""
+        
+        # Construct the base dictionary without the 'hi' key and its associated list
+        base_dict = {k: v for k, v in data.items() if k != 'steps'}
+        list_data = data['steps']
+
+        # Iterate over the list in chunks
+        for i in range(0, len(list_data), chunk_size):
+            chunked_dict = base_dict.copy()  # Copy the base data (without the large list)
+            chunked_dict['steps'] = list_data[i:i+chunk_size]
+            yield chunked_dict
+
+        
+
+
     def save(self):
-        final_dic = {"nl_command": "blah blah blah", "scene":self.scene, "steps":self.data}
+        final_dic = {"nl_command": "Pick up the blue pencil and place it on the bed with the white sheets.", "scene":self.scene, "steps":self.data}
         final_dic = self._ndarray_to_list(final_dic)
 
-        with open('/home/user/NPM-Dataset/data.json', 'w') as f:
-            json.dump(final_dic, f, indent=4)
+        # with open('/home/user/NPM-Dataset/data.json', 'w') as f:
+        #     json.dump(final_dic, f, indent=4)
+
+        print("Saving...")
+        CHUNK_SIZE=1
+        # Write the JSON data chunks directly into a zip file
+        with zipfile.ZipFile('data.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for idx, chunk in enumerate(self._chunk_dict(final_dic, CHUNK_SIZE)):
+                with zipf.open(f'data_chunk_{idx}.json', 'w') as json_file:
+                    # Convert the chunk to a JSON string and encode it to bytes
+                    json_data = json.dumps(chunk).encode('utf-8')
+                    json_file.write(json_data)

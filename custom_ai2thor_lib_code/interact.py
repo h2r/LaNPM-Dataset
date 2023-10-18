@@ -72,16 +72,16 @@ class InteractiveControllerPrompt(object):
         self.counter = 0
 
         default_interact_commands = {
-            "d": dict(action="MoveRight", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime), #key changed by ahmed
-            "a": dict(action="MoveLeft", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),#key changed by ahmed
-            "w": dict(action="MoveAhead", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),#key changed by ahmed
-            "s": dict(action="MoveBack", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),#key changed by ahmed
+            "d": dict(action="MoveRight", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime), #changed by ahmed
+            "a": dict(action="MoveLeft", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),#changed by ahmed
+            "w": dict(action="MoveAhead", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),#changed by ahmed
+            "s": dict(action="MoveBack", moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),#changed by ahmed
             # "\x1b[1;2A": dict(action="LookUp"), #commented out by ahmed
             # "\x1b[1;2B": dict(action="LookDown"), #commented out by ahmed
             "i": dict(action="LookUp"),
             "k": dict(action="LookDown"),
-            "l": dict(action="RotateAgent", degrees=20,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),
-            "j": dict(action="RotateAgent", degrees=-20,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime),
+            "l": dict(action="RotateAgent", degrees=20,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime), #changed by ahmed
+            "j": dict(action="RotateAgent", degrees=-20,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime), #changed by ahmed
             # "\x1b[1;2C": dict(action="RotateRight"), #commented out by ahmed
             # "\x1b[1;2D": dict(action="RotateLeft"), #commented out by ahmed
             "\x1b[A": dict(action="MoveArmBase", y=i, speed=1, returnToStart=False, fixedDeltaTime=fixedDeltaTime), #added by ahmed
@@ -128,7 +128,8 @@ class InteractiveControllerPrompt(object):
 
         command_message = u"Enter a Command: Move \u2190\u2191\u2192\u2193, Rotate/Look Shift + \u2190\u2191\u2192\u2193, Quit 'q' or Ctrl-C"
         # print(command_message) #commented out by ahmed
-
+        
+        get_data_obj.gather_data(controller.last_event) #added by ahmed, adds the starting spawn data
         controller.step(action="SetHandSphereRadius", radius=0.1) #added by ahmed
         global i
         event = controller.step(action="MoveArmBase", y=i,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
@@ -179,104 +180,104 @@ class InteractiveControllerPrompt(object):
 
 
             visible_objects = []
-            InteractiveControllerPrompt.write_image(
-                event,
-                self.image_dir,
-                "_{}".format(self.counter),
-                image_per_frame=self.image_per_frame,
-                semantic_segmentation_frame=semantic_segmentation_frame,
-                instance_segmentation_frame=instance_segmentation_frame,
-                color_frame=color_frame,
-                depth_frame=depth_frame,
-                metadata=metadata,
-            )
+            # InteractiveControllerPrompt.write_image(
+            #     event,
+            #     self.image_dir,
+            #     "_{}".format(self.counter),
+            #     image_per_frame=self.image_per_frame,
+            #     semantic_segmentation_frame=semantic_segmentation_frame,
+            #     instance_segmentation_frame=instance_segmentation_frame,
+            #     color_frame=color_frame,
+            #     depth_frame=depth_frame,
+            #     metadata=metadata,
+            # )
 
-            self.counter += 1
-            if self.has_object_actions:
-                for o in event.metadata["objects"]:
-                    if o["visible"]:
-                        visible_objects.append(o["objectId"])
-                        if o["openable"]:
-                            if o["isOpen"]:
-                                add_command(
-                                    command_counter,
-                                    "CloseObject",
-                                    objectId=o["objectId"],
-                                )
-                            else:
-                                add_command(
-                                    command_counter,
-                                    "OpenObject",
-                                    objectId=o["objectId"],
-                                )
+            # self.counter += 1
+            # if self.has_object_actions:
+            #     for o in event.metadata["objects"]:
+            #         if o["visible"]:
+            #             visible_objects.append(o["objectId"])
+            #             if o["openable"]:
+            #                 if o["isOpen"]:
+            #                     add_command(
+            #                         command_counter,
+            #                         "CloseObject",
+            #                         objectId=o["objectId"],
+            #                     )
+            #                 else:
+            #                     add_command(
+            #                         command_counter,
+            #                         "OpenObject",
+            #                         objectId=o["objectId"],
+            #                     )
 
-                        if o["toggleable"]:
-                            add_command(
-                                command_counter,
-                                "ToggleObjectOff",
-                                objectId=o["objectId"],
-                            )
+            #             if o["toggleable"]:
+            #                 add_command(
+            #                     command_counter,
+            #                     "ToggleObjectOff",
+            #                     objectId=o["objectId"],
+            #                 )
 
-                        if len(event.metadata["inventoryObjects"]) > 0:
-                            inventoryObjectId = event.metadata["inventoryObjects"][0][
-                                "objectId"
-                            ]
-                            if (
-                                o["receptacle"]
-                                and (not o["openable"] or o["isOpen"])
-                                and inventoryObjectId != o["objectId"]
-                            ):
-                                add_command(
-                                    command_counter,
-                                    "PutObject",
-                                    objectId=inventoryObjectId,
-                                    receptacleObjectId=o["objectId"],
-                                )
-                                add_command(
-                                    command_counter, "MoveHandAhead", moveMagnitude=0.1
-                                )
-                                add_command(
-                                    command_counter, "MoveHandBack", moveMagnitude=0.1
-                                )
-                                add_command(
-                                    command_counter, "MoveHandRight", moveMagnitude=0.1
-                                )
-                                add_command(
-                                    command_counter, "MoveHandLeft", moveMagnitude=0.1
-                                )
-                                add_command(
-                                    command_counter, "MoveHandUp", moveMagnitude=0.1
-                                )
-                                add_command(
-                                    command_counter, "MoveHandDown", moveMagnitude=0.1
-                                )
-                                add_command(command_counter, "DropHandObject")
+            #             if len(event.metadata["inventoryObjects"]) > 0:
+            #                 inventoryObjectId = event.metadata["inventoryObjects"][0][
+            #                     "objectId"
+            #                 ]
+            #                 if (
+            #                     o["receptacle"]
+            #                     and (not o["openable"] or o["isOpen"])
+            #                     and inventoryObjectId != o["objectId"]
+            #                 ):
+            #                     add_command(
+            #                         command_counter,
+            #                         "PutObject",
+            #                         objectId=inventoryObjectId,
+            #                         receptacleObjectId=o["objectId"],
+            #                     )
+            #                     add_command(
+            #                         command_counter, "MoveHandAhead", moveMagnitude=0.1
+            #                     )
+            #                     add_command(
+            #                         command_counter, "MoveHandBack", moveMagnitude=0.1
+            #                     )
+            #                     add_command(
+            #                         command_counter, "MoveHandRight", moveMagnitude=0.1
+            #                     )
+            #                     add_command(
+            #                         command_counter, "MoveHandLeft", moveMagnitude=0.1
+            #                     )
+            #                     add_command(
+            #                         command_counter, "MoveHandUp", moveMagnitude=0.1
+            #                     )
+            #                     add_command(
+            #                         command_counter, "MoveHandDown", moveMagnitude=0.1
+            #                     )
+            #                     add_command(command_counter, "DropHandObject")
 
-                        elif o["pickupable"]:
-                            add_command(
-                                command_counter, "PickupObject", objectId=o["objectId"]
-                            )
+            #             elif o["pickupable"]:
+            #                 add_command(
+            #                     command_counter, "PickupObject", objectId=o["objectId"]
+            #                 )
 
-            self._interact_commands = default_interact_commands.copy()
-            self._interact_commands.update(new_commands)
+            # self._interact_commands = default_interact_commands.copy()
+            # self._interact_commands.update(new_commands)
 
-            print("Position: {}".format(event.metadata["agent"]["position"]))
+            # print("Position: {}".format(event.metadata["agent"]["position"])) #commented out by ahmed
             # print(command_message) #commented out by ahmed
-            print("Visible Objects:\n" + "\n".join(sorted(visible_objects)))
+            # print("Visible Objects:\n" + "\n".join(sorted(visible_objects))) #commented out by ahmed
 
-            skip_keys = ["action", "objectId"]
-            for k in sorted(new_commands.keys()):
-                v = new_commands[k]
-                command_info = [k + ")", v["action"]]
-                if "objectId" in v:
-                    command_info.append(v["objectId"])
+            # skip_keys = ["action", "objectId"]
+            # for k in sorted(new_commands.keys()):
+            #     v = new_commands[k]
+            #     command_info = [k + ")", v["action"]]
+            #     if "objectId" in v:
+            #         command_info.append(v["objectId"])
 
-                for ak, av in v.items():
-                    if ak in skip_keys:
-                        continue
-                    command_info.append("%s: %s" % (ak, av))
+            #     for ak, av in v.items():
+            #         if ak in skip_keys:
+            #             continue
+            #         command_info.append("%s: %s" % (ak, av))
 
-                print(" ".join(command_info))
+            #     print(" ".join(command_info))
 
     def next_interact_command(self):
 
@@ -303,102 +304,103 @@ class InteractiveControllerPrompt(object):
                 if not match:
                     current_buffer = ""
 
-    @classmethod
-    def write_image(
-        cls,
-        event,
-        image_dir,
-        suffix,
-        image_per_frame=False,
-        semantic_segmentation_frame=False,
-        instance_segmentation_frame=False,
-        depth_frame=False,
-        color_frame=False,
-        metadata=False,
-    ):
-        def save_image(name, image, flip_br=False):
-            # TODO try to use PIL which did not work with RGBA
-            # image.save(
-            #     name
-            # )
-            import cv2
+    # @classmethod
+    # def write_image(
+    #     cls,
+    #     event,
+    #     image_dir,
+    #     suffix,
+    #     image_per_frame=False,
+    #     semantic_segmentation_frame=False,
+    #     instance_segmentation_frame=False,
+    #     depth_frame=False,
+    #     color_frame=False,
+    #     metadata=False,
+    # ):
+    #     def save_image(name, image, flip_br=False):
+    #         # TODO try to use PIL which did not work with RGBA
+    #         # image.save(
+    #         #     name
+    #         # )
+    #         import cv2
 
-            img = image
-            if flip_br:
-                img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            cv2.imwrite("{}.png".format(name), img)
+    #         img = image
+    #         if flip_br:
+    #             img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    #         cv2.imwrite("{}.png".format(name), img)
 
-        def array_to_image(arr, mode=None):
-            return arr
+    #     def array_to_image(arr, mode=None):
+    #         return arr
 
-        def json_write(name, obj):
-            with open("{}.json".format(name), "w") as outfile:
-                json.dump(obj, outfile, indent=4, sort_keys=True)
+    #     def json_write(name, obj):
+    #         with open("{}.json".format(name), "w") as outfile:
+    #             json.dump(obj, outfile, indent=4, sort_keys=True)
 
-        frame_writes = [
-            (
-                "color",
-                color_frame,
-                lambda event: event.frame,
-                array_to_image,
-                lambda x, y: save_image(x, y, flip_br=True),
-            ),
-            (
-                "instance_segmentation",
-                instance_segmentation_frame,
-                lambda event: event.instance_segmentation_frame,
-                array_to_image,
-                save_image,
-            ),
-            (
-                "class_segmentation",
-                semantic_segmentation_frame,
-                lambda event: event.semantic_segmentation_frame,
-                array_to_image,
-                save_image,
-            ),
-            (
-                "depth",
-                depth_frame,
-                lambda event: event.depth_frame,
-                lambda data: array_to_image(
-                    (255.0 / data.max() * (data - data.min())).astype(np.uint8)
-                ),
-                save_image,
-            ),
-            (
-                "depth_raw",
-                depth_frame,
-                lambda event: event.depth_frame,
-                lambda x: x,
-                lambda name, x: np.save(
-                    name.strip(".png").strip("./")
-                    if image_dir == "."
-                    else name.strip(".png"),
-                    x.astype(np.float32),
-                ),
-            ),
-            (
-                "metadata",
-                metadata,
-                lambda event: event.metadata,
-                lambda x: x,
-                json_write,
-            ),
-        ]
+    #     frame_writes = [
+    #         (
+    #             "color",
+    #             color_frame,
+    #             lambda event: event.frame,
+    #             array_to_image,
+    #             lambda x, y: save_image(x, y, flip_br=True),
+    #         ),
+    #         (
+    #             "instance_segmentation",
+    #             instance_segmentation_frame,
+    #             lambda event: event.instance_segmentation_frame,
+    #             array_to_image,
+    #             save_image,
+    #         ),
+    #         (
+    #             "class_segmentation",
+    #             semantic_segmentation_frame,
+    #             lambda event: event.semantic_segmentation_frame,
+    #             array_to_image,
+    #             save_image,
+    #         ),
+    #         (
+    #             "depth",
+    #             depth_frame,
+    #             lambda event: event.depth_frame,
+    #             lambda data: array_to_image(
+    #                 (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+    #             ),
+    #             save_image,
+    #         ),
+    #         (
+    #             "depth_raw",
+    #             depth_frame,
+    #             lambda event: event.depth_frame,
+    #             lambda x: x,
+    #             lambda name, x: np.save(
+    #                 name.strip(".png").strip("./")
+    #                 if image_dir == "."
+    #                 else name.strip(".png"),
+    #                 x.astype(np.float32),
+    #             ),
+    #         ),
+    #         (
+    #             "metadata",
+    #             metadata,
+    #             lambda event: event.metadata,
+    #             lambda x: x,
+    #             json_write,
+    #         ),
+    #     ]
 
-        for frame_filename, condition, frame_func, transform, save in frame_writes:
-            frame = frame_func(event)
-            if frame is not None:
-                frame = transform(frame)
-                image_name = os.path.join(
-                    image_dir,
-                    "{}{}".format(
-                        frame_filename, "{}".format(suffix) if image_per_frame else ""
-                    ),
-                )
-                print("Image {}, {}".format(image_name, image_dir))
-                save(image_name, frame)
+    #     for frame_filename, condition, frame_func, transform, save in frame_writes:
+    #         frame = frame_func(event)
+    #         if frame is not None:
+    #             frame = transform(frame)
+    #             image_name = os.path.join(
+    #                 image_dir,
+    #                 "{}{}".format(
+    #                     frame_filename, "{}".format(suffix) if image_per_frame else ""
+    #                 ),
+    #             )
+    #             # print("Image {}, {}".format(image_name, image_dir))
+    #             save(image_name, frame)
 
-            else:
-                print("No frame present, call initialize with the right parameters")
+    #         else:
+    #             pass #added by ahmed
+    #             # print("No frame present, call initialize with the right parameters")
