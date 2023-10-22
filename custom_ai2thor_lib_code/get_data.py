@@ -102,7 +102,7 @@ class get_data():
 
 
     def save(self):
-        final_dic = {"nl_command": "Pick up the blue pencil and place it on the bed with the white sheets.", "scene":self.scene, "steps":self.data}
+        final_dic = {"nl_command": "Go to the bedroom, pick up the red apple, then go to the table which has the orange basketball and drop it on that table.", "scene":self.scene, "steps":self.data}
         final_dic = self._ndarray_to_list(final_dic)
 
         # with open('/home/user/NPM-Dataset/data.json', 'w') as f:
