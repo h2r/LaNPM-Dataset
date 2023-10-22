@@ -6,9 +6,9 @@ if __name__ == "__main__":
         agentMode="arm",
         #used for the Aryan and George commands
         # scene='FloorPlan_Val2_5',
-        scene='FloorPlan_Val2_1',
+        # scene='FloorPlan_Val2_1',
         # scene = 'FloorPlan_Train9_4',
-        # scene = "FloorPlan_Train5_2",
+        scene = "FloorPlan_Train5_2",
         # scene = "FloorPlan_Val1_1",
         snapToGrid=False,
         visibilityDistance=1.5,
