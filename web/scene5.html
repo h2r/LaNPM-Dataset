@@ -67,11 +67,11 @@
     </style>
 </head>
 <body>
-    <h1>Scene 1</h1>
+    <h1>Scene 5</h1>
 
     <!-- Blocking overlay -->
     <div id="blocking-overlay">
-        <div id="blocking-message">Scene 1 loading... Will take approximately 15 seconds</div>
+        <div id="blocking-message">Scene 5 loading... Will take approximately 15 seconds</div>
     </div>
     
     <!-- Iframe -->
@@ -96,13 +96,13 @@
             <label for="command5">Command 5:</label>
             <input type="text" id="command5" name="command5">
 
-            <input type="submit" value="Submit" id="submit-button" disabled>
+            <input type="submit" value="Submit">
         </form>
     </div>
 
     <!-- Next button -->
-    <button id="next-button" onclick="goToNextScene()" disabled>Next</button>
-    
+    <button id="next-button" onclick="goToNextScene()">Next</button>
+
     <script>
         function showBlockingOverlay() {
             var blockingOverlay = document.getElementById('blocking-overlay');
@@ -120,15 +120,8 @@
         }, 15000);
 
         function goToNextScene() {
-            window.location.href = 'scene2.html';
+            window.location.href = 'end.html';
         }
-
-        document.getElementById('command-form').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevents form from submitting in a traditional way
-            // Your form submission logic here (AJAX request, etc.)
-
-            document.getElementById('next-button').disabled = false; // Enable the Next button
-        });
     </script>
 </body>
 </html>
