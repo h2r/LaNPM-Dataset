@@ -99,10 +99,8 @@ class get_data():
             yield chunked_dict
 
         
-
-
     def save(self):
-        final_dic = {"nl_command": "Go to the bedroom, pick up the red apple, then go to the table which has the orange basketball and drop it on that table.", "scene":self.scene, "steps":self.data}
+        final_dic = {"nl_command": "Go to the living room and pick up the remote, then go to the bedroom and put it on top of the drawers.", "scene":self.scene, "steps":self.data}
         final_dic = self._ndarray_to_list(final_dic)
 
         # with open('/home/user/NPM-Dataset/data.json', 'w') as f:

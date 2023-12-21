@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scene 1</title>
+
+    <!-- Styles for blocking overlay and Done button -->
+    <style>
+        #blocking-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 1);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #blocking-message {
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        #done-button {
+            display: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scene 1</h1>
+    <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1800" height="1100"></iframe>
+
+    <!-- Blocking overlay -->
+    <div id="blocking-overlay">
+        <div id="blocking-message">Loading... Will take approximately 15 seconds</div>
+    </div>
+
+    <!-- Done button -->
+    <button id="done-button" onclick="goBackToMainPage()">Done</button>
+
+    <script>
+        function sendMessageToIframe(message) {
+            var iframe = document.getElementById('myIframe');
+            iframe.contentWindow.postMessage(message, 'https://ai2thor.allenai.org');
+        }
+
+        function showBlockingOverlay() {
+            var blockingOverlay = document.getElementById('blocking-overlay');
+            blockingOverlay.style.display = 'flex';
+        }
+
+        showBlockingOverlay();
+
+        setTimeout(function() {
+            var blockingOverlay = document.getElementById('blocking-overlay');
+            blockingOverlay.style.display = 'none';
+
+            var doneButton = document.getElementById('done-button');
+            doneButton.style.display = 'block';
+        }, 15000);
+
+        function hideBlockingOverlay() {
+            var blockingOverlay = document.getElementById('blocking-overlay');
+            blockingOverlay.style.display = 'none';
+
+            var doneButton = document.getElementById('done-button');
+            doneButton.style.display = 'none';
+        }
+
+        function goBackToMainPage() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website with Iframe</title>
+</head>
+<body>
+    <h1>My Website</h1>
+    <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1000" height="800"></iframe>
+
+    <script>
+        function sendMessageToIframe(message) {
+            var iframe = document.getElementById('myIframe');
+            iframe.contentWindow.postMessage(message, 'https://ai2thor.allenai.org');
+        }
+    </script>
+</body>
+</html> -->
