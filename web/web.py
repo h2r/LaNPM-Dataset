@@ -48,18 +48,21 @@ time.sleep(13)
 ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
 ithor_box.click()
 
-# time.sleep(1)
 map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
 driver.execute_script("arguments[0].click();", map[5])
 
+
+driver.switch_to.default_content()
 next_button = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.ID, 'next-button')))
 
-# After interacting with each scene, extract the data
-scene_data = extract_textbox_values(driver, f'Scene')  # Replace i with the scene number
+# Wait for the button to be clicked by the user
+WebDriverWait(driver, 60).until(lambda d: next_button.is_enabled())
+scene_data = extract_textbox_values(driver, f'Scene')
 all_scene_data.append(scene_data)
-
 df = pd.DataFrame(all_scene_data)
 df.to_csv('scene_commands.csv', index=False)
+
+
 
 # Now that scene2.html is loaded, you can interact with its elements
 # Example: Wait for the 'blocking-overlay' to be visible on scene2.html

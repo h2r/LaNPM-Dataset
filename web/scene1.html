@@ -51,15 +51,6 @@
             padding: 5px;
             margin-bottom: 10px;
         }
-
-        .form-container input[type="submit"] {
-            display: block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -72,7 +63,7 @@
     <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1600" height="1000"></iframe>
 
     <div class="form-container">
-        <form id="command-form" action="/submit-commands" method="post">
+        <form id="command-form">
             <label for="command1">Command 1:</label>
             <input type="text" id="command1" name="command1" class="command-input">
 
@@ -87,8 +78,6 @@
 
             <label for="command5">Command 5:</label>
             <input type="text" id="command5" name="command5" class="command-input">
-
-            <input type="submit" value="Submit" id="submit-button" disabled>
         </form>
     </div>
 
@@ -123,18 +112,13 @@
                     break;
                 }
             }
-            document.getElementById('submit-button').disabled = !allFilled;
+            document.getElementById('next-button').disabled = !allFilled;
         }
 
         var inputs = document.getElementsByClassName('command-input');
         for (var i = 0; i < inputs.length; i++) {
             inputs[i].addEventListener('input', checkInputs);
         }
-
-        document.getElementById('command-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            document.getElementById('next-button').disabled = false;
-        });
     </script>
 </body>
 </html>
