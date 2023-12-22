@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scene 1</title>
-    
-    <!-- Styles for blocking overlay and Next button -->
     <style>
         #blocking-overlay {
             position: fixed;
@@ -39,9 +37,8 @@
             margin-top: 20px;
         }
 
-        /* Styles for the form and input boxes */
         .form-container {
-            margin-top: 20px; /* Add space above the form */
+            margin-top: 20px;
         }
 
         .form-container label {
@@ -50,58 +47,42 @@
         }
 
         .form-container input[type="text"] {
-            width: 300px; /* Increased width */
+            width: 300px;
             padding: 5px;
             margin-bottom: 10px;
         }
-
-        .form-container input[type="submit"] {
-            display: block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-
     </style>
 </head>
 <body>
     <h1>Scene 5</h1>
 
-    <!-- Blocking overlay -->
     <div id="blocking-overlay">
         <div id="blocking-message">Scene 5 loading... Will take approximately 15 seconds</div>
     </div>
     
-    <!-- Iframe -->
     <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1600" height="1000"></iframe>
 
-
-      <!-- Form with text boxes -->
-      <div class="form-container">
-        <form action="/submit-commands" method="post"> <!-- Update action to your form submission URL -->
+    <div class="form-container">
+        <form id="command-form">
             <label for="command1">Command 1:</label>
-            <input type="text" id="command1" name="command1">
+            <input type="text" id="command1" name="command1" class="command-input">
 
             <label for="command2">Command 2:</label>
-            <input type="text" id="command2" name="command2">
+            <input type="text" id="command2" name="command2" class="command-input">
 
             <label for="command3">Command 3:</label>
-            <input type="text" id="command3" name="command3">
+            <input type="text" id="command3" name="command3" class="command-input">
 
             <label for="command4">Command 4:</label>
-            <input type="text" id="command4" name="command4">
+            <input type="text" id="command4" name="command4" class="command-input">
 
             <label for="command5">Command 5:</label>
-            <input type="text" id="command5" name="command5">
-
-            <input type="submit" value="Submit">
+            <input type="text" id="command5" name="command5" class="command-input">
         </form>
     </div>
 
-    <!-- Next button -->
-    <button id="next-button" onclick="goToNextScene()">Next</button>
+    <div id="submission-message" style="display: none;">Commands submitted!</div>
+    <button id="next-button" onclick="goToNextScene()" disabled>Next</button>
 
     <script>
         function showBlockingOverlay() {
@@ -119,8 +100,31 @@
             nextButton.style.display = 'block';
         }, 15000);
 
+        
         function goToNextScene() {
-            window.location.href = 'end.html';
+            document.getElementById('submission-message').style.display = 'block';
+            setTimeout(function() {
+            window.location.href = 'end.html';  // Or other logic for proceeding to the next scene
+        }, 1000);  // Delay in milliseconds (3000ms = 3 seconds)
+
+        }
+
+
+        function checkInputs() {
+            var inputs = document.getElementsByClassName('command-input');
+            var allFilled = true;
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].value === '') {
+                    allFilled = false;
+                    break;
+                }
+            }
+            document.getElementById('next-button').disabled = !allFilled;
+        }
+
+        var inputs = document.getElementsByClassName('command-input');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].addEventListener('input', checkInputs);
         }
     </script>
 </body>

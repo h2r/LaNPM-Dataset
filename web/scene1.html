@@ -81,6 +81,7 @@
         </form>
     </div>
 
+    <div id="submission-message" style="display: none;">Commands submitted!</div>
     <button id="next-button" onclick="goToNextScene()" disabled>Next</button>
 
     <script>
@@ -99,9 +100,15 @@
             nextButton.style.display = 'block';
         }, 15000);
 
+        
         function goToNextScene() {
-            window.location.href = 'scene2.html';
+            document.getElementById('submission-message').style.display = 'block';
+            setTimeout(function() {
+            window.location.href = 'scene2.html';  // Or other logic for proceeding to the next scene
+        }, 1000);  // Delay in milliseconds (3000ms = 3 seconds)
+
         }
+
 
         function checkInputs() {
             var inputs = document.getElementsByClassName('command-input');
