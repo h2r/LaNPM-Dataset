@@ -5,6 +5,20 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import time
+import pandas as pd
+
+
+# Function to extract text box values and return them as a dictionary
+def extract_textbox_values(driver, scene_name):
+    data = {'Scene Name': scene_name}
+    for i in range(1, 6):  # Assuming there are 5 command text boxes
+        textbox = driver.find_element(By.ID, f'command{i}')
+        data[f'Command {i}'] = textbox.get_attribute('value')
+    return data
+
+
+# List to store data dictionaries for all scenes
+all_scene_data = []
 
 
 chrome_options = Options()
@@ -29,7 +43,7 @@ blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking
 
 wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
 
-time.sleep(12.25)
+time.sleep(13)
 
 ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
 ithor_box.click()
@@ -38,6 +52,14 @@ ithor_box.click()
 map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
 driver.execute_script("arguments[0].click();", map[5])
 
+next_button = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.ID, 'next-button')))
+
+# After interacting with each scene, extract the data
+scene_data = extract_textbox_values(driver, f'Scene')  # Replace i with the scene number
+all_scene_data.append(scene_data)
+
+df = pd.DataFrame(all_scene_data)
+df.to_csv('scene_commands.csv', index=False)
 
 # Now that scene2.html is loaded, you can interact with its elements
 # Example: Wait for the 'blocking-overlay' to be visible on scene2.html
@@ -45,7 +67,7 @@ blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking
 
 wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
 
-time.sleep(12.25)
+time.sleep(12.75)
 
 ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
 ithor_box.click()
