@@ -1,11 +1,13 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import time
 import pandas as pd
+import os
+import drive_upload
+
 
 
 # Function to extract text box values and return them as a dictionary
@@ -27,10 +29,9 @@ chrome_options.add_experimental_option("detach", True)
 
 driver = webdriver.Chrome(options=chrome_options)
 
-# driver.get('file:///home/ahmedjaafar/web/scene1.html')
-# driver.implicitly_wait(1)
 
 driver.get('file:///home/ahmedjaafar/NPM-Dataset/web/index.html')
+driver.implicitly_wait(1)
 
 # Wait for the user to manually click the 'Start' button and navigate to scene1.html
 wait = WebDriverWait(driver, 60)
@@ -63,80 +64,39 @@ for i, j in zip(scenes, scenes_ordered):
     all_scene_data.append(scene_data)
 
 
+# Check if the 'user.txt' file exists in the current folder
+if not os.path.exists('user.txt'):
+    # If the file does not exist, create it and write the number 0
+    with open('user.txt', 'w') as file:
+        file.write('0')
+
+# Read the current number from 'user.txt'
+with open('user.txt', 'r') as file:
+    number = int(file.read())
+
+# Save the DataFrame as a CSV file with the name "commands_{number}.csv"
+csv_filename = f'commands_participant{number}.csv'
 df = pd.DataFrame(all_scene_data)
-df.to_csv('scene_commands.csv', index=False)
+df.to_csv(csv_filename, index=False)
+
+# Increment the number and update 'user.txt'
+new_number = number + 1
+with open('user.txt', 'w') as file:
+    file.write(str(new_number))
 
 
+#upload csv to google drive shared folder
+service = drive_upload.service_account_login()
+folder_id = '18sVFbyUGcmnRavVPgJTiW2Pa5D3gzubp'
+file_path = csv_filename  
+file_name = csv_filename
 
-# # Now that scene2.html is loaded, you can interact with its elements
-# # Example: Wait for the 'blocking-overlay' to be visible on scene2.html
-# blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking-overlay')))
+file_id = drive_upload.upload_file(service, file_path, file_name, folder_id)
+print(f"Uploaded file ID: {file_id}")
 
-# wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
+if os.path.exists(file_name):
+    os.remove(file_name)
+    print(f"{file_name} has been deleted.")
 
-# time.sleep(12.75)
-
-# ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
-# ithor_box.click()
-
-# # time.sleep(1)
-# map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
-# driver.execute_script("arguments[0].click();", map[7])
-
-
-
-# # Now that scene3.html is loaded, you can interact with its elements
-# # Example: Wait for the 'blocking-overlay' to be visible on scene3.html
-# blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking-overlay')))
-
-# wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
-
-# time.sleep(12.25)
-
-# ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
-# ithor_box.click()
-
-# # time.sleep(1)
-# map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
-# driver.execute_script("arguments[0].click();", map[10])
-
-
-
-
-# # Now that scene4.html is loaded, you can interact with its elements
-# # Example: Wait for the 'blocking-overlay' to be visible on scene4.html
-# blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking-overlay')))
-
-# wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
-
-# time.sleep(12.25)
-
-# ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
-# ithor_box.click()
-
-# # time.sleep(1)
-# map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
-# driver.execute_script("arguments[0].click();", map[12])
-
-
-
-# # Now that scene5.html is loaded, you can interact with its elements
-# # Example: Wait for the 'blocking-overlay' to be visible on scene5.html
-# blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking-overlay')))
-
-# wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
-
-# time.sleep(12.25)
-
-# ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
-# ithor_box.click()
-
-# # time.sleep(1)
-# map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
-# driver.execute_script("arguments[0].click();", map[16])
 
 breakpoint()
-
-
-# Close the browser
-driver.quit()
