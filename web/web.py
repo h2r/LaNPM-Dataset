@@ -9,7 +9,8 @@ import os
 import drive_upload
 
 
-
+# List to store data dictionaries for all scenes
+all_scene_data = []
 # Function to extract text box values and return them as a dictionary
 def extract_textbox_values(driver, scene_name):
     data = {'Scene Name': scene_name}
@@ -19,8 +20,13 @@ def extract_textbox_values(driver, scene_name):
     return data
 
 
-# List to store data dictionaries for all scenes
-all_scene_data = []
+def check_selection(driver, element):
+    driver.switch_to.frame(driver.find_element(By.ID, 'myIframe'))
+    res = element.find_element(By.XPATH, '..')
+    class_name = res.get_attribute('class')
+    if '1kg7uqz' not in class_name:
+        return False
+    return True
 
 
 chrome_options = Options()
@@ -53,15 +59,22 @@ for i, j in zip(scenes, scenes_ordered):
     driver.execute_script("arguments[0].click();", map[i])
 
 
+    # Before moving to the next scene, check the state
+    # if not check_selection(driver, map[i]):
+    #     # If state has changed, show an alert
+    #     driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Refresh the page and start over\");")
+    
+    
     driver.switch_to.default_content()
-
-
     next_button = WebDriverWait(driver, 300).until(EC.element_to_be_clickable((By.ID, 'next-button')))
-    WebDriverWait(driver, 300).until(EC.visibility_of_element_located((By.ID, 'submission-message')))
+    if not check_selection(driver, map[i]):
+        # If the check fails, display an alert and don't proceed to the next page
+        driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Refresh the page and start over\");")
+    else:
+        WebDriverWait(driver, 300).until(EC.visibility_of_element_located((By.ID, 'submission-message')))
 
-
-    scene_data = extract_textbox_values(driver, f'Scene{j}')
-    all_scene_data.append(scene_data)
+        scene_data = extract_textbox_values(driver, f'Scene{j}')
+        all_scene_data.append(scene_data)
 
 
 # Check if the 'user.txt' file exists in the current folder
@@ -100,3 +113,11 @@ if os.path.exists(file_name):
 
 
 breakpoint()
+
+#idea:
+#put a verify button
+#verify button is disabled until boxes are filled
+#next button is disabled until verified
+#if verification fails, pop up alert, user refreshes (maybe make a refresh button in the alert)
+#if verfication passes, save the data and disable/remove the iframe so they don't mess with it further
+#once verification passes, enable next button so user can click and move to the next page

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scene 5</title>
+    <title>Scene 1</title>
     <style>
         #blocking-overlay {
             position: fixed;
@@ -54,10 +54,10 @@
     </style>
 </head>
 <body>
-    <h1>Scene 5</h1>
+    <h1>Scene 1</h1>
 
     <div id="blocking-overlay">
-        <div id="blocking-message">Scene 5 loading... Will take approximately 15 seconds</div>
+        <div id="blocking-message">Scene 1 loading... Will take approximately 15 seconds</div>
     </div>
     
     <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1600" height="1000"></iframe>
@@ -104,7 +104,7 @@
         function goToNextScene() {
             document.getElementById('submission-message').style.display = 'block';
             setTimeout(function() {
-            window.location.href = 'end.html';  // Or other logic for proceeding to the next scene
+            window.location.href = 'scene2.html';  // Or other logic for proceeding to the next scene
         }, 1000);  // Delay in milliseconds (3000ms = 3 seconds)
 
         }
