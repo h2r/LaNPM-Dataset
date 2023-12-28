@@ -24,8 +24,7 @@
             text-align: center;
         }
 
-        #next-button {
-            display: none;
+        #next-button, #instructions-button {
             background-color: #4CAF50;
             color: white;
             padding: 15px 32px;
@@ -35,6 +34,17 @@
             font-size: 16px;
             cursor: pointer;
             margin-top: 20px;
+            margin-right: 10px;
+        }
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
         }
 
         .form-container {
@@ -51,6 +61,35 @@
             padding: 5px;
             margin-bottom: 10px;
         }
+
+        #instructions-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%; /* Adjust width as necessary */
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -66,23 +105,99 @@
         <form id="command-form">
             <label for="command1">Command 1:</label>
             <input type="text" id="command1" name="command1" class="command-input">
-
             <label for="command2">Command 2:</label>
             <input type="text" id="command2" name="command2" class="command-input">
-
             <label for="command3">Command 3:</label>
             <input type="text" id="command3" name="command3" class="command-input">
-
             <label for="command4">Command 4:</label>
             <input type="text" id="command4" name="command4" class="command-input">
-
             <label for="command5">Command 5:</label>
             <input type="text" id="command5" name="command5" class="command-input">
         </form>
     </div>
 
     <div id="submission-message" style="display: none;">Commands submitted!</div>
+    <div id="flag-message" class="visually-hidden">Flag!</div>
+
     <button id="next-button" onclick="goToNextScene()" disabled>Next</button>
+    <button id="instructions-button" onclick="showInstructions()">Instructions</button>
+
+    <div id="instructions-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInstructions()">&times;</span>
+            <h1>Instructions</h1>
+            
+            <font size="+2">
+                Thank you for being part of our data collection. We are part of the Brown University Humans To Robots Laboratory under Principal Investigator Professor Stefanie Tellex. We’re gathering natural language commands for completing household tasks in AI2-THOR, a virtual environment. 
+                <br>
+                <br>
+                A personal assistant robot has the ability to navigate to different landmarks in the environment and manipulate objects. It also has a camera, so it can perceive different items and qualities about its environment. We will show you how the robot operates in the environment (see the examples below)
+                <br>
+                <br>
+                Your task is to provide 15 separate natural language commands which <b>instruct the robot to perform tasks that include manipulation, navigation, and perception. To be super clear, all three must be present in the commands.</b> The tasks are limited to pick up/grab and place/drop tasks. Make sure the commands instruct the robot to move to different rooms.  
+                <br>
+                <br>
+                The robot starts in the same position in each scene. That position depends on the specific scene. Each command in each scene should assume the robot starts in that position. Each command you provide should specify a <b>single</b> task. The robot focuses on the current task and does not keep track of the previous tasks executed so far.
+                <br>
+                <br>
+                You can refer to the landmarks and objects in the environment however you like as long as you are clear, the objects and rooms exist, and the commands contain all three aspects (perception, navigation, manipulation), and have the robot moving to different rooms. The robot can come back to the starting room/position after it visits other rooms. The robot can take objects from the starting area/room to other areas/rooms. Don’t limit your commands to what you think the robot might “understand”, rather pretend the robot is as intelligent as a human and command it as you would command any human. We cannot tell you if your command is good or bad because that would bias the commands.
+                <br>
+                <br>
+                You will be able to reread these instructions in the following pages in case you forget. 
+                <br>
+                <br>
+                Examples:
+                <ul>
+                    <li>Command: “Go to the living room and grab the purple pillow that’s on the couch, then go to the office and place it on the chair.”</li>
+                        <ul>
+                            <li>Navigation: “Go to the living room”, “go to the office”</li>
+                            <li>Manipulation: “grab”, “place it”</li>
+                            <li>Perception: “purple pillow that’s on the couch”, “the chair”</li> 
+                        </ul>
+                    <li>Command: “Go to the living room and pick up the basketball, then go to the can and drop it inside.”</li>
+                        <ul>
+                            <li>Navigation: “Go to the living room”, “go to the can”</li>
+                            <li>Manipulation: “pick up”, “drop it”</li>
+                            <li>Perception: “basketball”, “can”</li>
+                        </ul>
+                    <li>Command: “Go to the bedroom and grab my phone off the bed, then bring it back to me.” </li>
+                        <ul>
+                            <li>Navigation: “Go to the bedroom”, “bring it back to me”</li>
+                            <li>Manipulation: “grab”</li>
+                            <li>Perception: “my phone off the bed”, “me”</li>
+                        </ul>
+                </ul> 
+                <br>
+                FAQ:
+                <ul>
+                    <li>Q: Can the robot search for an object rather than the command telling it exactly where it is? For example “Find the basketball and bring it back to me”.</li>
+                        <ul>
+                            <li>A: Yes as long as the object is in another room.</li>
+                        </ul>
+                    <li>Q: Can I refer to specifics in the environment such in the commands such as the Vincent van Gogh painting on the wall?</li>
+                        <ul>
+                            <li>A: Yes. Pretend the robot is as intelligent as a human and command it as you would a human.</li>
+                        </ul>
+                    <li>Q: Can I use both the passive and active voice for the commands?</li>
+                        <ul>
+                            <li>A: Yes. The commands can have any style or tone.</li>
+                        </ul>
+                    <li>Q: What objects can I pick up?</li>
+                        <ul>
+                            <li>A: The labeled ones in the AI2THOR demo website that a human can pick up with one hand. For example the TV is labeled in the website but it can’t be picked up by the robot.</li>
+                        </ul>
+                    <li>Q: In the AI2THOR demo I see that the objects have labels when I point on them, can I refer to objects that don’t have labels such as a desk?</li>
+                        <ul>
+                            <li>A: Yes, as long as you’re not telling the robot to pick those objects up since those can’t be picked up. For example, you can tell the robot to place an object on a desk but you can’t pick up the desk.</li>
+                        </ul>
+                    <li>Q: Can I have the robot open objects such as drawers and turn on objects such as TVs?</li>
+                        <ul>
+                            <li>A: No. While they can be opened in the demo website you’re exploring in, they can’t be opened in the actual simulator we’re going to be using. You are limited to pick up/grab and place/drop tasks.</li>
+                        </ul>
+                </ul>
+            </font>
+        </div>
+    </div>
 
     <script>
         function showBlockingOverlay() {
@@ -90,25 +205,33 @@
             blockingOverlay.style.display = 'flex';
         }
 
+        function closeInstructions() {
+            document.getElementById('instructions-modal').style.display = 'none';
+        }
+
+        function showInstructions() {
+            document.getElementById('instructions-modal').style.display = 'block';
+        }
+
         showBlockingOverlay();
 
         setTimeout(function() {
             var blockingOverlay = document.getElementById('blocking-overlay');
             blockingOverlay.style.display = 'none';
-
             var nextButton = document.getElementById('next-button');
             nextButton.style.display = 'block';
         }, 15000);
 
-        
         function goToNextScene() {
             document.getElementById('submission-message').style.display = 'block';
             setTimeout(function() {
-            window.location.href = 'scene2.html';  // Or other logic for proceeding to the next scene
-        }, 1000);  // Delay in milliseconds (3000ms = 3 seconds)
-
+                window.location.href = 'scene2.html';
+            }, 1000);
         }
 
+        function displayFlag() {
+            document.getElementById('flag-message').style.display = 'block';
+        }
 
         function checkInputs() {
             var inputs = document.getElementsByClassName('command-input');

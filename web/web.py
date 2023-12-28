@@ -28,6 +28,16 @@ def check_selection(driver, element):
         return False
     return True
 
+def clicking(driver, i):
+    # Wait for the 'blocking-overlay' to be visible on scene{j}.html
+    blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking-overlay')))
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
+    time.sleep(13)
+    ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
+    ithor_box.click()
+    map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
+    driver.execute_script("arguments[0].click();", map[i])
+    return map
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
@@ -40,41 +50,34 @@ driver.get('file:///home/ahmedjaafar/NPM-Dataset/web/index.html')
 driver.implicitly_wait(1)
 
 # Wait for the user to manually click the 'Start' button and navigate to scene1.html
-wait = WebDriverWait(driver, 60)
+wait = WebDriverWait(driver, 300)
 
 scenes = [5,7,10,12,15]
 scenes_ordered = [1,2,3,4,5]
 for i, j in zip(scenes, scenes_ordered):
-    # Wait for the 'blocking-overlay' to be visible on scene{j}.html
-    blocking_overlay = wait.until(EC.visibility_of_element_located((By.ID, 'blocking-overlay')))
-
-    wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'myIframe')))
-
-    time.sleep(13)
-
-    ithor_box = driver.find_element(By.CLASS_NAME, "ant-checkbox-input")
-    ithor_box.click()
-
-    map = driver.find_elements(By.CLASS_NAME, "ant-card-cover")
-    driver.execute_script("arguments[0].click();", map[i])
-
-
-    # Before moving to the next scene, check the state
-    # if not check_selection(driver, map[i]):
-    #     # If state has changed, show an alert
-    #     driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Refresh the page and start over\");")
-    
-    
-    driver.switch_to.default_content()
-    next_button = WebDriverWait(driver, 300).until(EC.element_to_be_clickable((By.ID, 'next-button')))
-    if not check_selection(driver, map[i]):
-        # If the check fails, display an alert and don't proceed to the next page
-        driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Refresh the page and start over\");")
-    else:
-        WebDriverWait(driver, 300).until(EC.visibility_of_element_located((By.ID, 'submission-message')))
-
-        scene_data = extract_textbox_values(driver, f'Scene{j}')
-        all_scene_data.append(scene_data)
+    while True:
+        map = clicking(driver, i)
+        
+        driver.switch_to.default_content()
+        # next_button = WebDriverWait(driver, 300).until(EC.element_to_be_clickable((By.ID, 'next-button')))
+        WebDriverWait(driver, 600).until(EC.visibility_of_element_located((By.ID, 'flag-message')))
+        if not check_selection(driver, map[i]):
+            # If the check fails, display an alert and don't proceed to the next page
+            driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Refresh the page and start over\");")
+            driver.refresh()
+        else:
+            driver.switch_to.default_content()
+            WebDriverWait(driver, 600).until(EC.visibility_of_element_located((By.ID, 'invisibleCheckbox')))
+            checkbox = driver.find_element(By.ID, 'invisibleCheckbox')
+            checkbox.click()
+            #submission-message only appears after the 'Next' button is clicked so this waits for the message to appear
+            WebDriverWait(driver, 600).until(EC.visibility_of_element_located((By.ID, 'submission-message')))
+            print('hi0')
+            scene_data = extract_textbox_values(driver, f'Scene{j}')
+            print('hi')
+            all_scene_data.append(scene_data)
+            print('hi2')
+            break
 
 
 # Check if the 'user.txt' file exists in the current folder
