@@ -188,6 +188,14 @@
         //     }
         // }
             
+        
+        function toggleNextButtonBasedOnCheckbox() {
+            var checkbox = document.getElementById('invisibleCheckbox');
+            var nextButton = document.getElementById('next-button');
+            nextButton.disabled = !checkbox.checked;
+        }
+
+
         function displayFlag() {
             // Check if the flag message already exists
             if (!document.getElementById('flag-message')) {
@@ -209,6 +217,27 @@
                 // Append the flag message and the invisible checkbox to the container
                 container.appendChild(flagMessage);
                 container.appendChild(invisibleCheckbox);
+
+                invisibleCheckbox.addEventListener('change', toggleNextButtonBasedOnCheckbox);
+            }
+
+            if (!document.getElementById('iframeOverlay')) {
+                // Locate the iframe
+                var iframe = document.getElementById('myIframe');
+
+                // Create an overlay div
+                var overlay = document.createElement('div');
+                overlay.id = 'iframeOverlay';
+                overlay.style.position = 'absolute';
+                overlay.style.width = iframe.offsetWidth + 'px';
+                overlay.style.height = iframe.offsetHeight + 'px';
+                overlay.style.top = iframe.offsetTop + 'px';
+                overlay.style.left = iframe.offsetLeft + 'px';
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.65)'; // Transparent overlay
+                overlay.style.zIndex = 10; // Ensure it's above the iframe
+
+                // Append the overlay to the same parent as the iframe
+                iframe.parentNode.appendChild(overlay);
             }
         }
 
@@ -225,19 +254,12 @@
             document.getElementById('verify-button').disabled = !allFilled;
         }
 
-        function toggleNextButtonBasedOnCheckbox() {
-            console.log('heyyy');
-            var checkbox = document.getElementById('invisibleCheckbox');
-            var nextButton = document.getElementById('next-button');
-            nextButton.disabled = !checkbox.checked;
-        }
-
         var inputs = document.getElementsByClassName('command-input');
         for (var i = 0; i < inputs.length; i++) {
             inputs[i].addEventListener('input', checkInputs);
         }
 
-        document.getElementById('invisibleCheckbox').addEventListener('change', toggleNextButtonBasedOnCheckbox);
+        // document.getElementById('invisibleCheckbox').addEventListener('change', toggleNextButtonBasedOnCheckbox);
     </script>
 </body>
 </html>

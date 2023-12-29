@@ -9,6 +9,10 @@ import os
 import drive_upload
 
 
+with open("user.txt", "r") as file:
+    user_id = file.read().strip()
+
+
 # List to store data dictionaries for all scenes
 all_scene_data = []
 # Function to extract text box values and return them as a dictionary
@@ -49,6 +53,17 @@ driver = webdriver.Chrome(options=chrome_options)
 driver.get('file:///home/ahmedjaafar/NPM-Dataset/web/index.html')
 driver.implicitly_wait(1)
 
+script = f"""
+var newElement = document.createElement('p');
+newElement.innerHTML = 'Please copy this ID and paste it into Prolific: <span style="color: red;">{user_id}</span>';
+newElement.style.fontSize = '30px';
+var startButton = document.querySelector('button[onclick="navigateToScene(\\'scene1.html\\')"]');
+startButton.parentNode.insertBefore(newElement, startButton);
+"""
+
+driver.execute_script(script)
+
+
 # Wait for the user to manually click the 'Start' button and navigate to scene1.html
 wait = WebDriverWait(driver, 300)
 
@@ -63,7 +78,7 @@ for i, j in zip(scenes, scenes_ordered):
         WebDriverWait(driver, 600).until(EC.visibility_of_element_located((By.ID, 'flag-message')))
         if not check_selection(driver, map[i]):
             # If the check fails, display an alert and don't proceed to the next page
-            driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Refresh the page and start over\");")
+            driver.execute_script("alert(\"You changed the simulator settings. Please don't do that. Click 'OK' to refresh the page and start over.\");")
             driver.refresh()
         else:
             driver.switch_to.default_content()
@@ -72,34 +87,22 @@ for i, j in zip(scenes, scenes_ordered):
             checkbox.click()
             #submission-message only appears after the 'Next' button is clicked so this waits for the message to appear
             WebDriverWait(driver, 600).until(EC.visibility_of_element_located((By.ID, 'submission-message')))
-            print('hi0')
             scene_data = extract_textbox_values(driver, f'Scene{j}')
-            print('hi')
             all_scene_data.append(scene_data)
-            print('hi2')
             break
 
 
-# Check if the 'user.txt' file exists in the current folder
-if not os.path.exists('user.txt'):
-    # If the file does not exist, create it and write the number 0
-    with open('user.txt', 'w') as file:
-        file.write('0')
 
-# Read the current number from 'user.txt'
-with open('user.txt', 'r') as file:
-    number = int(file.read())
 
 # Save the DataFrame as a CSV file with the name "commands_{number}.csv"
-csv_filename = f'commands_participant{number}.csv'
+csv_filename = f'commands_participant{user_id}.csv'
 df = pd.DataFrame(all_scene_data)
 df.to_csv(csv_filename, index=False)
 
 # Increment the number and update 'user.txt'
-new_number = number + 1
+new_user_id = user_id + 1
 with open('user.txt', 'w') as file:
-    file.write(str(new_number))
-
+    file.write(str(new_user_id))
 
 #upload csv to google drive shared folder
 service = drive_upload.service_account_login()
@@ -116,11 +119,3 @@ if os.path.exists(file_name):
 
 
 breakpoint()
-
-#idea:
-#put a verify button
-#verify button is disabled until boxes are filled
-#next button is disabled until verified
-#if verification fails, pop up alert, user refreshes (maybe make a refresh button in the alert)
-#if verfication passes, save the data and disable/remove the iframe so they don't mess with it further
-#once verification passes, enable next button so user can click and move to the next page

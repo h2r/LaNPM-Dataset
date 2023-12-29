@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scene 4</title>
+    <title>Scene 1</title>
     <style>
         #blocking-overlay {
             position: fixed;
@@ -24,8 +24,7 @@
             text-align: center;
         }
 
-        #next-button {
-            display: none;
+        #next-button, #instructions-button, #verify-button {
             background-color: #4CAF50;
             color: white;
             padding: 15px 32px;
@@ -35,7 +34,32 @@
             font-size: 16px;
             cursor: pointer;
             margin-top: 20px;
+            margin-right: 10px;
         }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        .visually-hidden-checkbox {
+            position: absolute;
+            opacity: 0; /* Makes it invisible */
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
 
         .form-container {
             margin-top: 20px;
@@ -51,38 +75,78 @@
             padding: 5px;
             margin-bottom: 10px;
         }
+
+        #instructions-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Scene 4</h1>
+    <h1>Scene 1</h1>
 
     <div id="blocking-overlay">
-        <div id="blocking-message">Scene 4 loading... Will take approximately 15 seconds</div>
+        <div id="blocking-message">Scene 1 loading... Will take approximately 15 seconds</div>
     </div>
-    
+    <div id="checkboxContainer"></div>
     <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1600" height="1000"></iframe>
 
     <div class="form-container">
         <form id="command-form">
             <label for="command1">Command 1:</label>
             <input type="text" id="command1" name="command1" class="command-input">
-
             <label for="command2">Command 2:</label>
             <input type="text" id="command2" name="command2" class="command-input">
-
             <label for="command3">Command 3:</label>
             <input type="text" id="command3" name="command3" class="command-input">
-
             <label for="command4">Command 4:</label>
             <input type="text" id="command4" name="command4" class="command-input">
-
             <label for="command5">Command 5:</label>
             <input type="text" id="command5" name="command5" class="command-input">
         </form>
     </div>
 
     <div id="submission-message" style="display: none;">Commands submitted!</div>
+    <div id="verified-message" style="display: none;">Verified!</div>
+
+
+    <!-- <input type="checkbox" id="invisibleCheckbox" class="visually-hidden-checkbox"> -->
+    <!-- <input type="checkbox" id="invisibleCheckbox"> -->
+    <button id="verify-button" onclick="displayFlag()" disabled>Verify</button>
     <button id="next-button" onclick="goToNextScene()" disabled>Next</button>
+    <button id="instructions-button" onclick="showInstructions()">Instructions</button>
+
+    <div id="instructions-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInstructions()">&times;</span>
+            <h1>Instructions</h1>
+            <!-- Instructions content here -->
+        </div>
+    </div>
 
     <script>
         function showBlockingOverlay() {
@@ -90,23 +154,76 @@
             blockingOverlay.style.display = 'flex';
         }
 
-        showBlockingOverlay();
+        function closeInstructions() {
+            document.getElementById('instructions-modal').style.display = 'none';
+        }
+
+        function showInstructions() {
+            document.getElementById('instructions-modal').style.display = 'block';
+        }
 
         setTimeout(function() {
             var blockingOverlay = document.getElementById('blocking-overlay');
             blockingOverlay.style.display = 'none';
-
             var nextButton = document.getElementById('next-button');
             nextButton.style.display = 'block';
         }, 15000);
 
-        
         function goToNextScene() {
             document.getElementById('submission-message').style.display = 'block';
             setTimeout(function() {
-            window.location.href = 'scene5.html';  // Or other logic for proceeding to the next scene
-        }, 1000);  // Delay in milliseconds (3000ms = 3 seconds)
+                window.location.href = 'scene2.html';
+            }, 1000);
+        }
 
+        // function displayFlag() {
+        //     // Check if the flag message already exists
+        //     if (!document.getElementById('flag-message')) {
+        //         // Create the flag message element
+        //         var flagMessage = document.createElement('div');
+        //         flagMessage.id = 'flag-message';
+        //         flagMessage.className = 'visually-hidden'; // Assuming you want to keep it invisible
+        //         flagMessage.textContent = 'Flag!';
+
+        //         // Append it to the body or a specific container
+        //         document.body.appendChild(flagMessage);
+        //     }
+        // }
+            
+        
+        function toggleNextButtonBasedOnCheckbox() {
+            console.log('heyyy');
+            var checkbox = document.getElementById('invisibleCheckbox');
+            var nextButton = document.getElementById('next-button');
+            nextButton.disabled = !checkbox.checked;
+        }
+
+
+        function displayFlag() {
+            // Check if the flag message already exists
+            if (!document.getElementById('flag-message')) {
+                // Create the flag message element
+                var flagMessage = document.createElement('div');
+                flagMessage.id = 'flag-message';
+                flagMessage.className = 'visually-hidden';
+                flagMessage.textContent = 'Flag!';
+
+                // Create an invisible checkbox
+                var invisibleCheckbox = document.createElement('input');
+                invisibleCheckbox.type = 'checkbox';
+                invisibleCheckbox.id = 'invisibleCheckbox';
+                // invisibleCheckbox.className = 'visually-hidden-checkbox';
+
+                // Find the container where you want to add the checkbox
+                var container = document.getElementById('checkboxContainer');
+
+                // Append the flag message and the invisible checkbox to the container
+                container.appendChild(flagMessage);
+                container.appendChild(invisibleCheckbox);
+
+                invisibleCheckbox.addEventListener('change', toggleNextButtonBasedOnCheckbox);
+                document.getElementById('verified-message').style.display = 'block';
+            }
         }
 
 
@@ -119,13 +236,15 @@
                     break;
                 }
             }
-            document.getElementById('next-button').disabled = !allFilled;
+            document.getElementById('verify-button').disabled = !allFilled;
         }
 
         var inputs = document.getElementsByClassName('command-input');
         for (var i = 0; i < inputs.length; i++) {
             inputs[i].addEventListener('input', checkInputs);
         }
+
+        // document.getElementById('invisibleCheckbox').addEventListener('change', toggleNextButtonBasedOnCheckbox);
     </script>
 </body>
 </html>
