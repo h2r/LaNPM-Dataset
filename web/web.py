@@ -50,15 +50,16 @@ chrome_options.add_experimental_option("detach", True)
 driver = webdriver.Chrome(options=chrome_options)
 
 
-driver.get('file:///home/ahmedjaafar/NPM-Dataset/web/index.html')
+# driver.get('file:///home/ahmedjaafar/NPM-Dataset/web/index.html')
+driver.get('file:///home/ajaafar/h2r/NPM-Dataset/web/index.html')
 driver.implicitly_wait(1)
 
 script = f"""
 var newElement = document.createElement('p');
 newElement.innerHTML = 'Please copy this ID and paste it into Prolific: <span style="color: red;">{user_id}</span>';
 newElement.style.fontSize = '30px';
-var startButton = document.querySelector('button[onclick="navigateToScene(\\'scene1.html\\')"]');
-startButton.parentNode.insertBefore(newElement, startButton);
+var instructionsHeading = document.querySelector('h1');
+instructionsHeading.parentNode.insertBefore(newElement, instructionsHeading.nextSibling);
 """
 
 driver.execute_script(script)
