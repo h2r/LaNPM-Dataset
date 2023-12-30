@@ -46,7 +46,7 @@ def transform(image, dtype, num_bytes):
     return img
 
 
-def capture(robot, format):
+def capture(robot, format=None, mode="front"):
     robot.sync_with_directory()
     robot.time_sync.wait_for_sync()
 
@@ -54,42 +54,66 @@ def capture(robot, format):
     img_sources = ['frontleft_fisheye_image','frontright_fisheye_image']
     depth_sources = ['frontright_depth', 'frontleft_depth']
     imgs = []
+    if mode == "front":
+        if format == "PIXEL_FORMAT_RGB_U8":
 
-    if format == "PIXEL_FORMAT_RGB_U8":
+            pixel_format = pixel_format_string_to_enum(format)
+            
+            image_request = [
+                build_image_request(source, pixel_format=pixel_format)
+                for source in img_sources
+            ]
+            image_responses = image_client.get_image(image_request)
 
-        pixel_format = pixel_format_string_to_enum(format)
+            for image in image_responses:
+                num_bytes = 3
+                dtype = np.uint8
+                # extension = '.jpg'
+                img = transform(image, dtype, num_bytes)
+                img = np.rot90(img, k=3)
+                imgs.append[img]
+
+        else:
+            pixel_format = pixel_format_string_to_enum(format)
+            
+            image_request = [
+                build_image_request(source, pixel_format=pixel_format)
+                for source in depth_sources
+            ]
+            image_responses = image_client.get_image(image_request)
+
+            for image in image_responses:
+                num_bytes = 1 
+                dtype = np.uint16
+                # extension = '.png'
+                img = transform(image, dtype, num_bytes)
+                img = np.rot90(img, k=3)
+                imgs.append[img]
+
+                imgs.append[img]
         
-        image_request = [
-            build_image_request(source, pixel_format=pixel_format)
-            for source in img_sources
-        ]
-        image_responses = image_client.get_image(image_request)
-
-        for image in image_responses:
-            num_bytes = 3
-            dtype = np.uint8
-            # extension = '.jpg'
-            img = transform(image, dtype, num_bytes)
-            img = np.rot90(img, k=3)
-            imgs.append[img]
-
+        return imgs
     else:
-        pixel_format = pixel_format_string_to_enum(format)
-        
-        image_request = [
-            build_image_request(source, pixel_format=pixel_format)
-            for source in depth_sources
-        ]
-        image_responses = image_client.get_image(image_request)
+        image_responses = image_client.get_image_from_sources(['hand_color_image'])
+        resp = image_responses[0]
 
-        for image in image_responses:
-            num_bytes = 1 
+        # Display the image to the user
+        image = image_responses[0]
+        if image.shot.image.pixel_format == image_pb2.Image.PIXEL_FORMAT_DEPTH_U16:
             dtype = np.uint16
-            # extension = '.png'
-            img = transform(image, dtype, num_bytes)
-            img = np.rot90(img, k=3)
-            imgs.append[img]
+            print('hi')
+        else:
+            dtype = np.uint8
+        img = np.fromstring(image.shot.image.data, dtype=dtype)
+        if image.shot.image.format == image_pb2.Image.FORMAT_RAW:
+            img = img.reshape(image.shot.image.rows, image.shot.image.cols)
+        else:
+            img = cv2.imdecode(img, -1)
+        # Display the image in a window
+        cv2.imshow('Window Title', img)  # 'Window Title' is the title of the window
 
-            imgs.append[img]
-    
-    return imgs
+        # Wait for any key to be pressed before closing the window
+        cv2.waitKey(0)
+
+        breakpoint()
+        return img

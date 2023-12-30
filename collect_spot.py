@@ -7,6 +7,10 @@ from bosdyn.client.manipulation_api_client import ManipulationApiClient
 from get_image import capture
 
 
+IP = '138.16.161.24'
+USER = 'user'
+PASS = "bigbubbabigbubba"
+
 previous_gripper_open_percentage = None
 
 def is_moving(robot_state, threshold=0.05):
@@ -54,19 +58,19 @@ def is_gripper_moving(manipulator_state, threshold=0.01):
 
 
 
-def collect_data(image_client, manipulation_client):
+def collect_data(manipulation_client, robot, robot_state):
     """Collect and return required data."""
-    # Placeholder for collecting image data from front and gripper cameras
-    front_image_data = "front_camera_image_data"  # Replace with actual image capture logic
-    gripper_image_data = "gripper_camera_image_data"  # Replace with actual image capture logic
+    front_image_data = capture(robot, "PIXEL_FORMAT_RGB_U8")
+    front_depth_data = capture(robot, "PIXEL_FORMAT_DEPTH_U16")
+    gripper_image_data = capture(robot, mode="arm")
 
-    # Placeholder for collecting arm and gripper state
-    arm_state_data = "arm_state_data"  # Replace with actual arm state capture logic
+    arm_state_data = None # Replace
     gripper_state_data = "gripper_state_data"  # Replace with actual gripper state capture logic
 
     return {
         "images": {
-            "front_camera": front_image_data,
+            "front_rgb_camera": front_image_data,
+            "front_depth_camera": front_depth_data,
             "gripper_camera": gripper_image_data
         },
         "arm_state": arm_state_data,
@@ -84,91 +88,33 @@ def is_robot_sitting(robot_state):
     return False
 
 
-def get_image(sdk, robot):
-    import cv2
-    import numpy as np
-    import bosdyn.client
-    from bosdyn.client.image import ImageClient
-    from bosdyn.api import image_pb2
-    from bosdyn.client.image import ImageClient, build_image_request
-
-
-    sdk = bosdyn.client.create_standard_sdk('image_capture')
-    robot = sdk.create_robot(options.hostname)
-    bosdyn.client.util.authenticate(robot)
-    robot.sync_with_directory()
-    robot.time_sync.wait_for_sync()
-
-    image_client = robot.ensure_client(options.image_service)
-    requests = [
-        build_image_request(source, quality_percent=options.jpeg_quality_percent,
-                            resize_ratio=options.resize_ratio) for source in options.image_sources
-    ]
-
-    for image_source in options.image_sources:
-        cv2.namedWindow(image_source, cv2.WINDOW_NORMAL)
-        if len(options.image_sources) > 1 or options.disable_full_screen:
-            cv2.setWindowProperty(image_source, cv2.WND_PROP_AUTOSIZE, cv2.WINDOW_AUTOSIZE)
-        else:
-            cv2.setWindowProperty(image_source, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
-    # # Create image client
-    # image_client = robot.ensure_client(ImageClient.default_service_name)
-
-    # # Define camera name
-    # camera_name = 'frontright_fisheye_image'
-
-    # image_request = [image_pb2.ImageRequest(image_source_name=camera_name, 
-    #                                     pixel_format=image_pb2.Image.PIXEL_FORMAT_RGB_U8)]
-    # response = image_client.get_image(image_request)
-
-    # if response:
-    #     image_data = response[0].shot.image.data
-    #     nparr = np.frombuffer(image_data, np.uint8)
-    #     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    #     # Correct the orientation by rotating the image
-    #     # rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
-    #     cv2.imwrite('front_right_camera_image.jpg', image)
-
 def main():
     # Create robot object and authenticate
     sdk = bosdyn.client.create_standard_sdk('SpotRobotClient')
-    robot = sdk.create_robot('138.16.161.24')
-    robot.authenticate('user', 'bigbubbabigbubba')
-
-    # image_client = robot.ensure_client(ImageClient.default_service_name)
-    # camera_sources = image_client.list_image_sources()
-    # print("Available camera sources:", camera_sources)
+    robot = sdk.create_robot(IP)
+    robot.authenticate(USER, PASS)
 
 
     # Create state, image, and manipulation clients
     state_client = robot.ensure_client(RobotStateClient.default_service_name)
-    # image_client = robot.ensure_client(ImageClient.default_service_name)
-    manipulation_client = robot.ensure_client(ManipulationApiClient.default_service_name)
 
     data_sequence = []
 
     while True:
         robot_state = state_client.get_robot_state()
         manipulator_state = robot_state.manipulator_state
-       
-        # arm_state = manipulation_client.get_arm_state()
-        # print(manipulation_client.manipulation_api_feedback_command)
 
         # if is_robot_sitting(robot_state):
         #     with open('spot_data.json', 'w') as file:
         #         json.dump(data_sequence, file, indent=4)
         #     break
-
-        # get_image(sdk, robot)
-        # capture(robot, "PIXEL_FORMAT_RGB_U8")
-        capture(robot, "PIXEL_FORMAT_DEPTH_U16")
-        print('done')
-        exit()
+       
         if is_moving(robot_state) or is_arm_moving(manipulator_state) or is_gripper_moving(manipulator_state):
             print('moving')
-            # collected_data = collect_data(image_client, manipulation_client)
+            # print(manipulator_state)
+            # print(arm_state)
+            print(robot_state)
+            # collected_data = collect_data(manipulation_client, robot, robot_state)
             # data_sequence.append(collected_data)
         else:
             print('not moving')
