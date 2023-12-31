@@ -2,7 +2,6 @@ import bosdyn.client
 import json
 import time
 from bosdyn.client.robot_state import RobotStateClient
-from bosdyn.client.image import ImageClient
 from bosdyn.client.manipulation_api_client import ManipulationApiClient
 from get_image import capture
 
@@ -58,23 +57,77 @@ def is_gripper_moving(manipulator_state, threshold=0.01):
 
 
 
-def collect_data(manipulation_client, robot, robot_state):
+def collect_data(robot, robot_state):
     """Collect and return required data."""
     front_image_data = capture(robot, "PIXEL_FORMAT_RGB_U8")
     front_depth_data = capture(robot, "PIXEL_FORMAT_DEPTH_U16")
+    front_depth_color_data = capture(robot)
     gripper_image_data = capture(robot, mode="arm")
 
-    arm_state_data = None # Replace
-    gripper_state_data = "gripper_state_data"  # Replace with actual gripper state capture logic
+    body_state_odom = robot_state.kinematic_state.velocity_of_body_in_odom
+    body_state_vision = robot_state.kinematic_state.velocity_of_body_in_vision
+    arm_state_odom = robot_state.manipulator_state.velocity_of_hand_in_odom
+    arm_state_vision = robot_state.manipulator_state.velocity_of_hand_in_vision
+    gripper_open_percent = robot_state.manipulator_state.gripper_open_percentage
+    stow_state = robot_state.manipulator_state.stow_state
 
     return {
         "images": {
-            "front_rgb_camera": front_image_data,
-            "front_depth_camera": front_depth_data,
-            "gripper_camera": gripper_image_data
+            # "front_rgb_camera": list(front_image_data),
+            # "front_depth_camera": list(front_depth_data),
+            # "front_depth_color_camera": list(front_depth_color_data),
+            # "gripper_camera": list(gripper_image_data)
         },
-        "arm_state": arm_state_data,
-        "gripper_state": gripper_state_data
+        "body_state_odom": {
+            "linear": {
+                "x": body_state_odom.linear.x,
+                "y": body_state_odom.linear.y,
+                "z": body_state_odom.linear.z
+            },
+            "angular": {
+                "x": body_state_odom.angular.x,
+                "y": body_state_odom.angular.y,
+                "z": body_state_odom.angular.z
+            }
+        },
+        "body_state_vision": {
+            "linear": {
+                "x": body_state_vision.linear.x,
+                "y": body_state_vision.linear.y,
+                "z": body_state_vision.linear.z
+            },
+            "angular": {
+                "x": body_state_vision.angular.x,
+                "y": body_state_vision.angular.y,
+                "z": body_state_vision.angular.z
+            }
+        },
+        "arm_state_odom": {
+            "linear": {
+                "x": arm_state_odom.linear.x,
+                "y": arm_state_odom.linear.y,
+                "z": arm_state_odom.linear.z
+            },
+            "angular": {
+                "x": arm_state_odom.angular.x,
+                "y": arm_state_odom.angular.y,
+                "z": arm_state_odom.angular.z
+            }
+        },
+        "arm_state_vision": {
+            "linear": {
+                "x": arm_state_vision.linear.x,
+                "y": arm_state_vision.linear.y,
+                "z": arm_state_vision.linear.z
+            },
+            "angular": {
+                "x": arm_state_vision.angular.x,
+                "y": arm_state_vision.angular.y,
+                "z": arm_state_vision.angular.z
+            }
+        },
+        "gripper_open_percent": gripper_open_percent,
+        "stow_state": stow_state
     }
 
 def is_robot_sitting(robot_state):
@@ -102,20 +155,18 @@ def main():
 
     while True:
         robot_state = state_client.get_robot_state()
-        manipulator_state = robot_state.manipulator_state
-
-        # if is_robot_sitting(robot_state):
-        #     with open('spot_data.json', 'w') as file:
-        #         json.dump(data_sequence, file, indent=4)
-        #     break
+        # collected_data = collect_data(robot, robot_state)
+        
+        if is_robot_sitting(robot_state):
+            with open('spot_data2.json', 'w') as file:
+                json.dump(data_sequence, file, indent=4)
+                print('Data saved!')
+            break
        
-        if is_moving(robot_state) or is_arm_moving(manipulator_state) or is_gripper_moving(manipulator_state):
+        if is_moving(robot_state) or is_arm_moving(robot_state.manipulator_state) or is_gripper_moving(robot_state.manipulator_state):
             print('moving')
-            # print(manipulator_state)
-            # print(arm_state)
-            print(robot_state)
-            # collected_data = collect_data(manipulation_client, robot, robot_state)
-            # data_sequence.append(collected_data)
+            collected_data = collect_data(robot, robot_state)
+            data_sequence.append(collected_data)
         else:
             print('not moving')
 
