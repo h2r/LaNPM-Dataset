@@ -4,8 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instructions</title>
+
+    <style>
+        /* The Overlay (background) */
+        .overlay {
+        position: fixed; /* Sit on top of the page content */
+        display: none; /* Hidden by default */
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: white; /* Solid white background */
+        z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+        cursor: pointer; /* Add a pointer on hover */
+        }
+
+      
+        /* The Overlay Content */
+        .overlay-content {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          text-align: center;
+          font-size: 30px; /* Larger text */
+        }
+      
+        /* The Close Button */
+        .overlay-close {
+          position: absolute;
+          top: 20px;
+          right: 45px;
+          font-size: 60px;
+          cursor: pointer;
+        }
+      </style>      
 </head>
 <body>
+    <!-- The Overlay -->
+    <div id="overlay" class="overlay">
+        <!-- Overlay content -->
+        <div class="overlay-content">
+        <span class="overlay-close" onclick="closeOverlay()">&times;</span>
+        <p>Please copy this ID and paste it into Prolific then close this box when done: <span style="color: red;" id="user_id_span"></span></p>
+        </div>
+    </div>
+  
+  
     <h1>Instructions</h1>
     
     <font size="+2">
@@ -82,12 +129,27 @@
     <br>
     <br>
     <!-- Start button -->
-    <button onclick="navigateToScene('scene1.html')" style="padding: 15px 30px; font-size: 20px; width: 200px; height: 50px;">Start</button>
+    <button onclick="navigateToScene('scene1')" style="padding: 15px 30px; font-size: 20px; width: 200px; height: 50px;">Start</button>
 
     <script>
-        function navigateToScene(sceneUrl) {
-            window.location.href = sceneUrl;
+        window.onload = function() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('user_id_span').innerText = "{{ user_id }}";
+        };
+    
+        // Function to navigate to a scene
+        function navigateToScene(sceneName) {
+            window.location.href = '/' + sceneName;
+        }
+        
+        // Function to close the overlay
+        function closeOverlay() {
+            document.getElementById('overlay').style.display = 'none';
         }
     </script>
+    
+    
+    
+      
 </body>
 </html>

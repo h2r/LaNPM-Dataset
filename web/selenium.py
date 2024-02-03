@@ -6,7 +6,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 import pandas as pd
 import os
-import drive_upload
+import backend.drive_upload as drive_upload
 
 
 with open("user.txt", "r") as file:
