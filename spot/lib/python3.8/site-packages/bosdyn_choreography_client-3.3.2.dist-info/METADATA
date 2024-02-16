@@ -1,0 +1,37 @@
+Metadata-Version: 2.1
+Name: bosdyn-choreography-client
+Version: 3.3.2
+Summary: Boston Dynamics API client code and interfaces for choreography
+Home-page: https://dev.bostondynamics.com/
+Author: Boston Dynamics
+Author-email: support@bostondynamics.com
+Project-URL: Documentation, https://dev.bostondynamics.com/
+Project-URL: Source, https://github.com/boston-dynamics/spot-sdk/
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: License :: Other/Proprietary License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Requires-Dist: bosdyn-api (==3.3.2)
+Requires-Dist: bosdyn-core (==3.3.2)
+Requires-Dist: bosdyn-client (==3.3.2)
+Requires-Dist: bosdyn-choreography-protos (==3.3.2)
+
+<!--
+Copyright (c) 2023 Boston Dynamics, Inc.  All rights reserved.
+
+Downloading, reproducing, distributing or otherwise using the SDK Software
+is subject to the terms and conditions of the Boston Dynamics Software
+Development Kit License (20191101-BDSDK-SL).
+-->
+
+# bosdyn-choreography-client
+
+<p align="center">
+<img src="https://www.bostondynamics.com/sites/default/files/2020-05/spot.png" style="max-width:50%;">
+</p>
+
+The bosdyn-choreography-client wheel contains client interfaces for interacting with the Boston Dynamics Choreography API. The client interfaces implement the Remote Procedure Calls (RPCs) defined in the [bosdyn-choreography-protos wheel](https://pypi.org/project/bosdyn-choreography-protos/).
