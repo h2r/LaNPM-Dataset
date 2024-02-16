@@ -1,3 +1,4 @@
 *.zip
+spot/
 web/web/
 __pycache__/
