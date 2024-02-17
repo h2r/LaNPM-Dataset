@@ -38,28 +38,40 @@ def scene5():
 def end():
     return render_template('end.html')
 
-def append_scene_data(scene_data):
-    all_scene_data.append(scene_data)
-    return {'message': 'Data received successfully'}
 
 @application.route('/submit', methods=['POST'])
 def submit_data():
     scene_data = request.json
-    result = append_scene_data(scene_data)
-    return jsonify(result)
+
+    if 'all_scene_data' not in session:
+        session['all_scene_data'] = []
+
+    session['all_scene_data'].append(scene_data)
+
+    # Flask sessions are stored client-side in cookies by default,
+    # so you must explicitly mark the session as modified to ensure it gets saved
+    session.modified = True
+
+    return jsonify({'message': 'Data received and stored in session.'})
+
 
 @application.route('/save', methods=['POST'])
 def save_data():
     scene_data = request.json
-    all_scene_data.append(scene_data)
+    # all_scene_data.append(scene_data)
+    session['all_scene_data'].append(scene_data)
+    session.modified = True
+
     user_id = read_user_id(1)
+
+    all_data = session.get('all_scene_data', [])
 
     # Save the DataFrame as a CSV file with the name "commands_{number}.csv"
     csv_filename = f'commands_participant{user_id}.csv'
-    df = pd.DataFrame(all_scene_data)
+    df = pd.DataFrame(all_data)
     df.to_csv(csv_filename, index=False)
 
-    # Increment the number and update 'user.txt'
+    # Increment the number
     new_user_id = int(user_id) + 1
     write_user_id(1, new_user_id)
 
@@ -75,6 +87,8 @@ def save_data():
     if os.path.exists(file_name):
         os.remove(file_name)
         print(f"{file_name} has been deleted.")
+
+    session.pop('all_scene_data', None)
 
     return jsonify({'message': 'Data saved successfully'})
 
