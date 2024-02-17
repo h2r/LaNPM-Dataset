@@ -187,49 +187,66 @@
         <div class="modal-content">
             <span class="close" onclick="closeInstructions()">&times;</span>
             <h1>Instructions</h1>
-            <!-- Instructions content here -->
             <font size="+2">
-                Thank you for being part of our data collection. We are part of the Brown University Humans To Robots Laboratory under Principal Investigator Prof. Stefanie Tellex. We’re gathering natural language commands for completing household tasks in AI2-THOR, a virtual environment. 
+                Thank you for being part of our data collection. We are part of the Brown University Humans To Robots Laboratory under Principal Investigator Prof. Stefanie Tellex. We’re gathering natural language commands for completing household tasks in AI2-THOR, a virtual environment.
                 <br>
                 <br>
-                A personal assistant robot has the ability to navigate to different landmarks in the environment and manipulate objects. It also has a camera, so it can perceive different items and qualities about its environment. We will show you how the robot operates in the environment (see the examples below)
+                A personal assistant robot has the ability to navigate to different landmarks in the environment and manipulate objects. It also has a camera, so it can perceive different items and qualities about its environment. You will see a video below of how the robot operates in the environment.
                 <br>
                 <br>
-                Your task is to provide 15 separate natural language commands which <b>instruct the robot to perform tasks that include manipulation, navigation, and perception. To be super clear, all three must be present in the commands.</b> The tasks are limited to pick up/grab and place/drop tasks. Make sure the commands instruct the robot to move to different rooms.  
+                Your task is to provide <b>25</b> separate natural language commands. These 25 are split across 5 different scenes (environments), meaning you will provide 5 per scene. These <b>instruct the robot to perform tasks that include manipulation, navigation, and perception. To be super clear, all three must be present in the commands.</b> The tasks are limited to pick up/grab and place/drop tasks. Make sure the commands instruct the robot to move to different rooms. Examples of commands along with their video demos are shown below.
                 <br>
                 <br>
-                The robot starts in the same position in each scene. That position depends on the specific scene. Each command in each scene should assume the robot starts in that position. Each command you provide should specify a <b>single</b> task. The robot focuses on the current task and does not keep track of the previous tasks executed so far.
+                The robot starts in the same position in each scene. That position depends on the specific scene. Each command in each scene should assume the robot starts in that position.  Each command you provide should specify a <b>single</b> task. The robot focuses on the current task and does not keep track of the previous tasks executed so far. 
                 <br>
                 <br>
-                You can refer to the landmarks and objects in the environment however you like as long as you are clear, the objects and rooms exist, and the commands contain all three aspects (perception, navigation, manipulation), and have the robot moving to different rooms. The robot can come back to the starting room/position after it visits other rooms. The robot can take objects from the starting area/room to other areas/rooms. Don’t limit your commands to what you think the robot might “understand”, rather pretend the robot is as intelligent as a human and command it as you would command any human. We cannot tell you if your command is good or bad because that would bias the commands.
+                You can refer to the furniture and objects (excluding the ones from the list below) in the environment however you like as long as you are clear, the objects and rooms exist (excluding the ones from the list below), and the commands contain all three aspects (perception, navigation, manipulation), and have the robot moving to different rooms. The robot can come back to the starting room/position after it visits other rooms if you would like. The robot can take objects from the starting area/room to other areas/rooms if you would like. Don’t limit your commands to what you think the robot might “understand”, rather pretend the robot is as intelligent as a human.
                 <br>
                 <br>
-                You will be able to reread these instructions in the following pages in case you forget. 
+                You will be able to reread these instructions and rewatch the videos in the following pages.
                 <br>
                 <br>
-                Examples:
+                After the 5th scene, you will receive the completion code.
+                <br>
+                <br>
+                Do <b>NOT</b> refer to these objects, even if they exist in the scene:
                 <ul>
-                    <li>Command: “Go to the living room and grab the purple pillow that’s on the couch, then go to the office and place it on the chair.”</li>
+                    <li>Laptop</li>
+                    <li>Desk</li>
+                    <li>Anything that can be turned on/opened</li>
+                        <ul>
+                            <li>Faucet</li>
+                            <li>Lamp (sometimes labeled 'floor')</li>
+                            <li>TV</li>   
+                            <li>Drawers</li>
+                            <li>Fridge</li>
+                            <li>Etc.</li>
+                        </ul>
+                </ul>
+                <h4>Video:</h4>
+                <iframe src="https://drive.google.com/file/d/1-POxqTh2AedW-ZIYSGbPJQc3b3FDfcOL/preview" width="640" height="480" allow="autoplay"></iframe>
+                <h4>Examples:</h4>
+                <ul>
+                    <li>Command: “Go to the living room and grab the purple pillow that’s on the couch, then go to the office and place it on the chair.” | <a href="https://drive.google.com/file/d/1sVPCb4crnW4ogTjP692hSDakNJmkYMUZ/view?usp=sharing" target="_blank">Demo video</a></li>
                         <ul>
                             <li>Navigation: “Go to the living room”, “go to the office”</li>
                             <li>Manipulation: “grab”, “place it”</li>
                             <li>Perception: “purple pillow that’s on the couch”, “the chair”</li> 
                         </ul>
-                    <li>Command: “Go to the living room and pick up the basketball, then go to the can and drop it inside.”</li>
+                    <li>Command: “Go to the living room and pick up the basketball, then go to the can and drop it inside.” | <a href="https://drive.google.com/file/d/13yvT4bc8vdUiDV7NC1cFB5bqHgmIFHtB/view?usp=sharing" target="_blank">Demo video</a></li>
                         <ul>
                             <li>Navigation: “Go to the living room”, “go to the can”</li>
                             <li>Manipulation: “pick up”, “drop it”</li>
                             <li>Perception: “basketball”, “can”</li>
                         </ul>
-                    <li>Command: “Go to the bedroom and grab my phone off the bed, then bring it back to me.” </li>
+                    <li>Command: “Go to the bedroom and grab my phone off the bed, then bring it back to me.” | <a href="https://drive.google.com/file/d/1IBgKx3n9BkmMyOuNUcuVzDjFugTd-2Pk/view?usp=sharing" target="_blank">Demo video</a></li>
                         <ul>
                             <li>Navigation: “Go to the bedroom”, “bring it back to me”</li>
                             <li>Manipulation: “grab”</li>
                             <li>Perception: “my phone off the bed”, “me”</li>
                         </ul>
-                  </ul> 
-                <br>
-                FAQ:
+                  </ul>
+                <h4>FAQ:</h4>
                 <ul>
                     <li>Q: Can the robot search for an object rather than the command telling it exactly where it is? For example “Find the basketball and bring it back to me”.</li>
                         <ul>
@@ -257,7 +274,6 @@
                         </ul>
                 </ul>
             </font>
-        
         </div>
     </div>
 
