@@ -9,7 +9,6 @@ application.secret_key = 'af@93k$j392}a'
 
 all_scene_data = []
 
-
 @application.route('/')
 def index():
     user_id = read_user_id(1)
