@@ -1,18 +1,18 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 import pandas as pd
 import drive_upload
 import os
-
+from dynamodb import read_user_id, write_user_id
 
 application = Flask(__name__)
+application.secret_key = 'af@93k$j392}a' 
 
 all_scene_data = []
 
-with open("user.txt", "r") as file:
-        user_id = file.read().strip()
 
 @application.route('/')
 def index():
+    user_id = read_user_id(1)
     return render_template('index.html', user_id=user_id)
 
 @application.route('/scene1')
@@ -53,6 +53,7 @@ def submit_data():
 def save_data():
     scene_data = request.json
     all_scene_data.append(scene_data)
+    user_id = read_user_id(1)
 
     # Save the DataFrame as a CSV file with the name "commands_{number}.csv"
     csv_filename = f'commands_participant{user_id}.csv'
@@ -61,8 +62,7 @@ def save_data():
 
     # Increment the number and update 'user.txt'
     new_user_id = int(user_id) + 1
-    with open('user.txt', 'w') as file:
-        file.write(str(new_user_id))
+    write_user_id(1, new_user_id)
 
     #upload csv to google drive shared folder
     service = drive_upload.service_account_login()
@@ -81,4 +81,4 @@ def save_data():
 
 
 if __name__ == '__main__':
-    application.run(debug=True)
+    application.run()
