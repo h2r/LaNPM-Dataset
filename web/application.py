@@ -42,11 +42,11 @@ def save_data():
 
     all_data = session.get('all_scene_data', [])
 
-    csv_filename = f'commands_participant{unique_id}.csv'
+    csv_filename = f'commands_participant_{unique_id}.csv'
     df = pd.DataFrame(all_data)
-    csv_content = df.to_csv(csv_filename, index=False)
+    df.to_csv(csv_filename, index=False)
 
-    save_csv_to_s3(csv_content, csv_filename)
+    save_csv_to_s3(csv_filename)
 
     if os.path.exists(csv_filename):
         os.remove(csv_filename)

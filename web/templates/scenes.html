@@ -322,11 +322,6 @@
     </div>
 
     <script>
-        function showBlockingOverlay() {
-            var blockingOverlay = document.getElementById('blocking-overlay');
-            blockingOverlay.style.display = 'flex';
-        }
-
         function closeInstructions() {
             document.getElementById('instructions-modal').style.display = 'none';
         }
@@ -335,21 +330,34 @@
             document.getElementById('instructions-modal').style.display = 'block';
         }
 
-        setTimeout(function() {
-            var blockingOverlay = document.getElementById('blocking-overlay');
-            blockingOverlay.style.display = 'none';
-            var nextButton = document.getElementById('finish-button');
-            nextButton.style.display = 'block';
-        }, 15000);
-
         function dataAndNextScene() {
 
             var formData = {
-            'command1': document.getElementById('command1').value,
-            'command2': document.getElementById('command2').value,
-            'command3': document.getElementById('command3').value,
-            'command4': document.getElementById('command4').value,
-            'command5': document.getElementById('command5').value
+                's1c1': document.getElementById('s1c1').value,
+                's1c2': document.getElementById('s1c2').value,
+                's1c3': document.getElementById('s1c3').value,
+                's1c4': document.getElementById('s1c4').value,
+                's1c5': document.getElementById('s1c5').value,
+                's2c1': document.getElementById('s2c1').value,
+                's2c2': document.getElementById('s2c2').value,
+                's2c3': document.getElementById('s2c3').value,
+                's2c4': document.getElementById('s2c4').value,
+                's2c5': document.getElementById('s2c5').value,
+                's3c1': document.getElementById('s3c1').value,
+                's3c2': document.getElementById('s3c2').value,
+                's3c3': document.getElementById('s3c3').value,
+                's3c4': document.getElementById('s3c4').value,
+                's3c5': document.getElementById('s3c5').value,
+                's4c1': document.getElementById('s4c1').value,
+                's4c2': document.getElementById('s4c2').value,
+                's4c3': document.getElementById('s4c3').value,
+                's4c4': document.getElementById('s4c4').value,
+                's4c5': document.getElementById('s4c5').value,
+                's5c1': document.getElementById('s5c1').value,
+                's5c2': document.getElementById('s5c2').value,
+                's5c3': document.getElementById('s5c3').value,
+                's5c4': document.getElementById('s5c4').value,
+                's5c5': document.getElementById('s5c5').value
             };
 
             // AJAX request to Flask

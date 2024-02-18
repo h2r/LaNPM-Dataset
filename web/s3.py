@@ -1,6 +1,6 @@
 import boto3
 
-def save_csv_to_s3(csv_content, file_name):
+def save_csv_to_s3(file_name):
     """
     Save CSV content to a file in an S3 bucket.
     
@@ -9,11 +9,11 @@ def save_csv_to_s3(csv_content, file_name):
     :param file_name: The S3 key under which to save the file.
     """
     # Initialize an S3 client
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client('s3',region_name='us-east-1')
     
     # Upload the CSV content
     try:
-        s3_client.put_object(Bucket="lanmp-participant-data", Key=file_name, Body=csv_content)
+        s3_client.upload_file(file_name, 'lanmp-participant-data', file_name)
         print(f"File {file_name} saved to bucket.")
     except Exception as e:
         print(f"Error saving file to S3: {e}")
