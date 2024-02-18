@@ -2,17 +2,20 @@ from flask import Flask, request, jsonify, render_template, session
 import pandas as pd
 import drive_upload
 import os
-from dynamodb import read_user_id, write_user_id
+from dynamodb import generate_unique_id, insert_unique_id
 
 application = Flask(__name__)
 application.secret_key = 'af@93k$j392}a' 
 
-all_scene_data = []
-
 @application.route('/')
 def index():
-    user_id = read_user_id(1)
-    return render_template('index.html', user_id=user_id)
+    if 'user_id' not in session:
+        unique_id = generate_unique_id()
+        insert_unique_id(unique_id)
+        session['user_id'] = unique_id
+    else:
+        unique_id = session['user_id']
+    return render_template('index.html', user_id=unique_id)
 
 @application.route('/scene1')
 def scene1():
@@ -38,7 +41,6 @@ def scene5():
 def end():
     return render_template('end.html')
 
-
 @application.route('/submit', methods=['POST'])
 def submit_data():
     scene_data = request.json
@@ -54,26 +56,20 @@ def submit_data():
 
     return jsonify({'message': 'Data received and stored in session.'})
 
-
 @application.route('/save', methods=['POST'])
 def save_data():
     scene_data = request.json
-    # all_scene_data.append(scene_data)
     session['all_scene_data'].append(scene_data)
     session.modified = True
 
-    user_id = read_user_id(1)
+    unique_id = session['user_id']
 
     all_data = session.get('all_scene_data', [])
 
     # Save the DataFrame as a CSV file with the name "commands_{number}.csv"
-    csv_filename = f'commands_participant{user_id}.csv'
+    csv_filename = f'commands_participant{unique_id}.csv'
     df = pd.DataFrame(all_data)
     df.to_csv(csv_filename, index=False)
-
-    # Increment the number
-    new_user_id = int(user_id) + 1
-    write_user_id(1, new_user_id)
 
     #upload csv to google drive shared folder
     service = drive_upload.service_account_login()

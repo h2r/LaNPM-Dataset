@@ -1,35 +1,31 @@
 import boto3
 from botocore.exceptions import ClientError
+from nanoid import generate
 
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 table = dynamodb.Table('userID')
 
-
-def read_user_id(user_id):
+def id_exists(unique_id):
     try:
-        # Attempt to fetch the item by its primary key
-        # response = table.get_item(Key={'user_id': user_id})
-        response = table.get_item(Key={'user_id': user_id}, ConsistentRead=True)
-        if 'Item' in response:
-            # The item exists, return the associated value
-            return response['Item']['value']
-        else:
-            # The item does not exist, initialize it with 0
-            write_user_id(user_id, 0)  # Insert user_id with a value of 0
-            return 0
+        response = table.get_item(Key={'user_id': unique_id})
+        return 'Item' in response
     except ClientError as e:
-        print(f"Error reading from DynamoDB: {e}")
-        return None  # Or handle the error as needed
+        print(e.response['Error']['Message'])
+        return False
 
-def write_user_id(user_id, new_value):
+def generate_unique_id():
+    while True:
+        new_id = generate(size=10)
+        if not id_exists(new_id):
+            return new_id
+
+def insert_unique_id(unique_id):
     try:
-        # Write or update the item in the table
         table.put_item(
             Item={
-                'user_id': user_id,   # Primary key column name
-                'value': new_value    # The attribute/column where the user_id value is stored
+                'user_id': unique_id,
             }
         )
     except ClientError as e:
-        print(f"Error writing to DynamoDB: {e}")
+        print(e.response['Error']['Message'])
