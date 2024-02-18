@@ -25,8 +25,8 @@ def scenes():
 def end():
     return render_template('end.html')
 
-@application.route('/submit', methods=['POST'])
-def submit_data():
+@application.route('/save', methods=['POST'])
+def save_data():
     scene_data = request.json
 
     if 'all_scene_data' not in session:
@@ -38,10 +38,6 @@ def submit_data():
     # so you must explicitly mark the session as modified to ensure it gets saved
     session.modified = True
 
-    return jsonify({'message': 'Data received and stored in session.'})
-
-@application.route('/save', methods=['POST'])
-def save_data():
     unique_id = session['user_id']
 
     all_data = session.get('all_scene_data', [])
