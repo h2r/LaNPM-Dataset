@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, session
 import pandas as pd
 import os
-from dynamodb import generate_unique_id, insert_unique_id
+from dynamodb import save_to_dynamodb
 from s3 import save_csv_to_s3
 
 application = Flask(__name__)
@@ -9,13 +9,13 @@ application.secret_key = 'af@93k$j392}a'
 
 @application.route('/')
 def index():
-    if 'user_id' not in session:
-        unique_id = generate_unique_id()
-        insert_unique_id(unique_id)
-        session['user_id'] = unique_id
-    else:
-        unique_id = session['user_id']
-    return render_template('index.html', user_id=unique_id)
+    prolific_pid = request.args.get('PROLIFIC_PID', default=None)
+    study_id = request.args.get('STUDY_ID', default=None)
+    session_id = request.args.get('SESSION_ID', default=None)
+    if prolific_pid and study_id and session_id:
+        save_to_dynamodb(prolific_pid, study_id, session_id)
+    
+    return render_template('index.html')
 
 @application.route('/scenes')
 def scenes():
