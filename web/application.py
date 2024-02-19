@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, session
 import pandas as pd
 import os
 from s3 import save_csv_to_s3
+from datetime import datetime
 
 application = Flask(__name__)
 application.secret_key = 'af@93k$j392}a' 
@@ -31,7 +32,11 @@ def save_data():
     study_id = session.get('study_id', None)
     session_id = session.get('session_id', None)
 
-    csv_filename = f'commands_participant_{prolific_pid}.csv'
+    #adding time ids for the pilot study since we don't have prolific url parameter id
+    id = datetime.now().strftime("%Y%m%d%H%M%S") if prolific_pid is None else prolific_pid
+    csv_filename = f'commands_participant_{id}.csv'
+
+
     df = pd.DataFrame(scene_data_lst)
     df.insert(0, 'session_id', session_id)
     df.insert(0, 'study_id', study_id)
