@@ -25,13 +25,14 @@ def end():
 @application.route('/save', methods=['POST'])
 def save_data():
     scene_data = request.json
+    scene_data_lst = [scene_data]
 
     prolific_pid = session.get('prolific_pid', None)
     study_id = session.get('study_id', None)
     session_id = session.get('session_id', None)
 
     csv_filename = f'commands_participant_{prolific_pid}.csv'
-    df = pd.DataFrame(scene_data)
+    df = pd.DataFrame(scene_data_lst)
     df.insert(0, 'session_id', session_id)
     df.insert(0, 'study_id', study_id)
     df.insert(0, 'prolific_pid', prolific_pid)
