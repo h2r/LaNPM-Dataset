@@ -1,53 +1,43 @@
 import json
 import os
-import re
 import random
+import glob
 
 def get_ground_truths():
-    # Define the directory containing the JSON files (replace 'your_directory_path' with the actual path)
-    directory_path = ''
-
-    # Initialize a list to store the ground truth actions
-    ground_truth_actions = []
-
-    # Regular expression to match file names
-    file_pattern = re.compile(r'^data_chunk_(\d{1,2})\.json$')
-
-    # Iterate through files in the specified directory
-    for file_name in os.listdir(directory_path):
-        # Check if the file name matches the pattern
-        if file_pattern.match(file_name):
-            # Construct the full file path
-            file_path = os.path.join(directory_path, file_name)
-            
-            # Open and read the JSON file
+    directory_path = '/home/ajaafar/h2r/NPM-Dataset/data/'
+    actions = []
+    # Use glob to find all JSON files in the directory
+    file_pattern = os.path.join(directory_path, '*.json')
+    for file_path in glob.glob(file_pattern):
+        try:
             with open(file_path, 'r') as file:
                 data = json.load(file)
-                
-                # Assuming each file contains an 'action' key at the root level
-                action = data.get('action')
-                if action:
-                    ground_truth_actions.append(action)
-
-    return ground_truth_actions
-
+                actions.append(data['steps'][0]['action'])
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from {file_path}: {e}")
+        except Exception as e:
+            print(f"Unexpected error with file {file_path}: {e}")
+    return actions
 
 
 actions = ["MoveRight", "MoveLeft", "MoveAhead", "MoveBack", "LookUp", "LookDown", "RotateRight", "RotateLeft"]
-
+accuracy_lst = []
 ground_truth_data = get_ground_truths()
 
-# Initialize a counter for the correct predictions
-correct_predictions = 0
+for i in range(10):
+    print(i+1)
+    correct_predictions = 0
 
-for gt_action in ground_truth_data:
-    predicted_action = random.choice(actions)
-    
-    if predicted_action == gt_action:
-        correct_predictions += 1
+    for gt_action in ground_truth_data:
+        predicted_action = random.choice(actions)
+        
+        if predicted_action == gt_action:
+            correct_predictions += 1
 
-# Calculate the total accuracy
-accuracy = (correct_predictions / len(ground_truth_data)) * 100
+    # Calculate the total accuracy
+    accuracy = (correct_predictions / len(ground_truth_data)) * 100
+    print(f"Accuracy: {accuracy}%")
+    accuracy_lst.append(accuracy)
 
 
-print(f"Total accuracy: {accuracy}%")
+print(f"Avg accuracy: {sum(accuracy_lst)/len(accuracy_lst)}%")
