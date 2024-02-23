@@ -4,7 +4,7 @@ import random
 import glob
 
 def get_ground_truths():
-    directory_path = '/home/ajaafar/h2r/NPM-Dataset/data/'
+    directory_path = '/home/ahmedjaafar/NPM-Dataset/data/val2_1-2'
     actions = []
     # Use glob to find all JSON files in the directory
     file_pattern = os.path.join(directory_path, '*.json')
@@ -13,6 +13,7 @@ def get_ground_truths():
             with open(file_path, 'r') as file:
                 data = json.load(file)
                 actions.append(data['steps'][0]['action'])
+                print('hi')
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON from {file_path}: {e}")
         except Exception as e:
@@ -20,7 +21,7 @@ def get_ground_truths():
     return actions
 
 
-actions = ["MoveRight", "MoveLeft", "MoveAhead", "MoveBack", "LookUp", "LookDown", "RotateRight", "RotateLeft"]
+actions = ["MoveRight", "MoveLeft", "MoveAhead", "MoveBack", "LookUp", "LookDown", "RotateAgent", "MoveArmBase", "MoveArm", "PickupObject", "ReleaseObject"]
 accuracy_lst = []
 ground_truth_data = get_ground_truths()
 
