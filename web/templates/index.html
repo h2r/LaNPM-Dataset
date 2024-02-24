@@ -10,37 +10,25 @@
     <h1>Instructions</h1>
     
     <font size="+2">
-        Thank you for being part of our data collection. We are part of the Brown University Humans To Robots Laboratory under Principal Investigator Prof. Stefanie Tellex. We’re gathering natural language commands for completing household tasks in AI2-THOR, a virtual environment.
+        Thank you for participating in our data collection. We are robotics researchers from Brown University. On the next page, you will write <b>25</b> unique natural language commands to a robot in 5 virtual household scenes, i.e., <b>5 commands per scene</b>.
         <br>
         <br>
-        A personal assistant robot has the ability to navigate to different landmarks in the environment and manipulate objects. It also has a camera, so it can perceive different items and qualities about its environment. You will see a video below of how the robot operates in the environment.
+        A personal assistant robot can navigate to different places in the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see a video below of how the robot operates in the environment.
         <br>
         <br>
-        Your task is to provide <b>25</b> separate natural language commands. These 25 are split across 5 different scenes (environments), meaning you will provide 5 per scene. These <b>instruct the robot to perform tasks that include manipulation, navigation, and perception. To be super clear, all three must be present in the commands.</b> The tasks are limited to pick up/grab and place/drop tasks. Make sure the commands instruct the robot to move to different rooms. Examples of commands along with their video demos are shown below.
+        When giving commands, you should assume the robot starts in the same position in each scene. Each command is separate and should not refer to any previous command. Your commands must describe picking up and placing objects as well as moving in the environment. You can refer to only furniture, objects, and rooms that exist in the environment. Make sure your commands instruct the robot to move between rooms. Do not limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>. Examples of commands are shown below.
         <br>
         <br>
-        The robot starts in the same position in each scene. That position depends on the specific scene. Each command in each scene should assume the robot starts in that position.  Each command you provide should specify a <b>single</b> task. The robot focuses on the current task and does not keep track of the previous tasks executed so far. 
-        <br>
-        <br>
-        You can refer to the furniture and objects (excluding the ones from the list below) in the environment however you like as long as you are clear, the objects and rooms exist (excluding the ones from the list below), and the commands contain all three aspects (perception, navigation, manipulation), and have the robot moving to different rooms. The robot can come back to the starting room/position after it visits other rooms if you would like. The robot can take objects from the starting area/room to other areas/rooms if you would like. Don’t limit your commands to what you think the robot might “understand”, rather pretend the robot is as intelligent as a human.
-        <br>
-        <br>
-        You will be able to reread these instructions and rewatch the videos in the following pages.
-        <br>
-        <br>
-        After the 5th scene, you will receive the completion code.
-        <br>
-        <br>
-        Do <b>NOT</b> refer to these objects, even if they exist in the scene:
+        Do <b>NOT</b> pick up/place these objects in your commands (you can refer to them in relation to something, like “pick up the bat next to the desk”), even if they exist in the scene:
         <ul>
             <li>Laptop</li>
             <li>Desk</li>
             <li>Anything that can be turned on/opened</li>
                 <ul>
+                    <li>Lamp (sometimes labeled “floor” or “desk”)</li>
+                    <li>TV</li>
+                    <li>Drawers</li>   
                     <li>Faucet</li>
-                    <li>Lamp (sometimes labeled 'floor')</li>
-                    <li>TV</li>   
-                    <li>Drawers</li>
                     <li>Fridge</li>
                     <li>Etc.</li>
                 </ul>
@@ -49,30 +37,17 @@
         <iframe src="https://drive.google.com/file/d/1-POxqTh2AedW-ZIYSGbPJQc3b3FDfcOL/preview" width="640" height="480" allow="autoplay"></iframe>
         <h4>Examples:</h4>
         <ul>
-            <li>Command: “Go to the living room and grab the purple pillow that’s on the couch, then go to the office and place it on the chair.” | <a href="https://drive.google.com/file/d/1sVPCb4crnW4ogTjP692hSDakNJmkYMUZ/view?usp=sharing" target="_blank">Demo video</a></li>
-                <ul>
-                    <li>Navigation: “Go to the living room”, “go to the office”</li>
-                    <li>Manipulation: “grab”, “place it”</li>
-                    <li>Perception: “purple pillow that’s on the couch”, “the chair”</li> 
-                </ul>
-            <li>Command: “Go to the living room and pick up the basketball, then go to the can and drop it inside.” | <a href="https://drive.google.com/file/d/13yvT4bc8vdUiDV7NC1cFB5bqHgmIFHtB/view?usp=sharing" target="_blank">Demo video</a></li>
-                <ul>
-                    <li>Navigation: “Go to the living room”, “go to the can”</li>
-                    <li>Manipulation: “pick up”, “drop it”</li>
-                    <li>Perception: “basketball”, “can”</li>
-                </ul>
-            <li>Command: “Go to the bedroom and grab my phone off the bed, then bring it back to me.” | <a href="https://drive.google.com/file/d/1IBgKx3n9BkmMyOuNUcuVzDjFugTd-2Pk/view?usp=sharing" target="_blank">Demo video</a></li>
-                <ul>
-                    <li>Navigation: “Go to the bedroom”, “bring it back to me”</li>
-                    <li>Manipulation: “grab”</li>
-                    <li>Perception: “my phone off the bed”, “me”</li>
-                </ul>
+            <li>“Go to the living room and grab the purple pillow that is on the couch, then go to the office and place it on the chair.”</li>
+            <li>“Go to the living room and pick up the basketball next to the table, then go to the can and drop it inside.”</li>
+            <li>“Go to the bedroom and grab my phone off the bed, then bring it back to me.”</li>
+            <li>“Bring me the black TV remote on the table in the living room.”</li>
+            <li>“Take the baseball bat next to you and move it to the desk in the bedroom”</li>
           </ul> 
         <h4>FAQ:</h4>
         <ul>
-            <li>Q: Can the robot search for an object rather than the command telling it exactly where it is? For example “Find the basketball and bring it back to me”.</li>
+            <li>Q: Can I command the robot to search for an object instead of telling the robot exactly where the object is? For example “Find the basketball and bring it back to me”.</li>
                 <ul>
-                    <li>A: Yes as long as the object is in another room.</li>
+                    <li>A: No, please give clear instructions.</li>
                 </ul>
             <li>Q: Can I refer to specifics in the environment such in the commands such as the Vincent van Gogh painting on the wall?</li>
                 <ul>
@@ -84,17 +59,19 @@
                 </ul>
             <li>Q: What objects can I pick up?</li>
                 <ul>
-                    <li>A: The labeled ones in the AI2THOR demo website that a human can pick up with one hand. For example the TV is labeled in the website but it can’t be picked up by the robot.</li>
+                    <li>A: The labeled objects in the interactive window that a human can pick up with one hand. For example, the TV is labeled in the interactive window but it cannot be picked up by the robot.</li>
                 </ul>
-            <li>Q: In the AI2THOR demo I see that the objects have labels when I point on them, can I refer to objects that don’t have labels such as a desk?</li>
+            <li>Q: In the interactive window I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk</li>
                 <ul>
-                    <li>A: Yes, as long as you’re not telling the robot to pick those objects up since those can’t be picked up. For example, you can tell the robot to place an object on a desk but you can’t pick up the desk.</li>
-                </ul>
-            <li>Q: Can I have the robot open objects such as drawers and turn on objects such as TVs?</li>
-                <ul>
-                    <li>A: No. While they can be opened in the demo website you’re exploring in, they can’t be opened in the actual simulator we’re going to be using. You are limited to pick up/grab and place/drop tasks.</li>
+                    <li>A: Yes, as long as you are not telling the robot to pick up those objects. For example, you can tell the robot to place an object on a desk but cannot tell the robot to pick up the desk.</li>
                 </ul>
         </ul>
+        <br>
+        <br>
+        You can use the <b>Instructions</b> button at the bottom of the <b>Scenes</b> page to review these instructions and rewatch the video.
+        <br>
+        <br>
+        After you click <b>Finish</b> on the <b>Scenes</b> page, you will receive the completion code.
     </font>
     <br>
     <br>
