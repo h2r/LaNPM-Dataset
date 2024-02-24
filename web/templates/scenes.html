@@ -24,6 +24,14 @@
             margin-bottom: 40px; /* Adds space between the text and the image */
         }
 
+        .text-block2 {
+            font-size: 1em;
+            margin-bottom: 40px; /* Adds space between the text and the image */
+            text-align: left; /* Aligns text to the left */
+            margin-left: 0; /* Adjust this value to control how far left the text starts */
+            padding-left: 0; /* Adjust padding if needed */
+        }
+
         #finish-button, #instructions-button {
             background-color: #4CAF50;
             color: white;
@@ -37,15 +45,11 @@
             margin-right: 10px;
         }
 
-        .form-container {
-            margin-top: 20px;
-        }
-
         .form-container label {
             display: block;
             margin-top: 10px;
         }
-
+        
         .form-container input[type="text"] {
             width: 300px;
             padding: 5px;
@@ -79,6 +83,32 @@
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+        }
+        .row {
+            display: flex;
+            justify-content: center; 
+            margin-bottom: 0;
+            margin-top: 0;
+        }
+
+        .form-container, .column {
+            flex: 1; 
+            padding: 0 5px;
+            margin-bottom: 0px;
+            margin-top: 0;
+        }
+
+        .form-container + .column {
+            margin-left: 5px;
+            margin-top: 0;
+            margin-bottom: 0px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            margin-top: 0;
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -115,109 +145,118 @@
 
     <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1400" height="800"></iframe>
     
-    
-    <div class="form-container">
-        <form id="command-form">
-            <label for="s1c1">Scene 1 Command 1:</label>
-            <input type="text" id="s1c1" name="s1c1" class="command-input">
-            <label for="s1c2">Scene 1 Command 2:</label>
-            <input type="text" id="s1c2" name="s1c2" class="command-input">
-            <label for="s1c3">Scene 1 Command 3:</label>
-            <input type="text" id="s1c3" name="s1c3" class="command-input">
-            <label for="s1c4">Scene 1 Command 4:</label>
-            <input type="text" id="s1c4" name="s1c4" class="command-input">
-            <label for="s1c5">Scene 1 Command 5:</label>
-            <input type="text" id="s1c5" name="s1c5" class="command-input">
-        </form>
+    <!-- Row 1: Two sets of input boxes side by side -->
+    <div class="row">
+        <div class="form-container">
+            <form id="command-form">
+                <label for="s1c1">Scene 1 Command 1:</label>
+                <input type="text" id="s1c1" name="s1c1" class="command-input">
+                <label for="s1c2">Scene 1 Command 2:</label>
+                <input type="text" id="s1c2" name="s1c2" class="command-input">
+                <label for="s1c3">Scene 1 Command 3:</label>
+                <input type="text" id="s1c3" name="s1c3" class="command-input">
+                <label for="s1c4">Scene 1 Command 4:</label>
+                <input type="text" id="s1c4" name="s1c4" class="command-input">
+                <label for="s1c5">Scene 1 Command 5:</label>
+                <input type="text" id="s1c5" name="s1c5" class="command-input">
+            </form>
+        </div>
+
+        <div class="column">
+            <div class="text-block2">
+                For Scene 2 please switch to <b>Floorplan_Train5_2</b>
+            </div>
+            <img src="/static/train5_2.png" alt="Train5_2" id="mapImg">
+        </div>
+            
+        <div class="form-container">
+            <form id="command-form">
+                <label for="s2c1">Scene 2 Command 1:</label>
+                <input type="text" id="s2c1" name="s2c1" class="command-input">
+                <label for="s2c2">Scene 2 Command 2:</label>
+                <input type="text" id="s2c2" name="s2c2" class="command-input">
+                <label for="s2c3">Scene 2 Command 3:</label>
+                <input type="text" id="s2c3" name="s2c3" class="command-input">
+                <label for="s2c4">Scene 2 Command 4:</label>
+                <input type="text" id="s2c4" name="s2c4" class="command-input">
+                <label for="s2c5">Scene 2 Command 5:</label>
+                <input type="text" id="s2c5" name="s2c5" class="command-input">
+            </form>
+        </div>
+
+        <div class="column">
+            <div class="text-block2">
+                For Scene 3 please switch to <b>Floorplan_Train7_5</b>
+            </div>
+            <img src="/static/train7_5.png" alt="Train7_5" id="mapImg">
+        </div>
+
     </div>
 
-    <br>
-    <br>
-    <div class="text-block">
-        Now please switch to <b>Floorplan_Train5_2</b>
-    </div>
-    <img src="/static/train5_2.png" alt="Train5_2" id="mapImg">
+    <!-- Row 2: Two sets of input boxes side by side -->
+    <div class="row">
+        <div class="form-container">
+            <form id="command-form">
+                <label for="s3c1">Scene 3 Command 1:</label>
+                <input type="text" id="s3c1" name="s3c1" class="command-input">
+                <label for="s3c2">Scene 3 Command 2:</label>
+                <input type="text" id="s3c2" name="s3c2" class="command-input">
+                <label for="s3c3">Scene 3 Command 3:</label>
+                <input type="text" id="s3c3" name="s3c3" class="command-input">
+                <label for="s3c4">Scene 3 Command 4:</label>
+                <input type="text" id="s3c4" name="s3c4" class="command-input">
+                <label for="s3c5">Scene 3 Command 5:</label>
+                <input type="text" id="s3c5" name="s3c5" class="command-input">
+            </form>
+        </div>
 
-    <div class="form-container">
-        <form id="command-form">
-            <label for="s2c1">Scene 2 Command 1:</label>
-            <input type="text" id="s2c1" name="s2c1" class="command-input">
-            <label for="s2c2">Scene 2 Command 2:</label>
-            <input type="text" id="s2c2" name="s2c2" class="command-input">
-            <label for="s2c3">Scene 2 Command 3:</label>
-            <input type="text" id="s2c3" name="s2c3" class="command-input">
-            <label for="s2c4">Scene 2 Command 4:</label>
-            <input type="text" id="s2c4" name="s2c4" class="command-input">
-            <label for="s2c5">Scene 2 Command 5:</label>
-            <input type="text" id="s2c5" name="s2c5" class="command-input">
-        </form>
-    </div>
+        <div class="column">
+            <div class="text-block2">
+                For Scene 4 please switch to <b>Floorplan_Train8_2</b>
+            </div>
+            <img src="/static/train8_2.png" alt="Train8_2" id="mapImg">
+        </div>
 
-    <br>
-    <br>
-    <div class="text-block">
-        Now please switch to <b>Floorplan_Train7_5</b>
-    </div>
-    <img src="/static/train7_5.png" alt="Train7_5" id="mapImg">
+        <div class="form-container">
+            <form id="command-form">
+                <label for="s4c1">Scene 4 Command 1:</label>
+                <input type="text" id="s4c1" name="s4c1" class="command-input">
+                <label for="s4c2">Scene 4 Command 2:</label>
+                <input type="text" id="s4c2" name="s4c2" class="command-input">
+                <label for="s4c3">Scene 4 Command 3:</label>
+                <input type="text" id="s4c3" name="s4c3" class="command-input">
+                <label for="s4c4">Scene 4 Command 4:</label>
+                <input type="text" id="s4c4" name="s4c4" class="command-input">
+                <label for="s4c5">Scene 4 Command 5:</label>
+                <input type="text" id="s4c5" name="s4c5" class="command-input">
+            </form>
+        </div>
 
-    <div class="form-container">
-        <form id="command-form">
-            <label for="s3c1">Scene 3 Command 1:</label>
-            <input type="text" id="s3c1" name="s3c1" class="command-input">
-            <label for="s3c2">Scene 3 Command 2:</label>
-            <input type="text" id="s3c2" name="s3c2" class="command-input">
-            <label for="s3c3">Scene 3 Command 3:</label>
-            <input type="text" id="s3c3" name="s3c3" class="command-input">
-            <label for="s3c4">Scene 3 Command 4:</label>
-            <input type="text" id="s3c4" name="s3c4" class="command-input">
-            <label for="s3c5">Scene 3 Command 5:</label>
-            <input type="text" id="s3c5" name="s3c5" class="command-input">
-        </form>
-    </div>
-
-    <br>
-    <br>
-    <div class="text-block">
-        Now please switch to <b>Floorplan_Train8_2</b>
-    </div>
-    <img src="/static/train8_2.png" alt="Train8_2" id="mapImg">
-
-    <div class="form-container">
-        <form id="command-form">
-            <label for="s4c1">Scene 4 Command 1:</label>
-            <input type="text" id="s4c1" name="s4c1" class="command-input">
-            <label for="s4c2">Scene 4 Command 2:</label>
-            <input type="text" id="s4c2" name="s4c2" class="command-input">
-            <label for="s4c3">Scene 4 Command 3:</label>
-            <input type="text" id="s4c3" name="s4c3" class="command-input">
-            <label for="s4c4">Scene 4 Command 4:</label>
-            <input type="text" id="s4c4" name="s4c4" class="command-input">
-            <label for="s4c5">Scene 4 Command 5:</label>
-            <input type="text" id="s4c5" name="s4c5" class="command-input">
-        </form>
+        <div class="column">
+            <div class="text-block2">
+                For Scene 5 please switch to <b>Floorplan_Train12_3</b>
+            </div>
+            <img src="/static/train12_3.png" alt="Train12_3" id="mapImg">
+        </div>
     </div>
 
-    <br>
-    <br>
-    <div class="text-block">
-        Now please switch to <b>Floorplan_Train12_3</b>
+    <div class="row">
+        <div class="form-container">
+            <form id="command-form">
+                <label for="s5c1">Scene 5 Command 1:</label>
+                <input type="text" id="s5c1" name="s5c1" class="command-input">
+                <label for="s5c2">Scene 5 Command 2:</label>
+                <input type="text" id="s5c2" name="s5c2" class="command-input">
+                <label for="s5c3">Scene 5 Command 3:</label>
+                <input type="text" id="s5c3" name="s5c3" class="command-input">
+                <label for="s5c4">Scene 5 Command 4:</label>
+                <input type="text" id="s5c4" name="s5c4" class="command-input">
+                <label for="s5c5">Scene 5 Command 5:</label>
+                <input type="text" id="s5c5" name="s5c5" class="command-input">
+            </form>
+        </div>
     </div>
-    <img src="/static/train12_3.png" alt="Train12_3" id="mapImg">
 
-    <div class="form-container">
-        <form id="command-form">
-            <label for="s5c1">Scene 5 Command 1:</label>
-            <input type="text" id="s5c1" name="s5c1" class="command-input">
-            <label for="s5c2">Scene 5 Command 2:</label>
-            <input type="text" id="s5c2" name="s5c2" class="command-input">
-            <label for="s5c3">Scene 5 Command 3:</label>
-            <input type="text" id="s5c3" name="s5c3" class="command-input">
-            <label for="s5c4">Scene 5 Command 4:</label>
-            <input type="text" id="s5c4" name="s5c4" class="command-input">
-            <label for="s5c5">Scene 5 Command 5:</label>
-            <input type="text" id="s5c5" name="s5c5" class="command-input">
-        </form>
-    </div>
 
     <div id="submission-message" style="display: none;">Commands submitted!</div>
 
