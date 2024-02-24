@@ -6,16 +6,21 @@
     <title>Scenes</title>
     <style>
         #filtersImg {
-            width: 500px;
+            width: 20%;
             height: auto;
             position: relative;
-            /* top: 50px;
-            left: 100px; */
         }
 
         #mapImg {
-            width: 125px;
-            height: 250px;
+            width: 21%;
+            height: 61%;
+            position: relative;
+            margin-top: -30px;
+        }
+
+        #mapImg2 {
+            width: 5%;
+            height: 15%;
             position: relative;
             margin-top: -30px;
         }
@@ -46,17 +51,6 @@
             margin-right: 10px;
         }
 
-        .form-container label {
-            display: block;
-            margin-top: 10px;
-        }
-        
-        .form-container input[type="text"] {
-            width: 300px;
-            padding: 5px;
-            margin-bottom: 10px;
-        }
-
         #instructions-modal {
             display: none;
             position: fixed;
@@ -84,6 +78,18 @@
             margin-top: 20px;
         }
 
+        .form-container input[type="text"] {
+            width: 65%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .form-container label {
+            display: block;
+            margin-top: 10px;
+        }
+        
+
         .form-container, .column {
             flex: 1; 
             padding: 0 5px;
@@ -97,12 +103,69 @@
             margin-bottom: 0px;
         }
 
+
+        
+        .form-container2 input[type="text"] {
+            width: 16%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .form-container2 label {
+            display: block;
+            margin-top: 10px;
+        }
+        
+
+        .form-container2, .column {
+            flex: 1; 
+            padding: 0 5px;
+            margin-bottom: 155px;
+            margin-top: -25px;
+        }
+
+        .form-container2 + .column {
+            margin-left: 5px;
+            margin-top: 0;
+            margin-bottom: 0px;
+        }
+
         .column {
             display: flex;
             flex-direction: column;
             margin-top: 0;
             margin-bottom: 0;
         }
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 aspect ratio */
+            overflow: hidden;
+        }
+
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .iframe-container2 {
+            position: relative;
+            width: 55%;
+            padding-top: 32%;
+            overflow: hidden;
+        }
+
+        .iframe-container2 iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
     </style>
 </head>
 <body>
@@ -118,7 +181,7 @@
         2. In the same interactive section, please scroll down to select <b>Floorplan_Train1_3</b> that looks like this:
     </div>
 
-    <img src="/static/train1_3.png" alt="Train1_3" id="mapImg">
+    <img src="/static/train1_3.png" alt="Train1_3" id="mapImg2">
 
     <div class="text-block">
         3. Next, in the same interactive section, scroll back up. After clicking <b>Press to Play</b> you can use the WASD keys to move and use the mouse to point (Scroll down to the <b>Controls</b> section for more controls) at an object to see its label, pick it up, and place it. Explore the rooms and objects as much as possible, so brainstorming commands becomes easier.
@@ -136,7 +199,10 @@
         <i>Tip: Click the <b>Instructions</b> button if you would like to review the instructions and rewatch the video from the first page.</i>
     </div>
 
-    <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1250" height="800"></iframe>
+    <!-- <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1250" height="800"></iframe> -->
+    <div class="iframe-container">
+        <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/"></iframe>
+    </div>    
     
     <!-- Row 1: Two sets of input boxes side by side -->
     <div class="row">
@@ -234,7 +300,7 @@
     </div>
 
     <div class="row">
-        <div class="form-container">
+        <div class="form-container2">
             <form id="command-form">
                 <label for="s5c1">Scene 5 Command 1:</label>
                 <input type="text" id="s5c1" name="s5c1" class="command-input">
@@ -285,7 +351,9 @@
                         </ul>
                 </ul>
                 <h4>Video:</h4>
-                <iframe src="https://drive.google.com/file/d/1-POxqTh2AedW-ZIYSGbPJQc3b3FDfcOL/preview" width="640" height="480" allow="autoplay"></iframe>
+                <div class="iframe-container2">
+                    <iframe id="myIframe2" src="https://drive.google.com/file/d/1-POxqTh2AedW-ZIYSGbPJQc3b3FDfcOL/preview"></iframe>
+                </div>
                 <h4>Examples:</h4>
                 <ul>
                     <li>“Go to the living room and grab the purple pillow that is on the couch, then go to the office and place it on the chair.”</li>
