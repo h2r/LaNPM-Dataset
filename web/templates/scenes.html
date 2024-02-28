@@ -177,17 +177,17 @@
     <img src="/static/filters.png" alt="Filters checkboxes" id="filtersImg">
 
     <div class="text-block">
-        2. In the same interactive section, please scroll down to select <b>Floorplan_Train1_3</b> that looks like this:
+        2. In the same interactive section, please scroll down to select <b>Floorplan_Train1_3</b> that looks like this (this will be scene 1):
     </div>
 
     <img src="/static/train1_3.png" alt="Train1_3" id="mapImg2">
 
     <div class="text-block">
-        3. Next, in the same interactive section, scroll back up. After clicking <b>Press to Play</b> you can use the WASD keys to move and use the mouse to point (Scroll down to the <b>Controls</b> section for more controls) at an object to see its label, pick it up, and place it. Explore the rooms and objects as much as possible, so brainstorming commands becomes easier.
+        3. Next, click <b>Press to Play</b>, then you can use the WASD keys to move and use the mouse to point (Scroll down to the <b>Controls</b> section for more controls) at an object to see its label, pick it up, and place it. Explore the rooms and objects as much as possible, so brainstorming commands becomes easier.
     </div>
 
     <div class="text-block">
-        4. Press <b>Q</b> to exit the interactive session. Fill in all 5 command boxes for that scene.
+        4. Press <b>Q</b> to exit the interactive session. Fill in all 3 command boxes for that scene.
     </div>
 
     <div class="text-block">
@@ -195,28 +195,34 @@
     </div>
 
     <div class="text-block">
-        <i>Tip: Click the <b>Instructions</b> button if you would like to review the instructions and rewatch the video from the first page. You will <b>NOT</b> lose progress</i>
+        Ensure all inputs are completed to a reasonable extent; otherwise, you will not be able to proceed to the next page.
     </div>
 
-    <!-- <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/" width="1250" height="800"></iframe> -->
+    <div class="text-block">
+        <i>Tip: Click the <b>Instructions</b> button if you would like to review the instructions and rewatch the video from the first page. You will <b>NOT</b> lose progress.</i>
+    </div>
+
     <div class="iframe-container">
         <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/"></iframe>
     </div>    
     
     <!-- Row 1: Two sets of input boxes side by side -->
     <div class="row">
+        <div class="column">
+            <div class="text-block2">
+                For Scene 1, please select <b>Floorplan_Train1_3</b>
+            </div>
+            <img src="/static/train1_3.png" alt="Train1_3" id="mapImg">
+        </div>
+
         <div class="form-container">
             <form id="command-form">
                 <label for="s1c1">Scene 1 Command 1:</label>
-                <input type="text" id="s1c1" name="s1c1" class="command-input">
+                <input type="text" id="s1c1" name="s1c1" class="command-input" minlength="16">
                 <label for="s1c2">Scene 1 Command 2:</label>
-                <input type="text" id="s1c2" name="s1c2" class="command-input">
+                <input type="text" id="s1c2" name="s1c2" class="command-input" minlength="16">
                 <label for="s1c3">Scene 1 Command 3:</label>
-                <input type="text" id="s1c3" name="s1c3" class="command-input">
-                <label for="s1c4">Scene 1 Command 4:</label>
-                <input type="text" id="s1c4" name="s1c4" class="command-input">
-                <label for="s1c5">Scene 1 Command 5:</label>
-                <input type="text" id="s1c5" name="s1c5" class="command-input">
+                <input type="text" id="s1c3" name="s1c3" class="command-input" minlength="16">
             </form>
         </div>
 
@@ -230,18 +236,17 @@
         <div class="form-container">
             <form id="command-form">
                 <label for="s2c1">Scene 2 Command 1:</label>
-                <input type="text" id="s2c1" name="s2c1" class="command-input">
+                <input type="text" id="s2c1" name="s2c1" class="command-input" minlength="16">
                 <label for="s2c2">Scene 2 Command 2:</label>
-                <input type="text" id="s2c2" name="s2c2" class="command-input">
+                <input type="text" id="s2c2" name="s2c2" class="command-input" minlength="16">
                 <label for="s2c3">Scene 2 Command 3:</label>
-                <input type="text" id="s2c3" name="s2c3" class="command-input">
-                <label for="s2c4">Scene 2 Command 4:</label>
-                <input type="text" id="s2c4" name="s2c4" class="command-input">
-                <label for="s2c5">Scene 2 Command 5:</label>
-                <input type="text" id="s2c5" name="s2c5" class="command-input">
+                <input type="text" id="s2c3" name="s2c3" class="command-input" minlength="16">
             </form>
         </div>
+    </div>
 
+    <!-- Row 2: Two sets of input boxes side by side -->
+    <div class="row">
         <div class="column">
             <div class="text-block2">
                 For Scene 3 please switch to <b>Floorplan_Train7_5</b>
@@ -249,22 +254,14 @@
             <img src="/static/train7_5.png" alt="Train7_5" id="mapImg">
         </div>
 
-    </div>
-
-    <!-- Row 2: Two sets of input boxes side by side -->
-    <div class="row">
         <div class="form-container">
             <form id="command-form">
                 <label for="s3c1">Scene 3 Command 1:</label>
-                <input type="text" id="s3c1" name="s3c1" class="command-input">
+                <input type="text" id="s3c1" name="s3c1" class="command-input" minlength="16">
                 <label for="s3c2">Scene 3 Command 2:</label>
-                <input type="text" id="s3c2" name="s3c2" class="command-input">
+                <input type="text" id="s3c2" name="s3c2" class="command-input" minlength="16">
                 <label for="s3c3">Scene 3 Command 3:</label>
-                <input type="text" id="s3c3" name="s3c3" class="command-input">
-                <label for="s3c4">Scene 3 Command 4:</label>
-                <input type="text" id="s3c4" name="s3c4" class="command-input">
-                <label for="s3c5">Scene 3 Command 5:</label>
-                <input type="text" id="s3c5" name="s3c5" class="command-input">
+                <input type="text" id="s3c3" name="s3c3" class="command-input" minlength="16">
             </form>
         </div>
 
@@ -278,44 +275,41 @@
         <div class="form-container">
             <form id="command-form">
                 <label for="s4c1">Scene 4 Command 1:</label>
-                <input type="text" id="s4c1" name="s4c1" class="command-input">
+                <input type="text" id="s4c1" name="s4c1" class="command-input" minlength="16">
                 <label for="s4c2">Scene 4 Command 2:</label>
-                <input type="text" id="s4c2" name="s4c2" class="command-input">
+                <input type="text" id="s4c2" name="s4c2" class="command-input" minlength="16">
                 <label for="s4c3">Scene 4 Command 3:</label>
-                <input type="text" id="s4c3" name="s4c3" class="command-input">
-                <label for="s4c4">Scene 4 Command 4:</label>
-                <input type="text" id="s4c4" name="s4c4" class="command-input">
-                <label for="s4c5">Scene 4 Command 5:</label>
-                <input type="text" id="s4c5" name="s4c5" class="command-input">
+                <input type="text" id="s4c3" name="s4c3" class="command-input" minlength="16">
             </form>
         </div>
+    </div>
 
+    <div class="row">
         <div class="column">
             <div class="text-block2">
                 For Scene 5 please switch to <b>Floorplan_Train12_3</b>
             </div>
             <img src="/static/train12_3.png" alt="Train12_3" id="mapImg">
         </div>
-    </div>
 
-    <div class="row">
         <div class="form-container2">
             <form id="command-form">
                 <label for="s5c1">Scene 5 Command 1:</label>
-                <input type="text" id="s5c1" name="s5c1" class="command-input">
+                <input type="text" id="s5c1" name="s5c1" class="command-input" minlength="16">
                 <label for="s5c2">Scene 5 Command 2:</label>
-                <input type="text" id="s5c2" name="s5c2" class="command-input">
+                <input type="text" id="s5c2" name="s5c2" class="command-input" minlength="16">
                 <label for="s5c3">Scene 5 Command 3:</label>
-                <input type="text" id="s5c3" name="s5c3" class="command-input">
-                <label for="s5c4">Scene 5 Command 4:</label>
-                <input type="text" id="s5c4" name="s5c4" class="command-input">
-                <label for="s5c5">Scene 5 Command 5:</label>
-                <input type="text" id="s5c5" name="s5c5" class="command-input">
+                <input type="text" id="s5c3" name="s5c3" class="command-input" minlength="16">
             </form>
         </div>
     </div>
 
-    <div id="submission-message" style="display: none;">Commands submitted!</div>
+    <div id="submission-message" style="display: none;">
+        Commands submitted!<br>
+        Saving data...<br>
+        Please wait here.
+    </div>
+    
 
     <button id="finish-button" onclick="dataAndNextScene()" disabled>Finish</button>
     <button id="instructions-button" onclick="showInstructions()">Instructions</button>
@@ -326,7 +320,7 @@
             <h1>Instructions</h1>
             <!-- Instructions content here -->
             <font size="+2">
-                Thank you for participating in our data collection. We are robotics researchers from Brown University. On the next page, you will write <b>25</b> unique natural language commands to a robot in 5 virtual household scenes, i.e., <b>5 commands per scene</b>.
+                Thank you for participating in our data collection. We are robotics researchers from Brown University. On the next page, you will write <b>15</b> unique natural language commands to a robot in 5 virtual household scenes, i.e., <b>3 commands per scene</b>.
                 <br>
                 <br>
                 A personal assistant robot can navigate to different places in the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see a video below of how the robot operates in the environment.
@@ -335,7 +329,7 @@
                 When giving commands, you should assume the robot starts in the same position in each scene. Each command is separate and should not refer to any previous command. Your commands must describe picking up and placing objects as well as moving in the environment. You can refer to only furniture, objects, and rooms that exist in the environment. Make sure your commands instruct the robot to move between rooms. Do not limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>. Examples of commands are shown below.
                 <br>
                 <br>
-                Do <b>NOT</b> pick up/place these objects in your commands (you can refer to them in relation to something, like “pick up the bat next to the desk”), even if they exist in the scene:
+                Do <b>NOT</b> pick up/place these objects in your commands, even if they exist in the scene (you can refer to them in relation to something, like “pick up the bat next to the desk”):
                 <ul>
                     <li>Laptop</li>
                     <li>Desk</li>
@@ -371,13 +365,9 @@
                         <ul>
                             <li>A: Yes. Pretend the robot is as intelligent as a human and command it as you would a human.</li>
                         </ul>
-                    <li>Q: Can I use both the passive and active voice for the commands?</li>
-                        <ul>
-                            <li>A: Yes. The commands can have any style or tone.</li>
-                        </ul>
                     <li>Q: What objects can I pick up?</li>
                         <ul>
-                            <li>A: The labeled objects in the interactive window that a human can pick up with one hand. For example, the TV is labeled in the interactive window but it cannot be picked up by the robot.</li>
+                            <li>A: The labeled objects in the interactive window that a human can pick up with one hand. For example, the TV is labeled in the interactive window but it cannot be picked up by a human with one hand, and thus cannot be picked up by the robot.</li>
                         </ul>
                     <li>Q: In the interactive window I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk</li>
                         <ul>
@@ -409,29 +399,22 @@
                 's1c1': document.getElementById('s1c1').value,
                 's1c2': document.getElementById('s1c2').value,
                 's1c3': document.getElementById('s1c3').value,
-                's1c4': document.getElementById('s1c4').value,
-                's1c5': document.getElementById('s1c5').value,
                 's2c1': document.getElementById('s2c1').value,
                 's2c2': document.getElementById('s2c2').value,
                 's2c3': document.getElementById('s2c3').value,
-                's2c4': document.getElementById('s2c4').value,
-                's2c5': document.getElementById('s2c5').value,
                 's3c1': document.getElementById('s3c1').value,
                 's3c2': document.getElementById('s3c2').value,
                 's3c3': document.getElementById('s3c3').value,
-                's3c4': document.getElementById('s3c4').value,
-                's3c5': document.getElementById('s3c5').value,
                 's4c1': document.getElementById('s4c1').value,
                 's4c2': document.getElementById('s4c2').value,
                 's4c3': document.getElementById('s4c3').value,
-                's4c4': document.getElementById('s4c4').value,
-                's4c5': document.getElementById('s4c5').value,
                 's5c1': document.getElementById('s5c1').value,
                 's5c2': document.getElementById('s5c2').value,
                 's5c3': document.getElementById('s5c3').value,
-                's5c4': document.getElementById('s5c4').value,
-                's5c5': document.getElementById('s5c5').value
             };
+            
+            // Once data is submitted successfully, redirect to the next scene
+            document.getElementById('submission-message').style.display = 'block';
 
             // AJAX request to Flask
             fetch('/save', {
@@ -445,15 +428,13 @@
             .then(data => {
                 console.log(data.message);
                 
-                // Once data is submitted successfully, redirect to the next scene
-                document.getElementById('submission-message').style.display = 'block';
                 setTimeout(function() {
                     window.location.href = '/end';
                 }, 1000);
             })
             .catch(error => console.error('Error:', error));
         }
-
+        
         function checkInputs() {
             var inputs = document.getElementsByClassName('command-input');
             var allFilled = true;
@@ -466,11 +447,22 @@
             document.getElementById('finish-button').disabled = !allFilled;
         }
 
+        function checkInputs() {
+            var inputs = document.getElementsByClassName('command-input');
+            var allFilled = true;
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].value.length < inputs[i].minLength || inputs[i].value === '') {
+                    allFilled = false;
+                    break;
+                }
+            }
+            document.getElementById('finish-button').disabled = !allFilled;
+        }
+
         var inputs = document.getElementsByClassName('command-input');
         for (var i = 0; i < inputs.length; i++) {
             inputs[i].addEventListener('input', checkInputs);
         }
-
     </script>
 </body>
 </html>
