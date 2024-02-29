@@ -305,7 +305,6 @@
     </div>
 
     <div id="submission-message" style="display: none;">
-        Commands submitted!<br>
         Saving data...<br>
         Please wait here.
     </div>
@@ -385,6 +384,14 @@
     </div>
 
     <script>
+        // window.onload = function() {
+        //     if (localStorage.getItem('submissionDone') === 'true') {
+        //         var finishButton = document.getElementById('finish-button');
+        //         finishButton.disabled = true;
+        //         finishButton.textContent = 'Submitted';
+        //     }
+        // };
+
         function closeInstructions() {
             document.getElementById('instructions-modal').style.display = 'none';
         }
@@ -394,7 +401,6 @@
         }
 
         function dataAndNextScene() {
-
             var formData = {
                 's1c1': document.getElementById('s1c1').value,
                 's1c2': document.getElementById('s1c2').value,
@@ -415,6 +421,10 @@
             
             // Once data is submitted successfully, redirect to the next scene
             document.getElementById('submission-message').style.display = 'block';
+            document.getElementById('finish-button').disabled = true;
+            document.getElementById('finish-button').innerText = "Submitted";
+
+            localStorage.setItem('submissionDone', 'true');
 
             // AJAX request to Flask
             fetch('/save', {
@@ -434,19 +444,7 @@
             })
             .catch(error => console.error('Error:', error));
         }
-        
-        function checkInputs() {
-            var inputs = document.getElementsByClassName('command-input');
-            var allFilled = true;
-            for (var i = 0; i < inputs.length; i++) {
-                if (inputs[i].value === '') {
-                    allFilled = false;
-                    break;
-                }
-            }
-            document.getElementById('finish-button').disabled = !allFilled;
-        }
-
+    
         function checkInputs() {
             var inputs = document.getElementsByClassName('command-input');
             var allFilled = true;
@@ -456,6 +454,12 @@
                     break;
                 }
             }
+            // if (allFilled === true && localStorage.getItem('submissionDone') === null){
+            //     document.getElementById('finish-button').disabled = false;
+            // }
+            // else{
+            //     document.getElementById('finish-button').disabled = true;
+            // }
             document.getElementById('finish-button').disabled = !allFilled;
         }
 
