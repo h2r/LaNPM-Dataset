@@ -12,10 +12,10 @@
         }
 
         #mapImg {
-            width: 42%;
-            height: 60%;
+            width: 35%;
+            height: 80%;
             position: relative;
-            margin-top: -30px;
+            margin-top: -5%;
         }
 
         #mapImg2 {
@@ -32,10 +32,11 @@
 
         .text-block2 {
             font-size: 1em;
-            margin-bottom: 40px; /* Adds space between the text and the image */
+            margin-bottom:10%; /* Adds space between the text and the image */
             text-align: left; /* Aligns text to the left */
             margin-left: 0; /* Adjust this value to control how far left the text starts */
             padding-left: 0; /* Adjust padding if needed */
+            margin-right: 5%;
         }
 
         #finish-button, #instructions-button {
@@ -74,13 +75,13 @@
         .row {
             display: flex;
             justify-content: center; 
-            margin-bottom: -120px;
-            margin-top: 20px;
+            margin-bottom: 5%;
+            margin-top: 2%;
         }
 
         .form-container input[type="text"] {
-            width: 65%;
-            padding: 5px;
+            width: 75%;
+            padding: 1.5%;
             margin-bottom: 10px;
         }
 
@@ -88,21 +89,24 @@
             display: block;
             margin-top: 10px;
         }
-        
 
-        .form-container, .column {
+        /* .form-container, .column {
             flex: 1; 
-            padding: 0 5px;
-            margin-bottom: 155px;
-            margin-top: -25px;
+            margin-top: 2%;
+        } */
+
+        .form-container {
+            flex: 1; 
+            margin-top: 5%;
+            margin-left: -15%;
         }
 
-        .form-container + .column {
+        /* .form-container + .column {
             margin-left: 5px;
             margin-top: 0;
             margin-bottom: 0px;
         }
-        
+         */
         
         .form-container2 input[type="text"] {
             width: 16%;
@@ -132,9 +136,15 @@
         .column {
             display: flex;
             flex-direction: column;
-            margin-top: 0;
+            margin-top: -2%;
             margin-bottom: 0;
         }
+        /* .column2 {
+            display: flex;
+            flex-direction: column;
+            margin-top: 3%;
+            margin-bottom: 0;
+        } */
         .iframe-container {
             position: relative;
             width: 100%;
@@ -206,11 +216,18 @@
         <iframe id="myIframe" src="https://ai2thor.allenai.org/demo/"></iframe>
     </div>    
     
+    <br>
+    <br>
+    <hr style="height:5px; background-color:#333;">
+    <br>
+    <br>
+
     <!-- Row 1: Two sets of input boxes side by side -->
     <div class="row">
         <div class="column">
             <div class="text-block2">
-                For Scene 1, please select <b>Floorplan_Train1_3</b>
+                For Scene 1, please select<br>
+                <b>Floorplan_Train1_3</b>
             </div>
             <img src="/static/train1_3.png" alt="Train1_3" id="mapImg">
         </div>
@@ -228,7 +245,8 @@
 
         <div class="column">
             <div class="text-block2">
-                For Scene 2 please switch to <b>Floorplan_Train5_2</b>
+                For Scene 2, please select<br>
+                <b>Floorplan_Train5_2</b>
             </div>
             <img src="/static/train5_2.png" alt="Train5_2" id="mapImg">
         </div>
@@ -249,7 +267,8 @@
     <div class="row">
         <div class="column">
             <div class="text-block2">
-                For Scene 3 please switch to <b>Floorplan_Train7_5</b>
+                For Scene 3, please select<br>
+                <b>Floorplan_Train7_5</b>
             </div>
             <img src="/static/train7_5.png" alt="Train7_5" id="mapImg">
         </div>
@@ -267,7 +286,8 @@
 
         <div class="column">
             <div class="text-block2">
-                For Scene 4 please switch to <b>Floorplan_Train8_2</b>
+                For Scene 4, please select<br>
+                <b>Floorplan_Train8_2</b>
             </div>
             <img src="/static/train8_2.png" alt="Train8_2" id="mapImg">
         </div>
@@ -287,7 +307,8 @@
     <div class="row">
         <div class="column">
             <div class="text-block2">
-                For Scene 5 please switch to <b>Floorplan_Train12_3</b>
+                For Scene 5, please select<br>
+                <b>Floorplan_Train12_3</b>
             </div>
             <img src="/static/train12_3.png" alt="Train12_3" id="mapImg">
         </div>
