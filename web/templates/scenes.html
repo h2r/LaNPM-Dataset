@@ -97,14 +97,9 @@
             margin-top: 10px;
         }
 
-        /* .form-container, .column {
-            flex: 1; 
-            margin-top: 2%;
-        } */
-
         .form-container {
             flex: 1; 
-            margin-top: 5%;
+            margin-top: 10%;
             margin-left: -15%;
         }
         
@@ -127,16 +122,9 @@
 
         .form-container2 {
             flex:   1; 
-            /* padding: 0 5px; */
-            margin-top: 5%;
+            margin-top: 12%;
             margin-right:65%;
         }
-
-        /* .form-container2 + .column {
-            margin-left: 5px;
-            margin-top: 0;
-            margin-bottom: 0px;
-        } */
 
         .column {
             display: flex;
@@ -365,10 +353,10 @@
                 A personal assistant robot can navigate to different places in the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see a video below of how the robot operates in the environment.
                 <br>
                 <br>
-                When giving commands, you should assume the robot starts in the same position in each scene. Each command is separate and should not refer to any previous command. Your commands must describe picking up and placing objects as well as moving in the environment. You can refer to only furniture, objects, and rooms that exist in the environment. Make sure your commands instruct the robot to move between rooms. Do not limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>. Examples of commands are shown below.
+                When giving commands, you should assume the robot starts in the same position in each scene. Each command is separate and should not refer to any previous command. Your commands must describe picking up and placing objects as well as moving in the environment. You can refer to only furniture, objects, and rooms that exist in the environment. Make sure your commands instruct the robot to move between rooms. You only need to give the commands, you do not need to actually perform the task, although you can if it helps you brainstorm. Do not limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>. Examples of commands are shown below.
                 <br>
                 <br>
-                Do <b>NOT</b> pick up/place these objects in your commands, even if they exist in the scene (you can refer to them in relation to something, like “pick up the bat next to the desk”):
+                Do <b>NOT</b> pick up/place these objects in your commands, even if they exist in the scene.  You can refer to them in relation to something, like “Pick up the bat next to the laptop." but not "Pick up the laptop.":
                 <ul>
                     <li>Laptop</li>
                     <li>Desk</li>
@@ -411,6 +399,10 @@
                     <li>Q: In the interactive window I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk</li>
                         <ul>
                             <li>A: Yes, as long as you are not telling the robot to pick up those objects. For example, you can tell the robot to place an object on a desk but cannot tell the robot to pick up the desk.</li>
+                        </ul>
+                    <li>Q: Can I pick up an object and not place it? E.g. "Pick up the remote and wait near the sofa"?</li>
+                        <ul>
+                            <li>A: No. Please place any object that is picked up.</li> 
                         </ul>
                 </ul>
                 <br>
