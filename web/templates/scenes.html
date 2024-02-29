@@ -384,13 +384,19 @@
     </div>
 
     <script>
-        // window.onload = function() {
-        //     if (localStorage.getItem('submissionDone') === 'true') {
-        //         var finishButton = document.getElementById('finish-button');
-        //         finishButton.disabled = true;
-        //         finishButton.textContent = 'Submitted';
-        //     }
-        // };
+        window.onload = function() {
+            if (localStorage.getItem('sub_done') === 'true') {
+                var finishButton = document.getElementById('finish-button');
+                finishButton.disabled = true;
+                finishButton.textContent = 'Submitted';
+            }
+            if (localStorage.getItem('in_done') === 'true') {
+                var formInputs = document.querySelectorAll('#command-form input');
+                    formInputs.forEach(function(input) {
+                        input.disabled = true;
+                    });
+            }
+        };
 
         function closeInstructions() {
             document.getElementById('instructions-modal').style.display = 'none';
@@ -424,7 +430,13 @@
             document.getElementById('finish-button').disabled = true;
             document.getElementById('finish-button').innerText = "Submitted";
 
-            localStorage.setItem('submissionDone', 'true');
+            var formInputs = document.querySelectorAll('#command-form input');
+            formInputs.forEach(function(input) {
+                input.disabled = true;
+            });
+
+            localStorage.setItem('sub_done', 'true');
+            localStorage.setItem('in_done', 'true');
 
             // AJAX request to Flask
             fetch('/save', {
