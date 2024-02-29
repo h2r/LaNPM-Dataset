@@ -166,7 +166,7 @@
     </style>
 </head>
 <body>
-    <h1>Scenes</h1>
+    <h1 style="text-align: center;">Commands</h1>
 
     <div class="text-block">
         1. Welcome! In the interactive section below, please wait for it to finish loading <b>then</b> unselect the <b>Filter Scenes</b> checkboxes as indicated by image below:
@@ -210,7 +210,7 @@
     </div>
 
     <div class="text-block">
-        <i>Tip: Click the <b>Instructions</b> button if you would like to review the instructions and rewatch the video from the first page. You will <b>NOT</b> lose progress.</i>
+        <i>Tip: Click the <b>Instructions</b> button at the bottom of the page if you would like to review the instructions and rewatch the video from the first page. You will <b>NOT</b> lose progress.</i>
     </div>
 
     <div class="iframe-container">
@@ -337,44 +337,53 @@
         Please wait here.
     </div>
     
-
-    <button id="finish-button" onclick="dataAndNextScene()" disabled>Finish</button>
-    <button id="instructions-button" onclick="showInstructions()">Instructions</button>
+    <div style="text-align: center;">
+        <button id="instructions-button" onclick="showInstructions()">Instructions</button>
+    </div>
+    <div style="text-align: center;">
+        <button id="finish-button" onclick="dataAndNextScene()" disabled>Finish</button>
+    </div>
 
     <div id="instructions-modal">
         <div class="modal-content">
             <span class="close" onclick="closeInstructions()">&times;</span>
-            <h1>Instructions</h1>
-            <!-- Instructions content here -->
+            <h1 style="text-align: center;">Instructions</h1>
             <font size="+2">
-                Thank you for participating in our data collection. We are robotics researchers from Brown University. On the next page, you will write <b>15</b> unique natural language commands to a robot in 5 virtual household scenes, i.e., <b>3 commands per scene</b>.
+                Thank you for participating in our data collection. We are robotics researchers from Brown University. On the next page, you will write <b>15</b> unique natural language commands for tasks that a robot can perform in 5 virtual household scenes, i.e., <b>3 commands per scene</b>.
                 <br>
                 <br>
                 A personal assistant robot can navigate to different places in the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see a video below of how the robot operates in the environment.
                 <br>
+                <h3>Video:</h3>
+                <div class="iframe-container">
+                    <iframe id="myIframe" src="https://drive.google.com/file/d/1-POxqTh2AedW-ZIYSGbPJQc3b3FDfcOL/preview"></iframe>
+                </div>
                 <br>
-                When giving commands, you should assume the robot starts in the same position in each scene. Each command is separate and should not refer to any previous command. Your commands must describe picking up and placing objects as well as moving in the environment. You can refer to only furniture, objects, and rooms that exist in the environment. Make sure your commands instruct the robot to move between rooms. You only need to give the commands, you do not need to actually perform the task, although you can if it helps you brainstorm. Do not limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>. Examples of commands are shown below.
-                <br>
-                <br>
-                Do <b>NOT</b> pick up/place these objects in your commands, even if they exist in the scene.  You can refer to them in relation to something, like “Pick up the bat next to the laptop." but not "Pick up the laptop.":
+                <h3>Rules:</h3>
                 <ul>
-                    <li>Laptop</li>
-                    <li>Desk</li>
-                    <li>Anything that can be turned on/opened</li>
+                    <li>Your commands must describe tasks for picking up and placing objects as well as moving in the environment.</li> 
+                    <li>Your commands must instruct the robot to move between rooms.</li>
+                    <li>You can refer to only furniture, objects, and rooms that exist in the environment.</li> 
+                    <li>When giving commands, you should assume the robot starts in the same position in each scene.</li> 
+                    <li>Each command is separate and should not refer to any previous command. </li>
+                    <li>You only need to give the commands, you do not need to actually perform the task, although you can if it helps you brainstorm.</li>
+                    <li>Do <b>NOT</b> limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>.</li>
+                    <li>Do <b>NOT</b> pick up/place the following objects in your commands, even if they exist in the scene. You can refer to them in relation to something, like “Pick up the bat next to the laptop." but not "Pick up the laptop."</li>
                         <ul>
-                            <li>Lamp (sometimes labeled “floor” or “desk”)</li>
-                            <li>TV</li>
-                            <li>Drawers</li>   
-                            <li>Faucet</li>
-                            <li>Fridge</li>
-                            <li>Etc.</li>
+                            <li>Laptop</li>
+                            <li>Desk</li>
+                            <li>Anything that can be turned on/opened</li>
+                                <ul>
+                                    <li>Lamp (sometimes labeled “floor” or “desk”)</li>
+                                    <li>TV</li>
+                                    <li>Drawers</li>   
+                                    <li>Faucet</li>
+                                    <li>Fridge</li>
+                                    <li>Etc.</li>
+                            </ul>
                         </ul>
                 </ul>
-                <h4>Video:</h4>
-                <div class="iframe-container2">
-                    <iframe id="myIframe2" src="https://drive.google.com/file/d/1-POxqTh2AedW-ZIYSGbPJQc3b3FDfcOL/preview"></iframe>
-                </div>
-                <h4>Examples:</h4>
+                <h3>Examples:</h3>
                 <ul>
                     <li>“Go to the living room and grab the purple pillow that is on the couch, then go to the office and place it on the chair.”</li>
                     <li>“Go to the living room and pick up the basketball next to the table, then go to the can and drop it inside.”</li>
@@ -382,7 +391,7 @@
                     <li>“Bring me the black TV remote on the table in the living room.”</li>
                     <li>“Take the baseball bat next to you and move it to the desk in the bedroom”</li>
                 </ul> 
-                <h4>FAQ:</h4>
+                <h3>FAQ:</h3>
                 <ul>
                     <li>Q: Can I command the robot to search for an object instead of telling the robot exactly where the object is? For example “Find the basketball and bring it back to me”.</li>
                         <ul>
@@ -404,10 +413,17 @@
                         <ul>
                             <li>A: No. Please place any object that is picked up.</li> 
                         </ul>
+                    <li>Q: Do the rooms in each scene have official names such as "living room" or "office"? If so, what are they? If not, what should we refer to them as?</li>
+                        <ul>
+                            <li>A: No. The virtual environment does not give them names and neither do we. Refer to them by whatever you think best describes them. If there are rooms that are the same or similar, you can specify them by what's inside, or their spatial relation to other rooms. E.g. "The office next to the living room" or "The office with the laptop".</li> 
+                        </ul>
+                    <li>Q: Do I have to actually perform the tasks or just give the commands?</li>
+                        <ul>
+                            <li>A: No. You can if you want to to help you brainstorm, but only the commands are required.</li> 
+                        </ul>
                 </ul>
                 <br>
-                <br>
-                You can use the <b>Instructions</b> button at the bottom of the <b>Scenes</b> page to review these instructions and rewatch the video. You will <b>NOT</b> lose progress.
+                You can use the <b>Instructions</b> button at the bottom of the <b>Scenes</b> page to review these instructions and rewatch the video. You will <b>NOT</b> lose your progress.
                 <br>
                 <br>
                 After you click <b>Finish</b> on the <b>Scenes</b> page, you will receive the completion code.
@@ -498,12 +514,6 @@
                     break;
                 }
             }
-            // if (allFilled === true && localStorage.getItem('submissionDone') === null){
-            //     document.getElementById('finish-button').disabled = false;
-            // }
-            // else{
-            //     document.getElementById('finish-button').disabled = true;
-            // }
             document.getElementById('finish-button').disabled = !allFilled;
         }
 
