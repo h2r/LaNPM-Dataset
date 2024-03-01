@@ -53,7 +53,8 @@
         <ul>
             <li>Your commands must describe tasks for picking up and placing objects as well as moving in the environment.</li> 
             <li>Your commands must instruct the robot to move between rooms.</li>
-            <li>You can refer to only furniture, objects, and rooms that exist in the environment.</li> 
+            <li>You can refer to only furniture, objects, and rooms that exist in the environment.</li>
+            <li>Some objects are labeled incorrectly, e.g. a lamp is labeled "floor". If you choose to refer to an object by its label, please only do it when the label is correct.</li>
             <li>When giving commands, you should assume the robot starts in the same position in each scene.</li> 
             <li>Each command is separate and should not refer to any previous command. </li>
             <li>You only need to give the commands, you do not need to actually perform the task, although you can if it helps you brainstorm.</li>
@@ -95,6 +96,11 @@
                 <ul>
                     <li>A: The labeled objects in the interactive window that a human can pick up with one hand. For example, the TV is labeled in the interactive window but it cannot be picked up by a human with one hand, and thus cannot be picked up by the robot.</li>
                 </ul>
+            <li>Q: How do I refer to the objects? By their labels?</li>
+                <ul>
+                    <li>A: You can refer to the objects in any way that you think best represents them, such as using their generic names, attributes, and/or labels, etc. If you use the labels, please make sure to avoid using incorrect labels such as a lamp labeled "floor".</li>
+                </ul>
+                
             <li>Q: In the interactive window I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk</li>
                 <ul>
                     <li>A: Yes, as long as you are not telling the robot to pick up those objects. For example, you can tell the robot to place an object on a desk but cannot tell the robot to pick up the desk.</li>
