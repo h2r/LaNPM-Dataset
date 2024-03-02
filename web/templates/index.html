@@ -53,12 +53,12 @@
         <ul>
             <li>Your commands must describe tasks for picking up and placing objects as well as moving in the environment.</li> 
             <li>Your commands must instruct the robot to move between rooms.</li>
-            <li>You can refer to only furniture, objects, and rooms that exist in the environment.</li>
-            <li>Some objects are labeled incorrectly, e.g. a lamp is labeled "floor". If you choose to refer to an object by its label, please only do it when the label is correct.</li>
+            <li>You can refer to only  objects, furniture, and rooms that exist in the environment.</li>
+            <li>You can refer to the objects, furniture, and rooms in any way that you think best represents them, such as using their generic names, attributes, labels, and/or spatial relation to other things, etc. If you use the labels (for objects), please only do so for correctly labeled objects, as some are incorrect such as a lamp being "floor".</li>
+            <li>You can only pickup the labeled objects that a human can pick up with one hand. E.g., the TV is labeled but it cannot be picked up by a human with one hand, and thus cannot be picked up by the robot.</li>
             <li>When giving commands, you should assume the robot starts in the same position in each scene.</li> 
             <li>Each command is separate and should not refer to any previous command. </li>
-            <li>You only need to give the commands, you do not need to actually perform the task, although you can if it helps you brainstorm.</li>
-            <li>Do <b>NOT</b> limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>.</li>
+            <li>Do <b>NOT</b> limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>, in the sense that you can give it any pick up and place task that you would a human.</li>
             <li>Do <b>NOT</b> pick up/place the following objects in your commands, even if they exist in the scene. You can refer to them in relation to something, like “Pick up the bat next to the laptop." but not "Pick up the laptop."</li>
                 <ul>
                     <li>Laptop</li>
@@ -81,6 +81,7 @@
             <li>“Go to the bedroom and grab my phone off the bed, then bring it back to me.”</li>
             <li>“Bring me the black TV remote on the table in the living room.”</li>
             <li>“Take the baseball bat next to you and move it to the desk in the bedroom”</li>
+            <li>"Take the object to the right of the apple in the office with the laptop and put it on the blue table, specifically next to the book."</li>
           </ul> 
         <h3>FAQ:</h3>
         <ul>
@@ -92,16 +93,7 @@
                 <ul>
                     <li>A: Yes. Pretend the robot is as intelligent as a human and command it as you would a human.</li>
                 </ul>
-            <li>Q: What objects can I pick up?</li>
-                <ul>
-                    <li>A: The labeled objects in the interactive window that a human can pick up with one hand. For example, the TV is labeled in the interactive window but it cannot be picked up by a human with one hand, and thus cannot be picked up by the robot.</li>
-                </ul>
-            <li>Q: How do I refer to the objects? By their labels?</li>
-                <ul>
-                    <li>A: You can refer to the objects in any way that you think best represents them, such as using their generic names, attributes, and/or labels, etc. If you use the labels, please make sure to avoid using incorrect labels such as a lamp labeled "floor".</li>
-                </ul>
-                
-            <li>Q: In the interactive window I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk</li>
+            <li>Q: I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk?</li>
                 <ul>
                     <li>A: Yes, as long as you are not telling the robot to pick up those objects. For example, you can tell the robot to place an object on a desk but cannot tell the robot to pick up the desk.</li>
                 </ul>
@@ -119,11 +111,15 @@
                 </ul>
             <li>Q: Can I use the room the robot starts at in the commands?</li>
                 <ul>
-                    <li>A: Yes, as long as the robot also goes to another room(s) during the task. E.g. "Bring me the ball from the office."</li> 
+                    <li>A: Yes, as long as the robot also goes to another room(s) during the task. E.g. "Bring me the ball from the office." where it is implied that you are in the current room.</li> 
                 </ul>
             <li>Q: Do I have to actually perform the tasks or just give the commands?</li>
                 <ul>
                     <li>A: No. You can if you want to to help you brainstorm, but only the commands are required.</li> 
+                </ul>
+            <li>Q: Is the data collection anonymous?</li>
+                <ul>
+                    <li>A: Yes. No personal information is collected.</li> 
                 </ul>
         </ul>
         <br>
