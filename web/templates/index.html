@@ -39,10 +39,10 @@
     <h1 style="text-align: center;">Instructions</h1>
 
     <font size="+2">
-        Thank you for participating in our data collection. We are robotics researchers from Brown University. On the next page, you will write <b>15</b> unique natural language commands for tasks that a robot can perform in 5 virtual household scenes, i.e., <b>3 commands per scene</b>.
+        Welcome! You will write <b>15</b> unique commands for tasks that a robot can perform in 5 virtual household scenes, i.e., <b>3 commands per scene</b>.
         <br>
         <br>
-        A personal assistant robot can navigate to different places in the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see a video below of how the robot operates in the environment.
+        An assistant robot can navigate to places in the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see the video of how the robot operates.
         <br>
         <h3>Video:</h3>
         <div class="iframe-container">
@@ -51,14 +51,13 @@
         <br>
         <h3>Rules:</h3>
         <ul>
-            <li>Your commands must describe tasks for picking up and placing objects as well as moving in the environment.</li> 
+            <li>When giving commands, assume the robot starts in the same position in each scene.</li> 
+            <li>Your commands must describe tasks for picking up and placing objects and moving in the environment.</li> 
             <li>Your commands must instruct the robot to move between rooms.</li>
-            <li>You can refer to only  objects, furniture, and rooms that exist in the environment.</li>
-            <li>You can refer to the objects, furniture, and rooms in any way that you think best represents them, such as using their generic names, attributes, labels, and/or spatial relation to other things, etc. If you use the labels (for objects), please only do so for correctly labeled objects, as some are incorrect such as a lamp being "floor".</li>
-            <li>You can only pickup the labeled objects that a human can pick up with one hand. E.g., the TV is labeled but it cannot be picked up by a human with one hand, and thus cannot be picked up by the robot.</li>
-            <li>When giving commands, you should assume the robot starts in the same position in each scene.</li> 
+            <li>You can refer to only  objects, furniture, and rooms that exist in the environment. Refer to them in any way that best represents them, like using their generic names, attributes, labels, and/or spatial relation to other things, etc. If you use the labels (for objects), please only do so for correctly labeled objects, as some are incorrect such as a lamp being "floor".</li>
+            <li>You can only pickup the labeled objects that a human can pick up with one hand. For example, the TV is labeled but it cannot be picked up by a human with one hand.</li>
             <li>Each command is separate and should not refer to any previous command. </li>
-            <li>Do <b>NOT</b> limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>, in the sense that you can give it any pick up and place task that you would a human.</li>
+            <li>Do <b>NOT</b> limit your commands to what you think the robot might “understand”, rather <b>assume the robot is as intelligent as a human</b>, i.e. you can give it any pick up/place task that you would a human.</li>
             <li>Do <b>NOT</b> pick up/place the following objects in your commands, even if they exist in the scene. You can refer to them in relation to something, like “Pick up the bat next to the laptop." but not "Pick up the laptop."</li>
                 <ul>
                     <li>Laptop</li>
@@ -78,55 +77,52 @@
         <ul>
             <li>“Go to the living room and grab the purple pillow that is on the couch, then go to the office and place it on the chair.”</li>
             <li>“Go to the living room and pick up the basketball next to the table, then go to the can and drop it inside.”</li>
-            <li>“Go to the bedroom and grab my phone off the bed, then bring it back to me.”</li>
+            <li>"Run to the bedroom and grab my phone off the bed, then bring it back to me.”</li>
             <li>“Bring me the black TV remote on the table in the living room.”</li>
             <li>“Take the baseball bat next to you and move it to the desk in the bedroom”</li>
-            <li>"Take the object to the right of the apple in the office with the laptop and put it on the blue table, specifically next to the book."</li>
+            <li>"Carry the object to the right of the apple in the office with the laptop and put it on the blue table, specifically next to the book."</li>
           </ul> 
         <h3>FAQ:</h3>
         <ul>
-            <li>Q: Can I command the robot to search for an object instead of telling the robot exactly where the object is? For example “Find the basketball and bring it back to me”.</li>
+            <li>Q: Can I command the robot to search for an object instead of telling the robot exactly where the object is?</li>
                 <ul>
-                    <li>A: No, please give clear instructions.</li>
+                    <li>A: No.</li>
                 </ul>
-            <li>Q: Can I refer to specifics in the environment such in the commands such as the Vincent van Gogh painting on the wall?</li>
+            <li>Q: Can I refer to specifics in the environment such as the Vincent van Gogh painting on the wall?</li>
                 <ul>
-                    <li>A: Yes. Pretend the robot is as intelligent as a human and command it as you would a human.</li>
+                    <li>A: Yes.</li>
                 </ul>
-            <li>Q: I see that the objects have labels when I point on them, can I refer to objects that do not have labels such as a desk?</li>
+            <li>Q: The objects have labels when I point at them, can I refer to objects that don't have labels such as a desk?</li>
                 <ul>
-                    <li>A: Yes, as long as you are not telling the robot to pick up those objects. For example, you can tell the robot to place an object on a desk but cannot tell the robot to pick up the desk.</li>
+                    <li>A: Yes, as long as you are not telling the robot to pick them up. For example, you can tell the robot to place an object on a desk but cannot tell the robot to pick up the desk.</li>
                 </ul>
             <li>Q: Can I pick up an object and not place it? E.g. "Pick up the remote and wait near the sofa"?</li>
                 <ul>
-                    <li>A: No. Please place any object that is picked up.</li> 
+                    <li>A: No.</li> 
                 </ul>
-            <li>Q: Do the rooms in each scene have official names such as "living room" or "office"? If so, what are they? If not, what should we refer to them as?</li>
+            <li>Q: Do the rooms have official names such as "living room" or "office"? If not, how should we refer to them?</li>
                 <ul>
-                    <li>A: No. The virtual environment does not give them names and neither do we. Refer to them by whatever you think best describes them. If there are rooms that are the same or similar, you can specify them by what's inside, or their spatial relation to other rooms. E.g. "The office next to the living room" or "The office with the laptop".</li> 
+                    <li>A: No. Refer to them by whatever you think best describes them. If there are rooms that are similar, specify them by what's inside, or their spatial relation to other rooms, e.g., "The office next to the living room" or "The office with the laptop".</li> 
                 </ul>
             <li>Q: Do I have to mention/specify room(s) in the commands?</li>
                 <ul>
-                    <li>A: No, as long as it's implied. The robot must move across rooms during the task. You can do that either implicitly, e.g. "Put the pillow by the couch", where the pillow and the couch are in seperate rooms. Or explicitly, e.g. "Take the pillow from the office to the couch in the living room."</li> 
+                    <li>A: No, as long as it's implied. The robot must move across rooms. You can do that either implicitly, e.g. "Put the pillow by the couch", where the pillow and the couch are in seperate rooms. Or explicitly, e.g. "Take the pillow from the office to the couch in the living room."</li> 
                 </ul>
             <li>Q: Can I use the room the robot starts at in the commands?</li>
                 <ul>
-                    <li>A: Yes, as long as the robot also goes to another room(s) during the task. E.g. "Bring me the ball from the office." where it is implied that you are in the current room.</li> 
+                    <li>A: Yes, as long as the robot also goes to another room(s) during the task, e.g., "Bring me the ball from the office."</li> 
                 </ul>
-            <li>Q: Do I have to actually perform the tasks or just give the commands?</li>
+            <li>Q: Do I have to perform the tasks in addition to giving commands?</li>
                 <ul>
-                    <li>A: No. You can if you want to to help you brainstorm, but only the commands are required.</li> 
+                    <li>A: No. You can if it helps you brainstorm.</li> 
                 </ul>
-            <li>Q: Is the data collection anonymous?</li>
+            <li>Q: Is any personal information collected?</li>
                 <ul>
-                    <li>A: Yes. No personal information is collected.</li> 
+                    <li>A: No.</li> 
                 </ul>
         </ul>
         <br>
-        You can use the <b>Instructions</b> button at the bottom of the <b>Scenes</b> page to review these instructions and rewatch the video. You will <b>NOT</b> lose your progress.
-        <br>
-        <br>
-        After you click <b>Finish</b> on the <b>Scenes</b> page, you will receive the completion code.
+        You can use the <b>Instructions</b> button at the bottom of the <b>Scenes</b> page to review this page. You will <b>NOT</b> lose your progress.
     </font>
     <br>
     <br>
