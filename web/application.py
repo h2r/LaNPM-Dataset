@@ -32,9 +32,9 @@ def save_data():
     study_id = session.get('study_id', None)
     session_id = session.get('session_id', None)
 
-    #adding time ids for the pilot study since we don't have prolific url parameter id
-    id = datetime.now().strftime("%Y%m%d%H%M%S") if prolific_pid is None else prolific_pid
-    csv_filename = f'commands_participant_{id}.csv'
+    #adding time ids for the lab study since we don't have prolific url parameter id
+    # id = datetime.now().strftime("%Y%m%d%H%M%S") if prolific_pid is None else prolific_pid
+    csv_filename = f'commands_participant_{prolific_pid}.csv' #prolific_pid can be swapped with id for the lab study
 
 
     df = pd.DataFrame(scene_data_lst)
