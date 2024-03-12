@@ -5,11 +5,16 @@ import logging
 import numpy as np
 import json
 import zipfile
+from io import BytesIO
 
+num = 0
 
 class get_data():
     def __init__(self):
         self.data = [] #each point is a step
+        self.rgb = []
+        self.depth = []
+        self.inst_seg = []
         self.scene = ''
         self.prev_state_body = []
         self.prev_state_ee = []
@@ -42,6 +47,7 @@ class get_data():
     def gather_data(self, event):
         # global scene, prev_state_body, prev_state_ee, prev_hand_sphere_center, prev_held_objs, prev_held_objs_state
         self.scene = event.metadata['sceneName']
+        global num
 
         dic = {}
         dic['sim_time'] = event.metadata['currentTime']
@@ -57,10 +63,15 @@ class get_data():
         dic['held_objs'] = event.metadata['arm']['heldObjects']
         pos_rot_dic = self._get_objs_pos(event.metadata['arm']['heldObjects'], event.metadata["objects"])
         dic['held_objs_state'] =  pos_rot_dic
-        dic['rgb'] = event.frame
-        dic['depth'] = event.depth_frame
-        dic['inst_seg'] = event.instance_segmentation_frame
+        # dic['rgb'] = event.frame
+        # dic['depth'] = event.depth_frame
+        # dic['inst_seg'] = event.instance_segmentation_frame
         dic['inst_det2D'] = {'keys': list(event.instance_detections2D.keys()), 'values': list(event.instance_detections2D.values())}
+        dic['rgb'] = f'./rgb_{num}.npy'
+        dic['depth'] = f'./depth_{num}.npy'
+        dic['inst_seg'] = f'./inst_seg_{num}.npy'
+        num+=1
+
 
         if self.prev_state_body == dic['state_body'] and self.prev_state_ee == dic['state_ee'] and self.prev_hand_sphere_center == dic['hand_sphere_center'] and self.prev_held_objs == dic['held_objs'] and self.prev_held_objs_state == dic['held_objs_state']:
             return
@@ -72,18 +83,22 @@ class get_data():
         self.prev_held_objs_state = dic['held_objs_state']
 
         self.data.append(dic)
+        self.rgb.append(event.frame)
+        self.depth.append(event.depth_frame)
+        self.inst_seg.append(event.instance_segmentation_frame)
 
-    def _ndarray_to_list(self,obj):
-            logging.info("Processing an object of type %s", type(obj))
-            if isinstance(obj, dict):
-                return {key: self._ndarray_to_list(value) if key in ['inst_seg', 'depth', 'rgb', 'inst_det2D'] or isinstance(value, (dict, list)) else value
-                        for key, value in obj.items()}
-            elif isinstance(obj, list):
-                return [self._ndarray_to_list(element) for element in obj]
-            elif isinstance(obj, np.ndarray):
-                return obj.tolist()
-            else:
-                return obj
+
+    # def _ndarray_to_list(self,obj):
+    #         logging.info("Processing an object of type %s", type(obj))
+    #         if isinstance(obj, dict):
+    #             return {key: self._ndarray_to_list(value) if key in ['inst_seg', 'depth', 'rgb', 'inst_det2D'] or isinstance(value, (dict, list)) else value
+    #                     for key, value in obj.items()}
+    #         elif isinstance(obj, list):
+    #             return [self._ndarray_to_list(element) for element in obj]
+    #         elif isinstance(obj, np.ndarray):
+    #             return obj.tolist()
+    #         else:
+    #             return obj
 
 
     def _chunk_dict(self, data, chunk_size):
@@ -108,10 +123,9 @@ class get_data():
 
         
 
-
     def save(self,command):
         final_dic = {"nl_command": command, "scene":self.scene, "steps":self.data}
-        final_dic = self._ndarray_to_list(final_dic)
+        # final_dic = self._ndarray_to_list(final_dic)
 
         # with open('/home/user/NPM-Dataset/data.json', 'w') as f:
         #     json.dump(final_dic, f, indent=4)
@@ -123,7 +137,26 @@ class get_data():
         # Write the JSON data chunks directly into a zip file
         with zipfile.ZipFile(f'data_{current_time}.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
             for idx, chunk in enumerate(self._chunk_dict(final_dic, CHUNK_SIZE)):
-                with zipf.open(f'data_chunk_{idx}.json', 'w') as json_file:
+                folder_name = f'folder_{idx}/'
+                json_filename = f'{folder_name}data_chunk_{idx}.json'
+                rgb_filename = f'{folder_name}rgb_{idx}.npy'
+                depth_filename = f'{folder_name}depth_{idx}.npy'
+                inst_seg_filename = f'{folder_name}inst_seg_{idx}.npy'
+
+
+                with zipf.open(json_filename, 'w') as json_file:
                     # Convert the chunk to a JSON string and encode it to bytes
                     json_data = json.dumps(chunk).encode('utf-8')
                     json_file.write(json_data)
+
+                # Define a helper function to save numpy data
+                def save_npy_to_zip(data, filename):
+                    npy_data = BytesIO()
+                    np.save(npy_data, data, allow_pickle=True, fix_imports=True)
+                    npy_data.seek(0)  # Rewind the buffer
+                    with zipf.open(filename, 'w') as npy_file:
+                        npy_file.write(npy_data.getvalue())
+    
+                save_npy_to_zip(self.rgb, rgb_filename)
+                save_npy_to_zip(self.depth, depth_filename)
+                save_npy_to_zip(self.inst_seg, inst_seg_filename)
