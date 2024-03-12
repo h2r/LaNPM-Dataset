@@ -13,6 +13,7 @@ import logging
 
 data = [] #each point is a step
 scene = ''
+command = ""
 
 def convert_to_euler(rot_quat):
 
@@ -314,7 +315,7 @@ while True:
 '''data collection'''
 ###########################################################################################
 
-final_dic = {"nl_command": "Pick up the blue pencil and place it on the bed with the white sheets.", "scene":scene, "steps":data}
+final_dic = {command, "scene":scene, "steps":data}
 
 def ndarray_to_list(obj):
     logging.info("Processing an object of type %s", type(obj))
@@ -373,7 +374,9 @@ def chunk_dict(data, chunk_size):
 
 CHUNK_SIZE=1
 # Write the JSON data chunks directly into a zip file
-with zipfile.ZipFile('data.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
+now = datetime.now()
+current_time = now.strftime("%H:%M:%S")
+with zipfile.ZipFile(f'data_{current_time}.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
     for idx, chunk in enumerate(chunk_dict(final_dic, CHUNK_SIZE)):
         with zipf.open(f'data_chunk_{idx}.json', 'w') as json_file:
             # Convert the chunk to a JSON string and encode it to bytes
