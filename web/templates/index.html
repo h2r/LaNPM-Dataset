@@ -39,7 +39,7 @@
     <h1 style="text-align: center;">Instructions</h1>
 
     <font size="+2">
-        Welcome and thank you for participating in our data collection! We are robotics researchers from Brown University. On the next page, you will write <b>15</b> unique commands to a robot in 5 virtual household scenes, i.e., <b>3 commands per scene</b>. 
+        Welcome and thank you for participating in our data collection! On the next page, you will write <b>15</b> unique commands to a robot in 5 virtual household scenes, i.e., <b>3 commands per scene</b>. 
         <br>
         <br>
         A personal assistant robot can navigate the virtual environment, pick up and place objects. It perceives the environment with its camera. Please see the video below of how the robot operates in the environment.
@@ -53,12 +53,12 @@
         <ul>
             <li>When giving commands, assume the robot is as intelligent as a human.</li> 
             <li>When giving commands, assume the robot starts in the same position in each scene.</li> 
-            <li>Each command is separate and should not refer to any previous command.</li>
+            <li>Each command is separate and should not refer to any previous command. The robot resets to the starting position each command.</li>
             <li>Each command must include picking up and placing objects and moving between rooms.</li>
-            <li>Only refer to objects, furniture, and rooms in the scene. Refer to them in a way that best describes them, like using their labels, generic names, attributes, and/or spatial relation to other things, etc.</li>
+            <li>Only refer to objects, furniture, and rooms in the scene. Refer to them in a way that best describes them, like using their labels (objects only), generic names, attributes, what is inside a room, and/or spatial relation to others, etc.</li>
             <li>Only command the robot to pick up a labeled object a human can pick up with one hand. For example, the TV is labeled, but a human cannot pick it up with one hand.</li>
             <li>Some object labels are incorrect; please do not use incorrect labels to describe objects e.g., “floor” for a lamp.</li>
-            <li>Do <b>NOT</b> pick up any of the following objects in your commands, even if they exist in the scene. You can refer to them in relation to other objects. For example, “Pick up the bat next to the laptop" but not "Pick up the laptop."</li>
+            <li>Do <b>NOT</b> pick up any of the following objects or open/turn them on in your commands, even if they exist in the scene. You can refer to them in relation to other objects. For example, “Pick up the bat next to the laptop" but not "Pick up the laptop."</li>
                 <ul>
                     <li>Laptop</li>
                     <li>Desk</li>
@@ -78,8 +78,8 @@
             <li>“Go to the living room and grab the purple pillow on the couch, then go to the office and place it on the chair.”</li>
             <li>“Go to the living room and pick up the basketball next to the table, then go to the can and drop it inside.”</li>
             <li>“Run to the bedroom and grab my phone off the bed, then bring it back to me in the kitchen.”</li>
-            <li>“Take the baseball bat next to you and move it to the desk in the bedroom.”</li>
-            <li>"Find the bowl that’s on the right of the apple and take it to the office that has the laptop. Put the bowl on the blue table, specifically next to the book."</li>
+            <li>“Take the baseball bat next to the nightstand in the bedroom and go to the office then put it by the white chair.”</li>
+            <li>“Find the bowl that’s on the right of the apple and take it to the office that has the laptop. Put the bowl on the blue table, specifically next to the book.”</li>
           </ul> 
         <h3>FAQ:</h3>
         <ul>
@@ -95,13 +95,9 @@
                 <ul>
                     <li>A: No.</li> 
                 </ul>
-            <li>Q: Do the rooms have official names such as "living room" or "office"? If not, how should we refer to them?</li>
-                <ul>
-                    <li>A: No. Refer to the rooms that you think best describe them. For similar rooms, you can describe them by what is inside or their spatial relation to other rooms, e.g., "The office with the laptop" or "The office next to the living room."</li> 
-                </ul>
             <li>Q: Do I have to explicitly specify rooms in my commands?</li>
                 <ul>
-                    <li>A: No, they can be implied. The robot must move across rooms. You can do that either implicitly, e.g., "Put the pillow by the couch," where the pillow and the couch are in separate rooms, or explicitly, e.g., "Take the pillow from the office to the couch in the living room."</li> 
+                    <li>No, they can be implied. Your command must instruct the robot to move across rooms. You can do that either implicitly, e.g., "Put the pillow by the couch," where the pillow and the couch are in separate rooms, or explicitly, e.g., "Go to the office and take the pillow to the couch in the living room."</li> 
                 </ul>
             <li>Q: Can I use the room the robot starts at in my commands?</li>
                 <ul>
