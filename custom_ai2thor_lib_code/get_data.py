@@ -6,7 +6,6 @@ import numpy as np
 import json
 import zipfile
 from io import BytesIO
-from PIL import Image
 
 num = 0
 
@@ -165,34 +164,3 @@ class get_data():
                 save_npy_to_zip(self.rgb[idx], rgb_filename)
                 save_npy_to_zip(self.depth[idx], depth_filename)
                 save_npy_to_zip(self.inst_seg[idx], inst_seg_filename)
-
-
-
-
-                # folder_name = f'folder_{idx}/'
-                # json_filename = f'{folder_name}data_chunk_{idx}.json'
-                # rgb_filename = f'{folder_name}rgb_{idx}.jpg'
-                # depth_filename = f'{folder_name}depth_{idx}.jpg'
-                # inst_seg_filename = f'{folder_name}inst_seg_{idx}.jpg'
-
-
-                # with zipf.open(json_filename, 'w') as json_file:
-                #     json_data = json.dumps(chunk).encode('utf-8')
-                #     json_file.write(json_data)
-
-                # # Define a helper function to save data as jpg
-                # def save_as_jpg_to_zip(data, filename):
-                #     # Convert numpy array to PIL Image
-                #     image = Image.fromarray(data)
-                #     # Save the image to a BytesIO object
-                #     img_data = BytesIO()
-                #     image.save(img_data, format='JPEG')
-                #     img_data.seek(0)  # Rewind the buffer
-                #     # Write the image data to the zip file
-                #     with zipf.open(filename, 'w') as img_file:
-                #         img_file.write(img_data.getvalue()) 
-                
-                # # Save RGB, Depth, and Inst_Seg as jpg
-                # save_as_jpg_to_zip(self.rgb.astype(np.uint8), rgb_filename)
-                # save_as_jpg_to_zip(self.depth.astype(np.uint8), depth_filename)
-                # save_as_jpg_to_zip(self.inst_seg.astype(np.uint8), inst_seg_filename)
