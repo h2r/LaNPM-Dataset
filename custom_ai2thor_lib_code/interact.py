@@ -35,7 +35,7 @@ class DefaultActions(Enum):
 #     CloseObject,
 #     ToggleObjectOff
 
-
+k=0
 def get_term_character():
     # NOTE: Leave these imports here! They are incompatible with Windows.
     import tty
@@ -132,20 +132,20 @@ class InteractiveControllerPrompt(object):
         
         get_data_obj.gather_data(controller.last_event) #added by ahmed, adds the starting spawn data
         controller.step(action="SetHandSphereRadius", radius=0.1) #added by ahmed
-        global i
+        global i,x,y,z
         event = controller.step(action="MoveArmBase", y=i,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
         i+=incr
-
+        
         for a, ch in self.next_interact_command(command):
-            new_commands = {}
-            command_counter = dict(counter=1)
+            # new_commands = {}
+            # command_counter = dict(counter=1)
 
-            def add_command(cc, action, **args):
-                if cc["counter"] < 15:
-                    com = dict(action=action)
-                    com.update(args)
-                    new_commands[str(cc["counter"])] = com
-                    cc["counter"] += 1
+            # def add_command(cc, action, **args):
+            #     if cc["counter"] < 15:
+            #         com = dict(action=action)
+            #         com.update(args)
+            #         new_commands[str(cc["counter"])] = com
+            #         cc["counter"] += 1
 
             # print("a", a)
             if a['action'] == "MoveArmBase": #block added by ahmed
@@ -156,7 +156,6 @@ class InteractiveControllerPrompt(object):
                     i-=incr
                     a['y'] = i
             elif a['action'] == "MoveArm": #block added by ahmed
-                global x,y,z
                 if ch == "7":
                     x+=incr
                     a['position']['x'] = x
@@ -176,6 +175,10 @@ class InteractiveControllerPrompt(object):
                     z-=incr
                     a['position']['z'] = z
 
+            global k
+            if k ==0:
+                k+=1
+                event = controller.step(a)
             event = controller.step(a)
             get_data_obj.gather_data(event) #added by ahmed
 
@@ -286,10 +289,12 @@ class InteractiveControllerPrompt(object):
             commands = self._interact_commands
             ch = get_term_character() #added by ahmed
             current_buffer += ch
-            if current_buffer == "q" or current_buffer == "\x03":
+            if current_buffer == "q":
                 get_data_obj.save(command)   #added by ahmed
                 exit() #added by ahmed
                 break
+            elif current_buffer == "\x03":
+                exit() #added by ahmed
 
             if current_buffer in commands:
                 yield commands[current_buffer], ch #ch added by ahmed
