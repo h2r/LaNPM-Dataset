@@ -37,4 +37,5 @@ for nl_command, files in nl_commands_files.items():
         delete_path = os.path.join(zip_files_directory, to_delete)
         os.remove(delete_path)
         print(f"Deleted '{to_delete}' because it had more directories.")
+    else:
         print("No duplicates found!")
