@@ -269,12 +269,7 @@ class Module(nn.Module):
             data = json.load(f)
         return data
 
-    def get_task_root(self, ex):
-        '''
-        returns the folder path of a trajectory
-        '''
-        return os.path.join(self.args.data, ex['split'], *(ex['root'].split('/')[-2:]))
-
+    
     def iterate(self, data, batch_size):
         '''
         breaks dataset into batch_size chunks for training
