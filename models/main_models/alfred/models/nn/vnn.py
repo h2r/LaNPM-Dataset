@@ -157,8 +157,8 @@ class ConvFrameMaskDecoder(nn.Module):
         return action_t, mask_t, state_t, lang_attn_t
 
     def forward(self, enc, frames, gold=None, max_decode=150, state_0=None):
-        max_t = gold.size(1) if self.training else min(max_decode, frames.shape[1])
-        batch = enc.size(0)
+        max_t = gold.size(1) if self.training else min(max_decode, frames.shape[1]) #amount of trajectories (I think)
+        batch = enc.size(0) #batch size
         e_t = self.go.repeat(batch, 1)
         state_t = state_0
 

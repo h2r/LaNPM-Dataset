@@ -87,7 +87,7 @@ class Module(nn.Module):
             total_train_loss = list()
             train = split_keys['train']
             random.shuffle(train) # shuffle every epoch
-            for batch, feat in self.iterate(train, args.batch):
+            for batch, feat in self.iterate(train, args.batch): #left off here
                 out = self.forward(feat)
                 preds = self.extract_preds(out, batch, feat)
                 # p_train.update(preds)

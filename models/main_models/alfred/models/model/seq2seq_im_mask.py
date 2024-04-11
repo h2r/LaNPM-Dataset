@@ -27,7 +27,7 @@ class Module(Base):
         self.subgoal_monitoring = (self.args.pm_aux_loss_wt > 0 or self.args.subgoal_aux_loss_wt > 0)
 
         # frame mask decoder
-        decoder = vnn.ConvFrameMaskDecoderProgressMonitor if self.subgoal_monitoring else vnn.ConvFrameMaskDecoder
+        decoder =  vnn.ConvFrameMaskDecoder
         self.dec = decoder(self.emb_action_low, args.dframe, 2*args.dhid,
                            pframe=args.pframe,
                            attn_dropout=args.attn_dropout,
@@ -100,7 +100,7 @@ class Module(Base):
             # load Resnet features from disk
             if load_frames and not self.test_mode:
                 root = ex['root']
-                im = torch.load(os.path.join(root, self.feat_pt))
+                im = torch.load(os.path.join(root, self.feat_pt)) #left off here
 
                 num_low_actions = len(ex['plan']['low_actions']) + 1  # +1 for additional stop action
                 num_feat_frames = im.shape[0]
@@ -127,13 +127,6 @@ class Module(Base):
                 # low-level action
                 feat['action_low'].append([a['action'] for a in ex['num']['action_low']])
 
-                # low-level action mask
-                if load_mask:
-                    feat['action_low_mask'].append([self.decompress_mask(a['mask']) for a in ex['num']['action_low'] if a['mask'] is not None])
-
-                # low-level valid interact
-                feat['action_low_valid_interact'].append([a['valid_interact'] for a in ex['num']['action_low']])
-
 
         # tensorization and padding
         for k, v in feat.items():
@@ -145,15 +138,6 @@ class Module(Base):
                 embed_seq = self.emb_word(pad_seq)
                 packed_input = pack_padded_sequence(embed_seq, seq_lengths, batch_first=True, enforce_sorted=False)
                 feat[k] = packed_input
-            elif k in {'action_low_mask'}:
-                # mask padding
-                seqs = [torch.tensor(vv, device=device, dtype=torch.float) for vv in v]
-                feat[k] = seqs
-            elif k in {'subgoal_progress', 'subgoals_completed'}:
-                # auxillary padding
-                seqs = [torch.tensor(vv, device=device, dtype=torch.float) for vv in v]
-                pad_seq = pad_sequence(seqs, batch_first=True, padding_value=self.pad)
-                feat[k] = pad_seq
             else:
                 # default: tensorize and pad sequence
                 seqs = [torch.tensor(vv, device=device, dtype=torch.float if ('frames' in k) else torch.long) for vv in v]
@@ -163,19 +147,9 @@ class Module(Base):
         return feat
 
 
-
-    def decompress_mask(self, compressed_mask):
-        '''
-        decompress mask from json files
-        '''
-        mask = np.array(decompress_mask(compressed_mask))
-        mask = np.expand_dims(mask, axis=0)
-        return mask
-
-
     def forward(self, feat, max_decode=300):
         cont_lang, enc_lang = self.encode_lang(feat)
-        state_0 = cont_lang, torch.zeros_like(cont_lang)
+        state_0 = cont_lang, torch.zeros_like(cont_lang) #self-attention encoding & 0-tensor with same len for every traj in the batch
         frames = self.vis_dropout(feat['frames'])
         res = self.dec(enc_lang, frames, max_decode=max_decode, gold=feat['action_low'], state_0=state_0)
         feat.update(res)
@@ -188,10 +162,10 @@ class Module(Base):
         '''
         emb_lang_goal_instr = feat['lang_goal_instr']
         self.lang_dropout(emb_lang_goal_instr.data)
-        enc_lang_goal_instr, _ = self.enc(emb_lang_goal_instr)
+        enc_lang_goal_instr, _ = self.enc(emb_lang_goal_instr) #LSTM encoding
         enc_lang_goal_instr, _ = pad_packed_sequence(enc_lang_goal_instr, batch_first=True)
         self.lang_dropout(enc_lang_goal_instr)
-        cont_lang_goal_instr = self.enc_att(enc_lang_goal_instr)
+        cont_lang_goal_instr = self.enc_att(enc_lang_goal_instr) #self-attention encoding
 
         return cont_lang_goal_instr, enc_lang_goal_instr
 
