@@ -65,7 +65,7 @@ class Module(Base):
         tensorize and pad batch input
         '''
         device = torch.device('cuda') if self.args.gpu else torch.device('cpu')
-        feat = collections.defaultdict(list)
+        feat = collections.defaultdict(list) # for all trajs in the batch
 
         for ex in batch:
             ###########
@@ -100,9 +100,10 @@ class Module(Base):
             # load Resnet features from disk
             if load_frames and not self.test_mode:
                 root = ex['root']
-                im = torch.load(os.path.join(root, self.feat_pt)) #left off here
+                im = torch.load(os.path.join(root, 'pp', self.feat_pt))
 
-                num_low_actions = len(ex['plan']['low_actions']) + 1  # +1 for additional stop action
+                num_low_actions =  len(ex['num']['action_low']) #already has the stop action so len is already +1
+                im = torch.cat((im, im[-1].unsqueeze(0)), dim=0) #add one more frame that's a copy of the last frame so len(frames) matches len(actions) due to a stop action being added
                 num_feat_frames = im.shape[0]
 
                 # Modeling Quickstart (without filler frames)
@@ -110,6 +111,7 @@ class Module(Base):
                     feat['frames'].append(im)
 
                 # Full Dataset (contains filler frames)
+                #won't run for ours since every frame is accompanied by an action
                 else:
                     keep = [None] * num_low_actions
                     for i, d in enumerate(ex['images']):
@@ -125,8 +127,7 @@ class Module(Base):
 
             if not self.test_mode:
                 # low-level action
-                feat['action_low'].append([a['action'] for a in ex['num']['action_low']])
-
+                feat['action_low'].append(ex['num']['action_low']) #append trajectory's sequence of actions. feat['action_low'] should end up being a list that's batch num long
 
         # tensorization and padding
         for k, v in feat.items():
@@ -140,16 +141,20 @@ class Module(Base):
                 feat[k] = packed_input
             else:
                 # default: tensorize and pad sequence
-                seqs = [torch.tensor(vv, device=device, dtype=torch.float if ('frames' in k) else torch.long) for vv in v]
+                #list of length batch where each item is a list that's traj length of dictionaries that contain actions where the actions are float tensors
+                seqs = [torch.tensor(vv, device=device, dtype=torch.float) if 'frames' in k else 
+                                [{key: torch.tensor(value, device=device, dtype=torch.float) for key, value in d.items()} for d in vv] 
+                                for vv in v]
+                #issue in line below
                 pad_seq = pad_sequence(seqs, batch_first=True, padding_value=self.pad)
                 feat[k] = pad_seq
-
+        breakpoint()
         return feat
 
 
     def forward(self, feat, max_decode=300):
         cont_lang, enc_lang = self.encode_lang(feat)
-        state_0 = cont_lang, torch.zeros_like(cont_lang) #self-attention encoding & 0-tensor with same len for every traj in the batch
+        state_0 = cont_lang, torch.zeros_like(cont_lang) #self-attention encoding & 0-tensor with same len for every traj in the batch as an init hidden decoding
         frames = self.vis_dropout(feat['frames'])
         res = self.dec(enc_lang, frames, max_decode=max_decode, gold=feat['action_low'], state_0=state_0)
         feat.update(res)
@@ -274,31 +279,6 @@ class Module(Base):
         alow_loss *= pad_valid.float()
         alow_loss = alow_loss.mean()
         losses['action_low'] = alow_loss * self.args.action_loss_wt
-
-        # mask loss
-        valid_idxs = valid.view(-1).nonzero().view(-1)
-        flat_p_alow_mask = p_alow_mask.view(p_alow_mask.shape[0]*p_alow_mask.shape[1], *p_alow_mask.shape[2:])[valid_idxs]
-        flat_alow_mask = torch.cat(feat['action_low_mask'], dim=0)
-        alow_mask_loss = self.weighted_mask_loss(flat_p_alow_mask, flat_alow_mask)
-        losses['action_low_mask'] = alow_mask_loss * self.args.mask_loss_wt
-
-        # subgoal completion loss
-        if self.args.subgoal_aux_loss_wt > 0:
-            p_subgoal = feat['out_subgoal'].squeeze(2)
-            l_subgoal = feat['subgoals_completed']
-            sg_loss = self.mse_loss(p_subgoal, l_subgoal)
-            sg_loss = sg_loss.view(-1) * pad_valid.float()
-            subgoal_loss = sg_loss.mean()
-            losses['subgoal_aux'] = self.args.subgoal_aux_loss_wt * subgoal_loss
-
-        # progress monitoring loss
-        if self.args.pm_aux_loss_wt > 0:
-            p_progress = feat['out_progress'].squeeze(2)
-            l_progress = feat['subgoal_progress']
-            pg_loss = self.mse_loss(p_progress, l_progress)
-            pg_loss = pg_loss.view(-1) * pad_valid.float()
-            progress_loss = pg_loss.mean()
-            losses['progress_aux'] = self.args.pm_aux_loss_wt * progress_loss
 
         return losses
 

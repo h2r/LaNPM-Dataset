@@ -62,43 +62,6 @@ class ResnetVisualEncoder(nn.Module):
         return x
 
 
-class MaskDecoder(nn.Module):
-    '''
-    mask decoder
-    '''
-
-    def __init__(self, dhid, pframe=300, hshape=(64,7,7)):
-        super(MaskDecoder, self).__init__()
-        self.dhid = dhid
-        self.hshape = hshape
-        self.pframe = pframe
-
-        self.d1 = nn.Linear(self.dhid, hshape[0]*hshape[1]*hshape[2])
-        self.upsample = nn.UpsamplingNearest2d(scale_factor=2)
-        self.bn2 = nn.BatchNorm2d(32)
-        self.bn1 = nn.BatchNorm2d(16)
-        self.dconv3 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1)
-        self.dconv2 = nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1)
-        self.dconv1 = nn.ConvTranspose2d(16, 1, kernel_size=4, stride=2, padding=1)
-
-    def forward(self, x):
-        x = F.relu(self.d1(x))
-        x = x.view(-1, *self.hshape)
-
-        x = self.upsample(x)
-        x = self.dconv3(x)
-        x = F.relu(self.bn2(x))
-
-        x = self.upsample(x)
-        x = self.dconv2(x)
-        x = F.relu(self.bn1(x))
-
-        x = self.dconv1(x)
-        x = F.interpolate(x, size=(self.pframe, self.pframe), mode='bilinear')
-
-        return x
-
-
 class ConvFrameMaskDecoder(nn.Module):
     '''
     action decoder
@@ -122,7 +85,6 @@ class ConvFrameMaskDecoder(nn.Module):
         self.actor_dropout = nn.Dropout(actor_dropout)
         self.go = nn.Parameter(torch.Tensor(demb))
         self.actor = nn.Linear(dhid+dhid+dframe+demb, demb)
-        self.mask_dec = MaskDecoder(dhid=dhid+dhid+dframe+demb, pframe=self.pframe)
         self.teacher_forcing = teacher_forcing
         self.h_tm1_fc = nn.Linear(dhid, dhid)
 
@@ -130,7 +92,7 @@ class ConvFrameMaskDecoder(nn.Module):
 
     def step(self, enc, frame, e_t, state_tm1):
         # previous decoder hidden state
-        h_tm1 = state_tm1[0]
+        h_tm1 = state_tm1[0] #tm1 = t minus 1
 
         # encode vision and lang feat
         vis_feat_t = self.vis_encoder(frame)
@@ -140,45 +102,41 @@ class ConvFrameMaskDecoder(nn.Module):
         weighted_lang_t, lang_attn_t = self.attn(self.attn_dropout(lang_feat_t), self.h_tm1_fc(h_tm1))
 
         # concat visual feats, weight lang, and previous action embedding
-        inp_t = torch.cat([vis_feat_t, weighted_lang_t, e_t], dim=1)
+        inp_t = torch.cat([vis_feat_t, weighted_lang_t, e_t], dim=1) #input for LSTM
         inp_t = self.input_dropout(inp_t)
 
         # update hidden state
-        state_t = self.cell(inp_t, state_tm1)
+        state_t = self.cell(inp_t, state_tm1) #pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
         state_t = [self.hstate_dropout(x) for x in state_t]
-        h_t = state_t[0]
+        h_t = state_t[0] #updates the hidden state
 
-        # decode action and mask
+        # decode action
         cont_t = torch.cat([h_t, inp_t], dim=1)
         action_emb_t = self.actor(self.actor_dropout(cont_t))
-        action_t = action_emb_t.mm(self.emb.weight.t())
-        mask_t = self.mask_dec(cont_t)
+        action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch
 
-        return action_t, mask_t, state_t, lang_attn_t
+        return action_t, state_t, lang_attn_t
 
-    def forward(self, enc, frames, gold=None, max_decode=150, state_0=None):
-        max_t = gold.size(1) if self.training else min(max_decode, frames.shape[1]) #amount of trajectories (I think)
+    def forward(self, enc, frames, gold=None, max_decode=150, state_0=None): #max_decode = the max num of actions to predict
+        max_t = gold.size(1) if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
         batch = enc.size(0) #batch size
-        e_t = self.go.repeat(batch, 1)
+        e_t = self.go.repeat(batch, 1) #batch num of SOS action embeddings
         state_t = state_0
 
-        actions = []
-        masks = []
+        actions = [] # all predicted action distributions for every step for every trajectory in the batch
         attn_scores = []
         for t in range(max_t):
-            action_t, mask_t, state_t, attn_score_t = self.step(enc, frames[:, t], e_t, state_t)
-            masks.append(mask_t)
+            action_t, state_t, attn_score_t = self.step(enc, frames[:, t], e_t, state_t) #does 1 forward pass thorugh the network for all traj in the batch. returns batch num action distributions
             actions.append(action_t)
             attn_scores.append(attn_score_t)
             if self.teacher_forcing and self.training:
                 w_t = gold[:, t]
             else:
-                w_t = action_t.max(1)[1]
-            e_t = self.emb(w_t)
+                w_t = action_t.max(1)[1] #the indices of the max actions from each traj's action distribution
+            e_t = self.emb(w_t) #setting the predicted action as the next one to be passed into the network
 
         results = {
-            'out_action_low': torch.stack(actions, dim=1),
-            'out_action_low_mask': torch.stack(masks, dim=1),
+            'out_action_low': torch.stack(actions, dim=1), #reshapes it group each trajectory's steps' distributions together. new shape is [batches, steps, action_space]
             'out_attn_scores': torch.stack(attn_scores, dim=1),
             'state_t': state_t
         }

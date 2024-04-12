@@ -33,6 +33,12 @@ if __name__ == '__main__':
         # Iterate through all top-level groups (arbitrary groups) in the HDF5 file
         for top_group_name in tqdm(hdf.keys(), desc='Trajectory'):
             top_group = hdf[top_group_name]
+            path = os.path.join(args.pp_data, top_group_name, 'pp', args.filename)
+            
+            #skipping already done ones
+            if os.path.isfile(path):
+                print(f"Skipping {top_group_name}")
+                continue
             
             raw_imgs = []
             # Iterate through all sub-groups within the top-level group (folder_[NUM] groups)
@@ -52,5 +58,4 @@ if __name__ == '__main__':
 
             imgs = [Image.fromarray(raw_img) for raw_img in raw_imgs]
             feat = extractor.featurize(imgs, batch=len(imgs))
-            path = os.path.join(args.pp_data, top_group_name, 'pp', args.filename)
             torch.save(feat.cpu(), path)
