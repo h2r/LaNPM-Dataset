@@ -18,7 +18,8 @@ class Module(nn.Module):
         super().__init__()
 
         # sentinel tokens
-        self.pad = 0
+        self.pad = 0 #for lang
+        self.action_pad = -2.0
         self.seg = 1
 
         # args and vocab
@@ -87,7 +88,7 @@ class Module(nn.Module):
             total_train_loss = list()
             train = split_keys['train']
             random.shuffle(train) # shuffle every epoch
-            for batch, feat in self.iterate(train, args.batch): #left off here
+            for batch, feat in self.iterate(train, args.batch):
                 out = self.forward(feat)
                 preds = self.extract_preds(out, batch, feat)
                 # p_train.update(preds)
@@ -278,7 +279,6 @@ class Module(nn.Module):
             tasks = data[i:i+batch_size]
             batch = [self.load_task_json(task) for task in tasks]
             feat = self.featurize(batch)
-            breakpoint()
             yield batch, feat
 
     def zero_input(self, x, keep_end_token=True):

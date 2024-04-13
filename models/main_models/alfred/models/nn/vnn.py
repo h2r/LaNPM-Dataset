@@ -106,6 +106,7 @@ class ConvFrameMaskDecoder(nn.Module):
         inp_t = self.input_dropout(inp_t)
 
         # update hidden state
+        #left off here. need to start seeing how i can convert the action model processing so it outputs regression
         state_t = self.cell(inp_t, state_tm1) #pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
         state_t = [self.hstate_dropout(x) for x in state_t]
         h_t = state_t[0] #updates the hidden state
@@ -118,7 +119,7 @@ class ConvFrameMaskDecoder(nn.Module):
         return action_t, state_t, lang_attn_t
 
     def forward(self, enc, frames, gold=None, max_decode=150, state_0=None): #max_decode = the max num of actions to predict
-        max_t = gold.size(1) if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
+        max_t = len(gold[0]) if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
         batch = enc.size(0) #batch size
         e_t = self.go.repeat(batch, 1) #batch num of SOS action embeddings
         state_t = state_0

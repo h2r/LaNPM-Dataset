@@ -141,14 +141,29 @@ class Module(Base):
                 feat[k] = packed_input
             else:
                 # default: tensorize and pad sequence
-                #list of length batch where each item is a list that's traj length of dictionaries that contain actions where the actions are float tensors
+
                 seqs = [torch.tensor(vv, device=device, dtype=torch.float) if 'frames' in k else 
                                 [{key: torch.tensor(value, device=device, dtype=torch.float) for key, value in d.items()} for d in vv] 
                                 for vv in v]
-                #issue in line below
-                pad_seq = pad_sequence(seqs, batch_first=True, padding_value=self.pad)
+                if k in {'action_low'}:
+                #seqs is list of length batch where each item is a list that's traj length of dictionaries that contain actions where the actions are float tensors
+
+                    # Determine the maximum length of any list in the seqs
+                    max_length = max(len(lst) for lst in seqs)
+
+                    template_dict = {
+                        'state_body': torch.full((4,), self.action_pad),
+                        'state_ee': torch.full((6,), self.action_pad) 
+                    }
+
+                    # Pad each list in seqs to the maximum length
+                    pad_seq = [
+                        lst + [template_dict.copy() for _ in range(max_length - len(lst))] for lst in seqs
+                    ]
+                else:
+                    pad_seq = pad_sequence(seqs, batch_first=True, padding_value=self.pad)
+            
                 feat[k] = pad_seq
-        breakpoint()
         return feat
 
 
