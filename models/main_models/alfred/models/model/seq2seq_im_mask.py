@@ -26,16 +26,22 @@ class Module(Base):
         # subgoal monitoring
         self.subgoal_monitoring = (self.args.pm_aux_loss_wt > 0 or self.args.subgoal_aux_loss_wt > 0)
 
-        # frame mask decoder
-        decoder =  vnn.ConvFrameMaskDecoder
-        self.dec = decoder(self.emb_action_low, args.dframe, 2*args.dhid,
-                           pframe=args.pframe,
-                           attn_dropout=args.attn_dropout,
-                           hstate_dropout=args.hstate_dropout,
-                           actor_dropout=args.actor_dropout,
-                           input_dropout=args.input_dropout,
-                           teacher_forcing=args.dec_teacher_forcing)
+        # model to be finetuned
+        decoder = vnn.FineTuneDecoder
+        self.dec = decoder(
+            emb = self.emb_action_low, 
+            dframe=args.dframe,
+            dhid=2*args.dhid,
+            pframe=args.pframe,
+            attn_dropout=args.attn_dropout,
+            hstate_dropout=args.hstate_dropout,
+            actor_dropout=args.actor_dropout,
+            input_dropout=args.input_dropout,
+            teacher_forcing=args.dec_teacher_forcing
+        )
+        self.load_pretrained_model(args.finetune)
 
+        
         # dropouts
         self.vis_dropout = nn.Dropout(args.vis_dropout)
         self.lang_dropout = nn.Dropout(args.lang_dropout, inplace=True)
@@ -59,6 +65,20 @@ class Module(Base):
 
         # reset model
         self.reset()
+
+    def load_pretrained_model(self, path):
+        # Load the pretrained state dict
+        breakpoint()
+        pretrained_dict = torch.load(path)
+        
+        # You might want to filter out unnecessary keys
+        model_dict = self.dec.state_dict()
+        # Filter out unnecessary keys from pretrained_dict
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict and model_dict[k].size() == v.size()}
+        # Overwrite entries in the existing state dict
+        model_dict.update(pretrained_dict)
+        # Load the new state dict
+        self.dec.load_state_dict(model_dict)
 
     def featurize(self, batch, load_mask=True, load_frames=True):
         '''

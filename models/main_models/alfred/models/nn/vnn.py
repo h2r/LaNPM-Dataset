@@ -121,6 +121,7 @@ class ConvFrameMaskDecoder(nn.Module):
     def forward(self, enc, frames, gold=None, max_decode=150, state_0=None): #max_decode = the max num of actions to predict
         max_t = len(gold[0]) if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
         batch = enc.size(0) #batch size
+        breakpoint()
         e_t = self.go.repeat(batch, 1) #batch num of SOS action embeddings
         state_t = state_0
 
@@ -143,6 +144,9 @@ class ConvFrameMaskDecoder(nn.Module):
         }
         return results
 
+
+class FineTuneDecoder(ConvFrameMaskDecoder):
+    pass
 
 class ConvFrameMaskDecoderProgressMonitor(nn.Module):
     '''
