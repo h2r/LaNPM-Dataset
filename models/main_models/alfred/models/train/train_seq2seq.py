@@ -44,6 +44,8 @@ if __name__ == '__main__':
     parser.add_argument('--action_loss_wt', help='weight of action loss', default=1., type=float)
     parser.add_argument('--subgoal_aux_loss_wt', help='weight of subgoal completion predictor', default=0., type=float)
     parser.add_argument('--pm_aux_loss_wt', help='weight of progress monitor', default=0., type=float)
+    parser.add_argument('--continuous_action_dim', help='number of dimensions for the continous action output size', default=10, type=int)
+
 
     # dropouts
     parser.add_argument('--zero_goal', help='zero out goal language', action='store_true')

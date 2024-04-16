@@ -69,7 +69,7 @@ class ConvFrameMaskDecoder(nn.Module):
 
     def __init__(self, emb, dframe, dhid, pframe=300,
                  attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0.,
-                 teacher_forcing=False):
+                 teacher_forcing=False, continuous_action_dim):
         super().__init__()
         demb = emb.weight.size(1)
 
@@ -84,11 +84,18 @@ class ConvFrameMaskDecoder(nn.Module):
         self.hstate_dropout = nn.Dropout(hstate_dropout)
         self.actor_dropout = nn.Dropout(actor_dropout)
         self.go = nn.Parameter(torch.Tensor(demb))
-        self.actor = nn.Linear(dhid+dhid+dframe+demb, demb)
+        self.continuous_action_dim = continuous_action_dim
+        self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim)
         self.teacher_forcing = teacher_forcing
         self.h_tm1_fc = nn.Linear(dhid, dhid)
 
         nn.init.uniform_(self.go, -0.1, 0.1)
+        nn.init.xavier_uniform_(self.actor.weight)
+
+    def freeze_except_final(self):
+        for name, param in self.named_parameters():
+            if 'actor' not in name:
+                param.requires_grad = False
 
     def step(self, enc, frame, e_t, state_tm1):
         # previous decoder hidden state
@@ -106,7 +113,6 @@ class ConvFrameMaskDecoder(nn.Module):
         inp_t = self.input_dropout(inp_t)
 
         # update hidden state
-        #left off here. need to start seeing how i can convert the action model processing so it outputs regression
         state_t = self.cell(inp_t, state_tm1) #pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
         state_t = [self.hstate_dropout(x) for x in state_t]
         h_t = state_t[0] #updates the hidden state
@@ -114,14 +120,14 @@ class ConvFrameMaskDecoder(nn.Module):
         # decode action
         cont_t = torch.cat([h_t, inp_t], dim=1)
         action_emb_t = self.actor(self.actor_dropout(cont_t))
-        action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch
+        # action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch
+
 
         return action_t, state_t, lang_attn_t
 
     def forward(self, enc, frames, gold=None, max_decode=150, state_0=None): #max_decode = the max num of actions to predict
         max_t = len(gold[0]) if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
         batch = enc.size(0) #batch size
-        breakpoint()
         e_t = self.go.repeat(batch, 1) #batch num of SOS action embeddings
         state_t = state_0
 
@@ -134,7 +140,8 @@ class ConvFrameMaskDecoder(nn.Module):
             if self.teacher_forcing and self.training:
                 w_t = gold[:, t]
             else:
-                w_t = action_t.max(1)[1] #the indices of the max actions from each traj's action distribution
+                # w_t = action_t.max(1)[1] #the indices of the max actions from each traj's action distribution
+                w_t = action_t  # No need to find max index, assume action_t gives continuous output directly
             e_t = self.emb(w_t) #setting the predicted action as the next one to be passed into the network
 
         results = {
@@ -146,7 +153,29 @@ class ConvFrameMaskDecoder(nn.Module):
 
 
 class FineTuneDecoder(ConvFrameMaskDecoder):
-    pass
+    def __init__(self, emb, dframe, dhid, pframe, attn_dropout, hstate_dropout, actor_dropout, input_dropout, teacher_forcing, continuous_action_dim):
+        # Initialize the base class with the parameters it expects
+        super().__init__(emb, dframe, dhid, pframe, attn_dropout, hstate_dropout, actor_dropout, input_dropout, teacher_forcing)
+        # Handle the additional parameter for fine-tuning
+        self.continuous_action_dim = continuous_action_dim
+        # Assume modifications or initializations that depend on continuous_action_dim here
+        # E.g., adjusting the actor layer to output continuous actions
+        demb = emb.weight.size(1)
+        self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim)
+        nn.init.xavier_uniform_(self.actor.weight)
+
+    def freeze_layers(self):
+        # Freeze all existing layers except for the new output layer
+        for name, param in self.named_parameters():
+            # Ensuring not to freeze the newly added output layer
+            if 'actor' not in name:
+                param.requires_grad = False
+
+    def step(self, *args, **kwargs):
+        # Use the existing functionality and pass through the new output layer
+        output = super().step(*args, **kwargs)
+        # The output here now includes the new continuous action outputs
+        return output
 
 class ConvFrameMaskDecoderProgressMonitor(nn.Module):
     '''
