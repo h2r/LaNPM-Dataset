@@ -98,7 +98,6 @@ if __name__ == '__main__':
         print("Loading: " + args.resume)
         model, optimizer = M.Module.load(args.resume)
     else:
-        #issue in line below
         model = M.Module(args, vocab)
         optimizer = None
 

@@ -28,7 +28,7 @@ class Module(Base):
 
         # model to be finetuned
         decoder = vnn.ConvFrameMaskDecoder
-        self.dec = decoder(self.emb_action_low, args.dframe, 2*args.dhid,
+        self.dec = decoder(args.demb, args.dframe, 2*args.dhid,
                            pframe=args.pframe,
                            attn_dropout=args.attn_dropout,
                            hstate_dropout=args.hstate_dropout,
@@ -36,9 +36,8 @@ class Module(Base):
                            input_dropout=args.input_dropout,
                            teacher_forcing=args.dec_teacher_forcing,
                            continuous_action_dim = args.continuous_action_dim)
-        self.dec.freeze_except_final()
         self.load_pretrained_model(args.finetune)
-
+        self.freeze()
         
         # dropouts
         self.vis_dropout = nn.Dropout(args.vis_dropout)
@@ -59,28 +58,69 @@ class Module(Base):
         self.feat_pt = 'feat_conv.pt'
 
         # params
-        self.max_subgoals = 25
+        # self.max_subgoals = 25
 
         # reset model
         self.reset()
 
+    def freeze(self):
+        for name, param in self.named_parameters():
+            if 'actor' not in name and 'emb_word' not in name and 'go' no in name:
+                param.requires_grad = False
+
     def load_pretrained_model(self, path):
-        # Load the pretrained state dict
-        pretrained_dict = torch.load(path)
+
+         # You might want to filter out unnecessary keys
+        model_dict = self.state_dict()
         breakpoint()
 
-        # You might want to filter out unnecessary keys
-        model_dict = self.dec.state_dict()
+        # Load the pretrained state dict
+        pretrained_dict = torch.load(path)
 
         # Load pretrained model state dictionary
         pretrained_state_dict = pretrained_dict['model']
 
-        # Filter out unnecessary keys from pretrained_dict
-        compatible_params = {k: v for k, v in pretrained_state_dict.items() if k in model_dict and model_dict[k].size() == v.size()}
+        # # Filter out unnecessary keys from pretrained_dict
+        # # compatible_params = {k: v for k, v in pretrained_state_dict.items() if k in model_dict and model_dict[k].size() == v.size()}
+        # def map_pretrained_keys(pretrained_state_dict, model_dict):
+        #     # Dictionary to store compatible parameters
+        #     compatible_params = {}
+            
+        #     # First, handle keys with the 'dec.' prefix
+        #     for k, v in pretrained_state_dict.items():
+        #         if k.startswith('dec.'):
+        #             new_key = k[len("dec."):]
+
+        #             # Check if the new key after removing 'dec.' exists in the model_dict and has the same size
+        #             if new_key in model_dict and model_dict[new_key].size() == v.size():
+        #                 compatible_params[new_key] = v
+
+        #     # Second, handle direct matching keys without 'dec.'
+        #     for k, v in pretrained_state_dict.items():
+        #         """
+        #         these are added even though their size is different:
+        #             1. emb_word.weight
+        #             2. emb_action_low.weight
+        #             3. dec.actor.weight
+        #             4. dec.actor.bias
+
+        #             3 and 4 are going to be fine-tuned. 1 is frozen. 2 is there but won't be used in the model.
+        #         """
+        #         if k in model_dict: #adds  the # and model_dict[k].size() == v.size(): 
+        #             compatible_params[k] = v
+
+        #     return compatible_params
+        
+        # compatible_params = map_pretrained_keys(pretrained_state_dict, model_dict)
         # Overwrite entries in the existing state dict
-        model_dict.update(compatible_params)
-        # Load the new state dict
-        self.dec.load_state_dict(model_dict)
+        # model_dict.update(compatible_params)
+        # Load the new state dict (pretrained params)
+        # self.load_state_dict(model_dict)
+        filtered_dict = {key: value for key, value in pretrained_state_dict.items()
+                     if 'actor' not in key and 'emb_word' not in key and 'go' not in key}
+       
+        #loads in the keys shared between the current model and the pretrained model while also removing the keys we want to fine-tune
+        self.load_state_dict(filtered_dict, strict=False)
 
     def featurize(self, batch, load_mask=True, load_frames=True):
         '''

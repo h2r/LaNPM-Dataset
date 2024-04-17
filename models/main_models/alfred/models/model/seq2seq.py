@@ -28,11 +28,10 @@ class Module(nn.Module):
 
         # emb modules
         self.emb_word = nn.Embedding(len(vocab['word']), args.demb)
-        self.emb_action_low = nn.Embedding(len(vocab['action_low']), args.demb)
 
         # end tokens
-        self.stop_token = self.vocab['action_low'].word2index("<<stop>>", train=False)
-        self.seg_token = self.vocab['action_low'].word2index("<<seg>>", train=False)
+        # self.stop_token = self.vocab['action_low'].word2index("<<stop>>", train=False)
+        # self.seg_token = self.vocab['action_low'].word2index("<<seg>>", train=False)
 
         # set random seed (Note: this is not the seed used to initialize THOR object locations)
         random.seed(a=args.seed)

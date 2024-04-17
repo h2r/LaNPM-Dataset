@@ -21,7 +21,7 @@ class Dataset(object):
         if vocab is None:
             self.vocab = {
                 'word': Vocab(['<<pad>>', '<<seg>>', '<<goal>>']),
-                'action_low': Vocab(['<<pad>>', '<<seg>>', '<<stop>>']),
+                # 'action_low': Vocab(['<<pad>>', '<<seg>>', '<<stop>>']),
                 # 'action_high': Vocab(['<<pad>>', '<<seg>>', '<<stop>>']),
             }
         else:
