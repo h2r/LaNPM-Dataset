@@ -34,6 +34,7 @@ class Module(Base):
                            hstate_dropout=args.hstate_dropout,
                            actor_dropout=args.actor_dropout,
                            input_dropout=args.input_dropout,
+                           adapter_dropout=args.adapter_dropout,
                            teacher_forcing=args.dec_teacher_forcing,
                            continuous_action_dim = args.continuous_action_dim)
         self.load_pretrained_model(args.finetune)
@@ -64,15 +65,23 @@ class Module(Base):
         self.reset()
 
     def freeze(self):
+        """
+        The layers to be fine-tuned:
+            emb_word.weight
+            dec.adapter.weight
+            dec.adapter.bias
+            dec.actor.weight
+            dec.actor.bias
+        """
+
         for name, param in self.named_parameters():
-            if 'actor' not in name and 'emb_word' not in name and 'go' no in name:
+            if 'actor' not in name and 'emb_word' not in name and 'adapter' not in name:
                 param.requires_grad = False
 
     def load_pretrained_model(self, path):
 
          # You might want to filter out unnecessary keys
         model_dict = self.state_dict()
-        breakpoint()
 
         # Load the pretrained state dict
         pretrained_dict = torch.load(path)
@@ -80,44 +89,9 @@ class Module(Base):
         # Load pretrained model state dictionary
         pretrained_state_dict = pretrained_dict['model']
 
-        # # Filter out unnecessary keys from pretrained_dict
-        # # compatible_params = {k: v for k, v in pretrained_state_dict.items() if k in model_dict and model_dict[k].size() == v.size()}
-        # def map_pretrained_keys(pretrained_state_dict, model_dict):
-        #     # Dictionary to store compatible parameters
-        #     compatible_params = {}
-            
-        #     # First, handle keys with the 'dec.' prefix
-        #     for k, v in pretrained_state_dict.items():
-        #         if k.startswith('dec.'):
-        #             new_key = k[len("dec."):]
-
-        #             # Check if the new key after removing 'dec.' exists in the model_dict and has the same size
-        #             if new_key in model_dict and model_dict[new_key].size() == v.size():
-        #                 compatible_params[new_key] = v
-
-        #     # Second, handle direct matching keys without 'dec.'
-        #     for k, v in pretrained_state_dict.items():
-        #         """
-        #         these are added even though their size is different:
-        #             1. emb_word.weight
-        #             2. emb_action_low.weight
-        #             3. dec.actor.weight
-        #             4. dec.actor.bias
-
-        #             3 and 4 are going to be fine-tuned. 1 is frozen. 2 is there but won't be used in the model.
-        #         """
-        #         if k in model_dict: #adds  the # and model_dict[k].size() == v.size(): 
-        #             compatible_params[k] = v
-
-        #     return compatible_params
-        
-        # compatible_params = map_pretrained_keys(pretrained_state_dict, model_dict)
-        # Overwrite entries in the existing state dict
-        # model_dict.update(compatible_params)
-        # Load the new state dict (pretrained params)
-        # self.load_state_dict(model_dict)
+        #don't want to use actor and emb_word pretrained params so filtering them out
         filtered_dict = {key: value for key, value in pretrained_state_dict.items()
-                     if 'actor' not in key and 'emb_word' not in key and 'go' not in key}
+                     if 'actor' not in key and 'emb_word' not in key}
        
         #loads in the keys shared between the current model and the pretrained model while also removing the keys we want to fine-tune
         self.load_state_dict(filtered_dict, strict=False)
@@ -342,21 +316,34 @@ class Module(Base):
         '''
         loss function for Seq2Seq agent
         '''
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
         losses = dict()
 
         # GT and predictions
-        p_alow = out['out_action_low'].view(-1, len(self.vocab['action_low']))
-        l_alow = feat['action_low'].view(-1)
-        p_alow_mask = out['out_action_low_mask']
-        valid = feat['action_low_valid_interact']
+        p_alow = out['out_action_low'].view(-1, self.args.continuous_action_dim)
+        # l_alow  = torch.stack([torch.cat((d['state_body'].to(device), d['state_ee'].to(device)), dim=0) for sublist in feat['action_low'] for d in sublist], dim=0)
+        new_X = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device)]) for sublist in feat['action_low'] for item in sublist]
+        max_length = max(t.size(0) for t in new_X)
+        # Pad the tensors to the maximum length, ensuring any tensor that is entirely -1 is also handled correctly
+        padded_tensors = [F.pad(t, (0, max_length - t.size(0)), "constant", -1) if t.size(0) < max_length else t for t in new_X]
+        # Convert the list of tensors into a single 2D tensor
+        l_alow = torch.stack(padded_tensors)
 
         # action loss
-        pad_valid = (l_alow != self.pad)
-        alow_loss = F.cross_entropy(p_alow, l_alow, reduction='none')
+        pad_tensor = torch.full_like(l_alow, -1.0)
+        pad_valid = (l_alow != pad_tensor)
+        alow_loss = F.mse_loss(p_alow, l_alow, reduction='none')
+        # Apply the validity mask to the loss tensor
         alow_loss *= pad_valid.float()
-        alow_loss = alow_loss.mean()
-        losses['action_low'] = alow_loss * self.args.action_loss_wt
 
+        # Calculate the mean loss only over valid elements
+        # Sum up the losses and divide by the number of valid elements
+        valid_loss_sum = alow_loss.sum()
+        valid_count = pad_valid.float().sum()
+        alow_loss_mean = valid_loss_sum / valid_count
+        losses['action_low'] = alow_loss_mean * self.args.action_loss_wt
+        
         return losses
 
 

@@ -83,14 +83,11 @@ class Module(nn.Module):
             m_train = collections.defaultdict(list) #dict where values are lists
             self.train() #puts model in training mode
             self.adjust_lr(optimizer, args.lr, epoch, decay_epoch=args.decay_epoch)
-            # p_train = {}
             total_train_loss = list()
             train = split_keys['train']
             random.shuffle(train) # shuffle every epoch
             for batch, feat in self.iterate(train, args.batch):
                 out = self.forward(feat)
-                preds = self.extract_preds(out, batch, feat)
-                # p_train.update(preds)
                 loss = self.compute_loss(out, batch, feat)
                 for k, v in loss.items():
                     ln = 'loss_' + k
@@ -99,6 +96,7 @@ class Module(nn.Module):
 
                 # optimizer backward pass
                 optimizer.zero_grad()
+                breakpoint()
                 sum_loss = sum(loss.values())
                 sum_loss.backward()
                 optimizer.step()

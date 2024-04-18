@@ -68,7 +68,7 @@ class ConvFrameMaskDecoder(nn.Module):
     '''
 
     def __init__(self, demb, dframe, dhid, continuous_action_dim, pframe=300,
-                 attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0.,
+                 attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0., adapter_dropout=0,
                  teacher_forcing=False):
         super().__init__()
 
@@ -81,15 +81,19 @@ class ConvFrameMaskDecoder(nn.Module):
         self.attn_dropout = nn.Dropout(attn_dropout)
         self.hstate_dropout = nn.Dropout(hstate_dropout)
         self.actor_dropout = nn.Dropout(actor_dropout)
-        # self.go = nn.Parameter(torch.Tensor(demb))
-        self.go = nn.Parameter(torch.Tensor(continuous_action_dim))
+        self.adapter_dropout = nn.Dropout(adapter_dropout)
+        self.go = nn.Parameter(torch.Tensor(demb))
         self.continuous_action_dim = continuous_action_dim
+        self.adapter = nn.Linear(continuous_action_dim, demb) #enlarge dim size
         self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim)
         self.teacher_forcing = teacher_forcing
         self.h_tm1_fc = nn.Linear(dhid, dhid)
 
-        nn.init.uniform_(self.go, -0.1, 0.1)
+        self.flag = False
+
+        # nn.init.uniform_(self.go, -0.1, 0.1)
         nn.init.xavier_uniform_(self.actor.weight) #initialize with custom range later
+        nn.init.xavier_uniform_(self.adapter.weight) #maybe initialize with custom range later but probably not needed
 
    
     def step(self, enc, frame, e_t, state_tm1):
@@ -102,16 +106,18 @@ class ConvFrameMaskDecoder(nn.Module):
 
         # attend over language
         weighted_lang_t, lang_attn_t = self.attn(self.attn_dropout(lang_feat_t), self.h_tm1_fc(h_tm1))
+        
+        #skip the first LSTM cell
+        if self.flag:
+            e_t = self.adapter(e_t)
+        self.flag = True
 
         # concat visual feats, weight lang, and previous action embedding
         inp_t = torch.cat([vis_feat_t, weighted_lang_t, e_t], dim=1) #input for LSTM
         inp_t = self.input_dropout(inp_t)
 
         # update hidden state
-        try:
-            state_t = self.cell(inp_t, state_tm1) #pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
-        except:
-            breakpoint()
+        state_t = self.cell(inp_t, state_tm1) #pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
         state_t = [self.hstate_dropout(x) for x in state_t]
         h_t = state_t[0] #updates the hidden state
 
@@ -143,7 +149,6 @@ class ConvFrameMaskDecoder(nn.Module):
             # e_t = self.emb(w_t) #setting the predicted action as the next one to be passed into the network
             e_t = w_t
 
-        breakpoint()
         results = {
             'out_action_low': torch.stack(actions, dim=1), #reshapes it group each trajectory's steps' distributions together. new shape is [batch, steps, action_space] (groups steps within the same traj together)
             'out_attn_scores': torch.stack(attn_scores, dim=1),

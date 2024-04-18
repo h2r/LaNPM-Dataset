@@ -56,6 +56,8 @@ if __name__ == '__main__':
     parser.add_argument('--hstate_dropout', help='dropout rate for LSTM hidden states during unrolling', default=0.3, type=float)
     parser.add_argument('--attn_dropout', help='dropout rate for attention', default=0., type=float)
     parser.add_argument('--actor_dropout', help='dropout rate for actor fc', default=0., type=float)
+    parser.add_argument('--adapter_dropout', help='dropout rate for adapter fc', default=0., type=float)
+
 
     # other settings
     parser.add_argument('--dec_teacher_forcing', help='use gpu', action='store_true')

@@ -135,7 +135,7 @@ class Dataset(object):
             
             #append action to signal end/stop
             traj['num']['action_low'].append(
-                    {'state_body': [-1, -1, -1], 'state_ee': [-1,-1,-1,-1,-1,-1]}
+                    {'state_body': [-1, -1, -1, -1], 'state_ee': [-1,-1,-1,-1,-1,-1]}
             )
                 # high-level action index (subgoals)
                 # high_idx = a['high_idx']
