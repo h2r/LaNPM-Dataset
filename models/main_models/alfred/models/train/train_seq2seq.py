@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
 
     # hyper parameters
-    parser.add_argument('--batch', help='batch size', default=8, type=int)
+    parser.add_argument('--batch', help='batch size', default=8, type=int) #the number of trajs in a batch. 
     parser.add_argument('--epoch', help='number of epochs', default=20, type=int)
     parser.add_argument('--lr', help='optimizer learning rate', default=1e-4, type=float)
     parser.add_argument('--decay_epoch', help='num epoch to adjust learning rate', default=10, type=int)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     # debugging
     parser.add_argument('--fast_epoch', help='fast epoch during debugging', action='store_true')
-    # parser.add_argument('--dataset_fraction', help='use fraction of the dataset for debugging (0 indicates full size)', default=0, type=int)
+    parser.add_argument('--dataset_fraction', help='use fraction of the dataset for debugging (0 indicates full size)', default=0, type=float)
     
     # args and init
     args = parser.parse_args()

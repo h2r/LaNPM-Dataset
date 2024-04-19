@@ -50,13 +50,18 @@ class Module(nn.Module):
         # splits
         with open('/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys.json', 'r') as f:
             split_keys = json.load(f)
+            train = split_keys['train']
+            valid_unseen = split_keys['val']
+            valid_seen = random.sample(train, len(valid_unseen))
+
         # debugging: chose a small fraction of the dataset
-        # if self.args.dataset_fraction > 0:
-        #     small_train_size = int(self.args.dataset_fraction * 0.7)
-        #     small_valid_size = int((self.args.dataset_fraction * 0.3) / 2)
-        #     train = train[:small_train_size]
-        #     valid_seen = valid_seen[:small_valid_size]
-        #     valid_unseen = valid_unseen[:small_valid_size]
+        if self.args.dataset_fraction > 0:
+            index_to_keep = int(len(train) * self.args.dataset_fraction)
+            train = train[:index_to_keep]
+            index_to_keep = int(len(valid_seen) * self.args.dataset_fraction)
+            valid_seen = valid_seen[:index_to_keep]
+            index_to_keep = int(len(valid_unseen) * self.args.dataset_fraction)
+            valid_unseen = valid_unseen[:index_to_keep]
 
         # debugging: use to check if training loop works without waiting for full epoch
         # if self.args.fast_epoch:
@@ -80,11 +85,11 @@ class Module(nn.Module):
         best_loss = {'train': 1e10, 'valid_seen': 1e10, 'valid_unseen': 1e10}
         train_iter, valid_seen_iter, valid_unseen_iter = 0, 0, 0
         for epoch in trange(0, args.epoch, desc='epoch'):
+            print(f'train_iter: {train_iter}\n')
             m_train = collections.defaultdict(list) #dict where values are lists
             self.train() #puts model in training mode
             self.adjust_lr(optimizer, args.lr, epoch, decay_epoch=args.decay_epoch)
             total_train_loss = list()
-            train = split_keys['train']
             random.shuffle(train) # shuffle every epoch
             for batch, feat in self.iterate(train, args.batch):
                 out = self.forward(feat)
@@ -96,15 +101,16 @@ class Module(nn.Module):
 
                 # optimizer backward pass
                 optimizer.zero_grad()
-                breakpoint()
                 sum_loss = sum(loss.values())
-                sum_loss.backward()
-                optimizer.step()
+                sum_loss.backward() # performs gradients
+                optimizer.step() # makes the change based on the gradients
 
                 self.summary_writer.add_scalar('train/loss', sum_loss, train_iter)
                 sum_loss = sum_loss.detach().cpu()
                 total_train_loss.append(float(sum_loss))
-                train_iter += self.args.batch
+                # train_iter += self.args.batch
+                train_iter += 1
+
 
             ## compute metrics for train (too memory heavy!)
             # m_train = {k: sum(v) / len(v) for k, v in m_train.items()}
@@ -113,14 +119,14 @@ class Module(nn.Module):
             # self.summary_writer.add_scalar('train/total_loss', m_train['total_loss'], train_iter)
 
             # compute metrics for valid_seen
-            p_valid_seen, valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=args, name='valid_seen', iter=valid_seen_iter)
-            m_valid_seen.update(self.compute_metric(p_valid_seen, valid_seen))
+            valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=args, name='valid_seen', iter=valid_seen_iter)
+            # m_valid_seen.update(self.compute_metric(p_valid_seen, valid_seen))
             m_valid_seen['total_loss'] = float(total_valid_seen_loss)
             self.summary_writer.add_scalar('valid_seen/total_loss', m_valid_seen['total_loss'], valid_seen_iter)
 
             # compute metrics for valid_unseen
-            p_valid_unseen, valid_unseen_iter, total_valid_unseen_loss, m_valid_unseen = self.run_pred(valid_unseen, args=args, name='valid_unseen', iter=valid_unseen_iter)
-            m_valid_unseen.update(self.compute_metric(p_valid_unseen, valid_unseen))
+            valid_unseen_iter, total_valid_unseen_loss, m_valid_unseen = self.run_pred(valid_unseen, args=args, name='valid_unseen', iter=valid_unseen_iter)
+            # m_valid_unseen.update(self.compute_metric(p_valid_unseen, valid_unseen))
             m_valid_unseen['total_loss'] = float(total_valid_unseen_loss)
             self.summary_writer.add_scalar('valid_unseen/total_loss', m_valid_unseen['total_loss'], valid_unseen_iter)
 
@@ -144,8 +150,8 @@ class Module(nn.Module):
                     json.dump(stats, f, indent=2)
 
                 fpred = os.path.join(args.dout, 'valid_seen.debug.preds.json')
-                with open(fpred, 'wt') as f:
-                    json.dump(self.make_debug(p_valid_seen, valid_seen), f, indent=2)
+                # with open(fpred, 'wt') as f:
+                #     json.dump(self.make_debug(p_valid_seen, valid_seen), f, indent=2)
                 best_loss['valid_seen'] = total_valid_seen_loss
 
             # new best valid_unseen loss
@@ -164,8 +170,8 @@ class Module(nn.Module):
                     json.dump(stats, f, indent=2)
 
                 fpred = os.path.join(args.dout, 'valid_unseen.debug.preds.json')
-                with open(fpred, 'wt') as f:
-                    json.dump(self.make_debug(p_valid_unseen, valid_unseen), f, indent=2)
+                # with open(fpred, 'wt') as f:
+                #     json.dump(self.make_debug(p_valid_unseen, valid_unseen), f, indent=2)
 
                 best_loss['valid_unseen'] = total_valid_unseen_loss
 
@@ -200,14 +206,14 @@ class Module(nn.Module):
         '''
         args = args or self.args
         m_dev = collections.defaultdict(list)
-        p_dev = {}
+        # p_dev = {}
         self.eval()
         total_loss = list()
         dev_iter = iter
         for batch, feat in self.iterate(dev, args.batch):
             out = self.forward(feat)
-            preds = self.extract_preds(out, batch, feat)
-            p_dev.update(preds)
+            # preds = self.extract_preds(out, batch, feat)
+            # p_dev.update(preds)
             loss = self.compute_loss(out, batch, feat)
             for k, v in loss.items():
                 ln = 'loss_' + k
@@ -216,11 +222,12 @@ class Module(nn.Module):
             sum_loss = sum(loss.values())
             self.summary_writer.add_scalar("%s/loss" % (name), sum_loss, dev_iter)
             total_loss.append(float(sum_loss.detach().cpu()))
-            dev_iter += len(batch)
+            # dev_iter += len(batch)
+            dev_iter += 1
 
         m_dev = {k: sum(v) / len(v) for k, v in m_dev.items()}
         total_loss = sum(total_loss) / len(total_loss)
-        return p_dev, dev_iter, total_loss, m_dev
+        return dev_iter, total_loss, m_dev
 
     def featurize(self, batch):
         raise NotImplementedError()

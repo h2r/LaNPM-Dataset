@@ -110,6 +110,7 @@ class ConvFrameMaskDecoder(nn.Module):
         #skip the first LSTM cell
         if self.flag:
             e_t = self.adapter(e_t)
+            e_t = self.adapter_dropout(e_t)
         self.flag = True
 
         # concat visual feats, weight lang, and previous action embedding
@@ -130,7 +131,7 @@ class ConvFrameMaskDecoder(nn.Module):
         return action_t, state_t, lang_attn_t
 
     def forward(self, enc, frames, gold=None, max_decode=150, state_0=None): #max_decode = the max num of actions to predict
-        max_t = len(gold[0]) if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
+        max_t = len(gold[0]) #if self.training else min(max_decode, frames.shape[1]) # the num of actions to predict
         batch = enc.size(0) #batch size
         e_t = self.go.repeat(batch, 1) #batch num of SOS action embeddings
         state_t = state_0
@@ -154,6 +155,7 @@ class ConvFrameMaskDecoder(nn.Module):
             'out_attn_scores': torch.stack(attn_scores, dim=1),
             'state_t': state_t
         }
+        self.flag = False
         return results
 
 class ConvFrameMaskDecoderProgressMonitor(nn.Module):

@@ -316,6 +316,7 @@ class Module(Base):
         '''
         loss function for Seq2Seq agent
         '''
+
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         losses = dict()
