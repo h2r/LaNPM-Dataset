@@ -28,7 +28,18 @@ class Dataset(object):
             self.vocab = vocab
 
         self.word_seg = self.vocab['word'].word2index('<<seg>>', train=False)
-        self.max_vals =  [-1000000] * 10 
+        self.max_vals = [-1000000] * 10
+        self.min_vals = [1000000] * 10
+        self.bins = {}
+
+    def find_all_max_min(self, split_keys_dict): #only called if class_mode is true
+        for name, split_keys in split_keys_dict.items():
+            #debugging
+            if self.args.fast_epoch:
+                split_keys = split_keys[:5]
+
+            for task in split_keys: #task is a trajectory
+                self.process_actions(task, None)
 
     @staticmethod
     def numericalize(vocab, words, train=True):
@@ -47,7 +58,16 @@ class Dataset(object):
         #make this path reltive later
         with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys.json", 'w') as f:
             json.dump(split_keys_dict, f)
+
+        if self.args.class_mode:
+            self.find_all_max_mins(splits_keys_dict)
+            self.discretize_actions()
+
         for name, split_keys in split_keys_dict.items():
+            #debugging
+            if self.args.fast_epoch:
+                split_keys = split_keys[:5]
+
             for task in progressbar.progressbar(split_keys): #task is a trajectory
                 with h5py.File(self.args.data, 'r') as hdf:
                     traj_group = hdf[task]
@@ -87,6 +107,12 @@ class Dataset(object):
         vocab_data_path = os.path.join(self.args.pp_data, '%s.vocab' % self.args.pp_folder) # #looks something like this: /path/to/output/pp.vocab. saved in data folder
         torch.save(self.vocab, vocab_data_path)
 
+        # save max and min values
+        max_min = {'max': self.max_vals, 'min': self.min_vals}
+        max_min_path = os.path.join(self.args.pp_data, 'max_min.json')
+        with open(max_min_path, 'w') as f:
+            json.dump(max_min, f, indent=4)
+
 
     def process_language(self, traj, nl_command):
         '''
@@ -107,15 +133,12 @@ class Dataset(object):
         for i in range(len(actions)):
             if actions[i] > self.max_vals[i]:
                 self.max_vals[i] = actions[i]
-            #still need to find the min
-    def process_actions(self, task, traj):
-        # init action_low and action_high
-        # num_hl_actions = len(ex['plan']['high_pddl'])
-        # traj['num']['action_low'] = [list() for _ in range(num_hl_actions)]  # temporally aligned with HL actions
-        # # traj['num']['action_high'] = []
-        # low_to_high_idx = []
+            if actions[i] < self.min_vals[i]:
+                self.min_vals[i] = actions[i]
 
-        traj['num']['action_low'] = []
+    def process_actions(self, task, traj):
+        if not self.args.class_mode:
+            traj['num']['action_low'] = []
         with h5py.File(self.args.data, 'r') as hdf:
             traj_group = hdf[task]
             traj_steps = list(traj_group.keys())
@@ -124,29 +147,33 @@ class Dataset(object):
                 traj_json_dict = json.loads(json_str)
                 state_body = traj_json_dict['steps'][0]['state_body']
                 state_ee = traj_json_dict['steps'][0]['state_ee']
-                self.find_min_max(state_body, state_ee)
 
+                if traj is None:
+                    self.find_min_max(state_body, state_ee)
+                
+                if not self.args.class_mode:
+                    traj['num']['action_low'].append(
+                        {'state_body': state_body, 'state_ee': state_ee}
+                    )
+                elif self.args.class_mode and traj is not None:
+                    traj['num']['action_low'].append(
+                        {'state_body': , 'state_ee': } #left off here
+                    )
+
+            if not self.args.class_mode:
+                #append action to signal end/stop
                 traj['num']['action_low'].append(
-                    {'state_body': state_body, 'state_ee': state_ee}
+                        {'state_body': [-1]*4, 'state_ee': [-1]*6}
                 )
-            
-            #append action to signal end/stop
-            traj['num']['action_low'].append(
-                    {'state_body': [-1]*4, 'state_ee': [-1]*6}
-            )
-                # high-level action index (subgoals)
-                # high_idx = a['high_idx']
-                # low_to_high_idx.append(high_idx)
-
-                # low-level action (API commands)
-                # traj['num']['action_low'][high_idx].append({
-                #     'high_idx': a['high_idx'],
-                #     'action': self.vocab['action_low'].word2index(a['discrete_action']['action'], train=True),
-                #     'action_high_args': a['discrete_action']['args'],
-                # })
-
-        # low to high idx
-        # traj['num']['low_to_high_idx'] = low_to_high_idx
 
 
-        def descretize_actions
+        def discretize_actions(self):
+            # Discretize each dimension
+            for dim in range(len(self.min_vals)):
+                # Create bin edges using linspace
+                bin_edges = np.linspace(self.min_vals[dim], self.max_vals[dim], self.args.bins + 1)
+                self.bins[dim] = bin_edges
+
+            bins_path = os.path.join(self.args.pp_data, 'bins.json')
+            with open(bins_path, 'w') as f:
+                json.dump(self.bins, f, indent=4)

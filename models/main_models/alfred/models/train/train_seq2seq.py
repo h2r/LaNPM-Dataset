@@ -29,6 +29,8 @@ if __name__ == '__main__':
     parser.add_argument('--dout', help='where to save model', default='exp/model:{model}')
     parser.add_argument('--resume', help='load a checkpoint')
     parser.add_argument('--finetune', help='pretrained model path', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_seen.pth')
+    parser.add_argument('--class_mode', help='use classification for action pred', action='store_false')
+    parser.add_argument('--continuous_action_dim', help='for regression, number of dimensions for the continous action output size', default=10, type=int)
 
 
     # hyper parameters
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('--action_loss_wt', help='weight of action loss', default=1., type=float)
     parser.add_argument('--subgoal_aux_loss_wt', help='weight of subgoal completion predictor', default=0., type=float)
     parser.add_argument('--pm_aux_loss_wt', help='weight of progress monitor', default=0., type=float)
-    parser.add_argument('--continuous_action_dim', help='number of dimensions for the continous action output size', default=10, type=int)
+    parser.add_argument('--bins', help='number of bins to discretize action dimensions', default=256, type=int)
 
 
     # dropouts
