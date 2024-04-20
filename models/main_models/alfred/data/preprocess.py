@@ -28,7 +28,7 @@ class Dataset(object):
             self.vocab = vocab
 
         self.word_seg = self.vocab['word'].word2index('<<seg>>', train=False)
-
+        self.max_vals =  [-1000000] * 10 
 
     @staticmethod
     def numericalize(vocab, words, train=True):
@@ -66,8 +66,8 @@ class Dataset(object):
                 self.process_language(traj, nl_command)
 
                 # numericalize actions for train/valid splits
-                if 'test' not in name: # expert actions are not available for the test set
-                    self.process_actions(task, traj)
+                # if 'test' not in name: # expert actions are not available for the test set
+                self.process_actions(task, traj)
 
                 # check if preprocessing storage folder exists
                 preprocessed_folder = os.path.join(self.args.pp_data, task, self.args.pp_folder)
@@ -102,17 +102,13 @@ class Dataset(object):
         traj['num'] = {}
         traj['num']['lang_goal'] = self.numericalize(self.vocab['word'], traj['ann']['goal'], train=True)
 
+    def find_min_max(self, state_body, state_ee):
+        actions = state_body + state_ee
+        for i in range(len(actions)):
+            if actions[i] > self.max_vals[i]:
+                self.max_vals[i] = actions[i]
+            #still need to find the min
     def process_actions(self, task, traj):
-        # deal with missing end high-level action
-        # self.fix_missing_high_pddl_end_action(ex)
-
-        # end action for low_actions
-        # end_action = {
-        #     'api_action': {'action': 'NoOp'},
-        #     'discrete_action': {'action': '<<stop>>', 'args': {}},
-            # 'high_idx': ex['plan']['high_pddl'][-1]['high_idx']
-        # }
-
         # init action_low and action_high
         # num_hl_actions = len(ex['plan']['high_pddl'])
         # traj['num']['action_low'] = [list() for _ in range(num_hl_actions)]  # temporally aligned with HL actions
@@ -128,6 +124,7 @@ class Dataset(object):
                 traj_json_dict = json.loads(json_str)
                 state_body = traj_json_dict['steps'][0]['state_body']
                 state_ee = traj_json_dict['steps'][0]['state_ee']
+                self.find_min_max(state_body, state_ee)
 
                 traj['num']['action_low'].append(
                     {'state_body': state_body, 'state_ee': state_ee}
@@ -135,7 +132,7 @@ class Dataset(object):
             
             #append action to signal end/stop
             traj['num']['action_low'].append(
-                    {'state_body': [-1, -1, -1, -1], 'state_ee': [-1,-1,-1,-1,-1,-1]}
+                    {'state_body': [-1]*4, 'state_ee': [-1]*6}
             )
                 # high-level action index (subgoals)
                 # high_idx = a['high_idx']
@@ -148,41 +145,8 @@ class Dataset(object):
                 #     'action_high_args': a['discrete_action']['args'],
                 # })
 
-
-                # interaction validity
-                # valid_interact = 1 if model.has_interaction(a['discrete_action']['action']) else 0
-                # traj['num']['action_low'][high_idx][-1]['valid_interact'] = valid_interact
-
         # low to high idx
         # traj['num']['low_to_high_idx'] = low_to_high_idx
 
-        # high-level actions
-        # for a in ex['plan']['high_pddl']:
-        #     traj['num']['action_high'].append({
-        #         'high_idx': a['high_idx'],
-        #         'action': self.vocab['action_high'].word2index(a['discrete_action']['action'], train=True),
-        #         'action_high_args': self.numericalize(self.vocab['action_high'], a['discrete_action']['args']),
-        #     })
 
-    def fix_missing_high_pddl_end_action(self, ex):
-        '''
-        appends a terminal action to a sequence of high-level actions
-        '''
-        if ex['plan']['high_pddl'][-1]['planner_action']['action'] != 'End':
-            ex['plan']['high_pddl'].append({
-                'discrete_action': {'action': 'NoOp', 'args': []},
-                'planner_action': {'value': 1, 'action': 'End'},
-                'high_idx': len(ex['plan']['high_pddl'])
-            })
-
-
-    def merge_last_two_low_actions(self, conv):
-        '''
-        combines the last two action sequences into one sequence
-        '''
-        extra_seg = copy.deepcopy(conv['num']['action_low'][-2])
-        for sub in extra_seg:
-            sub['high_idx'] = conv['num']['action_low'][-3][0]['high_idx']
-            conv['num']['action_low'][-3].append(sub)
-        del conv['num']['action_low'][-2]
-        conv['num']['action_low'][-1][0]['high_idx'] = len(conv['plan']['high_pddl']) - 1
+        def descretize_actions

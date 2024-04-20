@@ -50,8 +50,6 @@ class Module(Base):
         self.e_t = None
         self.test_mode = False
 
-        # bce reconstruction loss
-        self.bce_with_logits = torch.nn.BCEWithLogitsLoss(reduction='none')
         self.mse_loss = torch.nn.MSELoss(reduction='none')
 
         # paths
@@ -138,6 +136,7 @@ class Module(Base):
                 root = ex['root']
                 im = torch.load(os.path.join(root, 'pp', self.feat_pt))
 
+                
                 num_low_actions =  len(ex['num']['action_low']) #already has the stop action so len is already +1
                 im = torch.cat((im, im[-1].unsqueeze(0)), dim=0) #add one more frame that's a copy of the last frame so len(frames) matches len(actions) due to a stop action being added
                 num_feat_frames = im.shape[0]
@@ -178,7 +177,7 @@ class Module(Base):
             else:
                 # default: tensorize and pad sequence
 
-                seqs = [torch.tensor(vv, device=device, dtype=torch.float) if 'frames' in k else 
+                seqs = [vv.clone().detach().to(device=device, dtype=torch.float) if 'frames' in k else 
                                 [{key: torch.tensor(value, device=device, dtype=torch.float) for key, value in d.items()} for d in vv] 
                                 for vv in v]
                 if k in {'action_low'}:
@@ -323,13 +322,12 @@ class Module(Base):
 
         # GT and predictions
         p_alow = out['out_action_low'].view(-1, self.args.continuous_action_dim)
-        # l_alow  = torch.stack([torch.cat((d['state_body'].to(device), d['state_ee'].to(device)), dim=0) for sublist in feat['action_low'] for d in sublist], dim=0)
-        new_X = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device)]) for sublist in feat['action_low'] for item in sublist]
-        max_length = max(t.size(0) for t in new_X)
+        l_alow = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device)]) for sublist in feat['action_low'] for item in sublist]
+        # max_length = max(t.size(0) for t in new_X)
         # Pad the tensors to the maximum length, ensuring any tensor that is entirely -1 is also handled correctly
-        padded_tensors = [F.pad(t, (0, max_length - t.size(0)), "constant", -1) if t.size(0) < max_length else t for t in new_X]
+        # padded_tensors = [F.pad(t, (0, max_length - t.size(0)), "constant", -1) if t.size(0) < max_length else t for t in new_X]
         # Convert the list of tensors into a single 2D tensor
-        l_alow = torch.stack(padded_tensors)
+        l_alow = torch.stack(l_alow)
 
         # action loss
         pad_tensor = torch.full_like(l_alow, -1.0)
@@ -346,18 +344,6 @@ class Module(Base):
         losses['action_low'] = alow_loss_mean * self.args.action_loss_wt
         
         return losses
-
-
-    def weighted_mask_loss(self, pred_masks, gt_masks):
-        '''
-        mask loss that accounts for weight-imbalance between 0 and 1 pixels
-        '''
-        bce = self.bce_with_logits(pred_masks, gt_masks)
-        flipped_mask = self.flip_tensor(gt_masks)
-        inside = (bce * gt_masks).sum() / (gt_masks).sum()
-        outside = (bce * flipped_mask).sum() / (flipped_mask).sum()
-        return inside + outside
-
 
     def flip_tensor(self, tensor, on_zero=1, on_non_zero=0):
         '''

@@ -53,6 +53,9 @@ class Module(nn.Module):
             train = split_keys['train']
             valid_unseen = split_keys['val']
             valid_seen = random.sample(train, len(valid_unseen))
+            # train = split_keys['train'] + split_keys['val']
+            # valid_unseen = split_keys['test']
+            # valid_seen = random.sample(train, len(valid_unseen))
 
         # debugging: chose a small fraction of the dataset
         if self.args.dataset_fraction > 0:
