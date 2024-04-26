@@ -19,7 +19,10 @@ class Module(nn.Module):
 
         # sentinel tokens
         self.pad = 0 #for lang
-        self.action_pad = -2.0
+        if args.class_mode:
+            self.action_pad = -2
+        else:
+            self.action_pad = -2.0
         self.seg = 1
 
         # args and vocab
@@ -27,11 +30,13 @@ class Module(nn.Module):
         self.vocab = vocab
 
         # emb modules
-        self.emb_word = nn.Embedding(len(vocab['word']), args.demb)
+        self.emb_word = nn.Embedding(len(vocab['word']), self.args.demb)
 
-        # end tokens
-        # self.stop_token = self.vocab['action_low'].word2index("<<stop>>", train=False)
-        # self.seg_token = self.vocab['action_low'].word2index("<<seg>>", train=False)
+        self.emb_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z locations
+        self.emb_body_rot = nn.Embedding(self.args.bins+2, self.args.demb)  # For robot body rotation
+        self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector locations
+        self.emb_eff_rpy = nn.Embedding(self.args.bins+2, self.args.demb)  # For roll, pitch, yaw of the end-effector
+        self.emb_action_low = {"emb_xyz": self.emb_xyz, "emb_body_rot": self.emb_body_rot, "emb_eff_xyz": self.emb_eff_xyz, "emb_eff_rpy": self.emb_eff_rpy}
 
         # set random seed (Note: this is not the seed used to initialize THOR object locations)
         random.seed(a=args.seed)
@@ -76,25 +81,25 @@ class Module(nn.Module):
         self.summary_writer = SummaryWriter(log_dir=args.dout)
 
         # dump config
-        fconfig = os.path.join(args.dout, 'config.json')
+        fconfig = os.path.join(self.args.dout, 'config.json')
         with open(fconfig, 'wt') as f:
-            json.dump(vars(args), f, indent=2)
+            json.dump(vars(self.args), f, indent=2)
 
         # optimizer
-        optimizer = optimizer or torch.optim.Adam(self.parameters(), lr=args.lr)
+        optimizer = optimizer or torch.optim.Adam(self.parameters(), lr=self.args.lr)
 
         # display dout
         print("Saving to: %s" % self.args.dout)
         best_loss = {'train': 1e10, 'valid_seen': 1e10, 'valid_unseen': 1e10}
         train_iter, valid_seen_iter, valid_unseen_iter = 0, 0, 0
-        for epoch in trange(0, args.epoch, desc='epoch'):
+        for epoch in trange(0, self.args.epoch, desc='epoch'):
             print(f'train_iter: {train_iter}\n')
             m_train = collections.defaultdict(list) #dict where values are lists
             self.train() #puts model in training mode
-            self.adjust_lr(optimizer, args.lr, epoch, decay_epoch=args.decay_epoch)
+            self.adjust_lr(optimizer, self.args.lr, epoch, decay_epoch=self.args.decay_epoch)
             total_train_loss = list()
             random.shuffle(train) # shuffle every epoch
-            for batch, feat in self.iterate(train, args.batch):
+            for batch, feat in self.iterate(train, self.args.batch):
                 out = self.forward(feat)
                 loss = self.compute_loss(out, batch, feat)
                 for k, v in loss.items():
@@ -122,7 +127,7 @@ class Module(nn.Module):
             # self.summary_writer.add_scalar('train/total_loss', m_train['total_loss'], train_iter)
 
             # compute metrics for valid_seen
-            valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=args, name='valid_seen', iter=valid_seen_iter)
+            valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=self.args, name='valid_seen', iter=valid_seen_iter)
             # m_valid_seen.update(self.compute_metric(p_valid_seen, valid_seen))
             m_valid_seen['total_loss'] = float(total_valid_seen_loss)
             self.summary_writer.add_scalar('valid_seen/total_loss', m_valid_seen['total_loss'], valid_seen_iter)
@@ -140,7 +145,7 @@ class Module(nn.Module):
             # new best valid_seen loss
             if total_valid_seen_loss < best_loss['valid_seen']:
                 print('\nFound new best valid_seen!! Saving...')
-                fsave = os.path.join(args.dout, 'best_seen.pth')
+                fsave = os.path.join(self.args.dout, 'best_seen.pth')
                 torch.save({
                     'metric': stats,
                     'model': self.state_dict(),
@@ -152,7 +157,7 @@ class Module(nn.Module):
                 with open(fbest, 'wt') as f:
                     json.dump(stats, f, indent=2)
 
-                fpred = os.path.join(args.dout, 'valid_seen.debug.preds.json')
+                fpred = os.path.join(self.args.dout, 'valid_seen.debug.preds.json')
                 # with open(fpred, 'wt') as f:
                 #     json.dump(self.make_debug(p_valid_seen, valid_seen), f, indent=2)
                 best_loss['valid_seen'] = total_valid_seen_loss
@@ -160,7 +165,7 @@ class Module(nn.Module):
             # new best valid_unseen loss
             if total_valid_unseen_loss < best_loss['valid_unseen']:
                 print('Found new best valid_unseen!! Saving...')
-                fsave = os.path.join(args.dout, 'best_unseen.pth')
+                fsave = os.path.join(self.args.dout, 'best_unseen.pth')
                 torch.save({
                     'metric': stats,
                     'model': self.state_dict(),
@@ -172,17 +177,17 @@ class Module(nn.Module):
                 with open(fbest, 'wt') as f:
                     json.dump(stats, f, indent=2)
 
-                fpred = os.path.join(args.dout, 'valid_unseen.debug.preds.json')
+                fpred = os.path.join(self.args.dout, 'valid_unseen.debug.preds.json')
                 # with open(fpred, 'wt') as f:
                 #     json.dump(self.make_debug(p_valid_unseen, valid_unseen), f, indent=2)
 
                 best_loss['valid_unseen'] = total_valid_unseen_loss
 
             # save the latest checkpoint
-            if args.save_every_epoch:
-                fsave = os.path.join(args.dout, 'net_epoch_%d.pth' % epoch)
+            if self.args.save_every_epoch:
+                fsave = os.path.join(self.args.dout, 'net_epoch_%d.pth' % epoch)
             else:
-                fsave = os.path.join(args.dout, 'latest.pth')
+                fsave = os.path.join(self.args.dout, 'latest.pth')
             torch.save({
                 'metric': stats,
                 'model': self.state_dict(),
@@ -213,7 +218,7 @@ class Module(nn.Module):
         self.eval()
         total_loss = list()
         dev_iter = iter
-        for batch, feat in self.iterate(dev, args.batch):
+        for batch, feat in self.iterate(dev, self.args.batch):
             out = self.forward(feat)
             # preds = self.extract_preds(out, batch, feat)
             # p_dev.update(preds)

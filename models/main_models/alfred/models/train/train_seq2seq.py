@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # settings
     parser.add_argument('--seed', help='random seed', default=123, type=int)
     parser.add_argument('--data', help='dataset folder', default='/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5')
-    parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats')
+    parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats_discrete')
     parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
     parser.add_argument('--preprocess', help='store preprocessed data to json files', action='store_true')
     parser.add_argument('--pp_folder', help='folder name for preprocessed data', default='pp')
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('--dout', help='where to save model', default='exp/model:{model}')
     parser.add_argument('--resume', help='load a checkpoint')
     parser.add_argument('--finetune', help='pretrained model path', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_seen.pth')
-    parser.add_argument('--class_mode', help='use classification for action pred', action='store_false')
+    parser.add_argument('--class_mode', help='use regression for action pred', action='store_true')
     parser.add_argument('--continuous_action_dim', help='for regression, number of dimensions for the continous action output size', default=10, type=int)
 
 

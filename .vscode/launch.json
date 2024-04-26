@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Train Seq2Seq",
+            "type": "python",
+            "request": "launch",
+            "cwd": "/users/ajaafar/data/ajaafar/NPM-Dataset",
+            "program": "${workspaceFolder}/models/main_models/alfred/models/train/train_seq2seq.py",
+            "python": "/oscar/data/stellex/ajaafar/alfred_env/bin/python",
+            "args": [
+                "--model", "seq2seq_im_mask",
+                "--dout", "exp/model:{model},name:pm_and_subgoals_01",
+                "--gpu",
+                "--batch", "10",
+                "--pm_aux_loss_wt", "0.1",
+                "--subgoal_aux_loss_wt", "0.1",
+                "--preprocess",
+                "--fast_epoch",
+                "--class_mode"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}

@@ -8,4 +8,4 @@ __pycache__/
 /models/main_models/alfred/gen/*
 /models/main_models/alfred/data/json_2.1.0/*
 /models/main_models/alfred/data/feats/*
-/models/main_models/alfred/data/feats_discrete/*
+

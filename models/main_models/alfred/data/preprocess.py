@@ -9,7 +9,7 @@ from model.seq2seq import Module as model
 from gen.utils.py_util import remove_spaces_and_lower
 from models.utils.data_utils import split_data
 import h5py
-
+import numpy as np
 
 class Dataset(object):
 
@@ -56,11 +56,11 @@ class Dataset(object):
         train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
         split_keys_dict = {'train':train_keys, 'val':val_keys, 'test':test_keys}
         #make this path reltive later
-        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys.json", 'w') as f:
+        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys_discrete.json", 'w') as f:
             json.dump(split_keys_dict, f)
 
         if self.args.class_mode:
-            self.find_all_max_mins(splits_keys_dict)
+            self.find_all_max_min(split_keys_dict)
             self.discretize_actions()
 
         for name, split_keys in split_keys_dict.items():
@@ -137,7 +137,7 @@ class Dataset(object):
                 self.min_vals[i] = actions[i]
 
     def process_actions(self, task, traj):
-        if not self.args.class_mode:
+        if traj is not None:
             traj['num']['action_low'] = []
         with h5py.File(self.args.data, 'r') as hdf:
             traj_group = hdf[task]
@@ -156,24 +156,35 @@ class Dataset(object):
                         {'state_body': state_body, 'state_ee': state_ee}
                     )
                 elif self.args.class_mode and traj is not None:
+                    final_action_indices = []
+                    state = state_body + state_ee
+                    for i, val in enumerate(state):
+                        bin_indx = np.digitize(val, self.bins[i])
+                        #in case it thinks the value is equal to the max in the bins due to floating point precision error
+                        if bin_indx == len(self.bins[i]):
+                            bin_indx = len(self.bins[i])-1
+                        final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
                     traj['num']['action_low'].append(
-                        {'state_body': , 'state_ee': } #left off here
+                        {'state_body': final_action_indices[:4], 'state_ee': final_action_indices[4:]}
                     )
+                    
 
-            if not self.args.class_mode:
-                #append action to signal end/stop
+            if traj is not None:
+                #append end/stop action index of bins
                 traj['num']['action_low'].append(
-                        {'state_body': [-1]*4, 'state_ee': [-1]*6}
+                        {'state_body': [0]*4, 'state_ee': [0]*6}
                 )
 
+    def discretize_actions(self):
+        # Discretize each dimension
+        for dim in range(len(self.min_vals)):
+            # Create bin edges using linspace
+            bin_edges = np.linspace(self.min_vals[dim], self.max_vals[dim], self.args.bins + 1)
+            bin_edges = np.insert(bin_edges, 0, -1000) #adding bin for pad action (index 1)
+            bin_edges = np.insert(bin_edges, 0, -2000) #adding bin for stop action (index 0)
+            # in the case where self.args.bins is 256, then there are now 258 bins and len(bin_edges) is 259. index for last bin is 257
+            self.bins[dim] = bin_edges
 
-        def discretize_actions(self):
-            # Discretize each dimension
-            for dim in range(len(self.min_vals)):
-                # Create bin edges using linspace
-                bin_edges = np.linspace(self.min_vals[dim], self.max_vals[dim], self.args.bins + 1)
-                self.bins[dim] = bin_edges
-
-            bins_path = os.path.join(self.args.pp_data, 'bins.json')
-            with open(bins_path, 'w') as f:
-                json.dump(self.bins, f, indent=4)
+        bins_path = os.path.join(self.args.pp_data, 'bins.json')
+        with open(bins_path, 'w') as f:
+            json.dump({key: value.tolist() for key, value in self.bins.items()}, f, indent=4)

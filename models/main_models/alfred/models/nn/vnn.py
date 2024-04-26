@@ -67,11 +67,16 @@ class ConvFrameMaskDecoder(nn.Module):
     action decoder
     '''
 
-    def __init__(self, demb, dframe, dhid, continuous_action_dim, pframe=300,
+    def __init__(self, max_vals, min_vals, emb, num_bins, class_mode, demb, dframe, dhid, continuous_action_dim, pframe=300,
                  attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0., adapter_dropout=0,
                  teacher_forcing=False):
         super().__init__()
 
+        self.emb = emb
+        self.max_vals = max_vals
+        self.min_vals = min_vals
+        self.class_mode = class_mode
+        self.num_bins = num_bins + 2
         self.pframe = pframe
         self.dhid = dhid
         self.vis_encoder = ResnetVisualEncoder(dframe=dframe)
@@ -84,18 +89,35 @@ class ConvFrameMaskDecoder(nn.Module):
         self.adapter_dropout = nn.Dropout(adapter_dropout)
         self.go = nn.Parameter(torch.Tensor(demb))
         self.continuous_action_dim = continuous_action_dim
-        self.adapter = nn.Linear(continuous_action_dim, demb) #enlarge dim size
-        self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim)
+        if self.class_mode: #action layer for classification
+            self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim * self.num_bins)
+        else: #action layer for regression
+            self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim)
+        if self.class_mode:
+            #double check this along with the embeddings in the bottom of the forward method
+            self.adapter = nn.Linear(continuous_action_dim * demb, demb) #reduce dim size
+        else: # only for regression since classification has embeddings of proper size
+            self.adapter = nn.Linear(continuous_action_dim, demb) #enlarge dim size
         self.teacher_forcing = teacher_forcing
         self.h_tm1_fc = nn.Linear(dhid, dhid)
 
         self.flag = False
 
         # nn.init.uniform_(self.go, -0.1, 0.1)
-        nn.init.xavier_uniform_(self.actor.weight) #initialize with custom range later
         nn.init.xavier_uniform_(self.adapter.weight) #maybe initialize with custom range later but probably not needed
+        
+        if self.class_mode: #classification
+            #initialize each dimension's weights to a random value within the
+            prev = 0
+            num_bins_iter = self.num_bins
+            for dim in range(continuous_action_dim):
+                nn.init.uniform_(self.actor.weight[prev:num_bins_iter, :], a=self.min_vals[dim], b=self.max_vals[dim])
+                prev += self.num_bins
+                num_bins_iter += self.num_bins        
+        else: #regression
+            nn.init.xavier_uniform_(self.actor.weight) #initialize with custom range later
 
-   
+
     def step(self, enc, frame, e_t, state_tm1):
         # previous decoder hidden state
         h_tm1 = state_tm1[0] #tm1 = t minus 1
@@ -118,15 +140,19 @@ class ConvFrameMaskDecoder(nn.Module):
         inp_t = self.input_dropout(inp_t)
 
         # update hidden state
-        state_t = self.cell(inp_t, state_tm1) #pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
+        state_t = self.cell(inp_t, state_tm1) # pass concatenated input along with the previous hidden state from LSTM into LSTM. returns next hidden state
         state_t = [self.hstate_dropout(x) for x in state_t]
         h_t = state_t[0] #updates the hidden state
 
         # decode action
         cont_t = torch.cat([h_t, inp_t], dim=1)
         action_emb_t = self.actor(self.actor_dropout(cont_t))
-        # action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch
-        action_t = action_emb_t
+        #action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch (old discrete)
+        if self.class_mode: #classification
+            logits = action_emb_t.view(-1, self.continuous_action_dim, self.num_bins)
+            action_t = logits
+        else: #regression
+            action_t = action_emb_t
 
         return action_t, state_t, lang_attn_t
 
@@ -146,114 +172,28 @@ class ConvFrameMaskDecoder(nn.Module):
                 w_t = gold[:, t]
             else:
                 # w_t = action_t.max(1)[1] #the indices of the max actions from each traj's action distribution
-                w_t = action_t  # No need to find max index, assume action_t gives continuous output directly
-            # e_t = self.emb(w_t) #setting the predicted action as the next one to be passed into the network
-            e_t = w_t
+                if self.class_mode:
+                    w_t = action_t.max(dim=2)[1]
+                else:
+                    w_t = action_t  # No need to find max index, assume action_t gives continuous output directly
 
+            # e_t = self.emb(w_t) #setting the predicted action as the next one to be passed into the network
+            if self.class_mode: #classification
+                embedded_xyz = self.emb['emb_xyz'](w_t[:, :3])
+                embedded_body_rot = self.emb['emb_body_rot'](w_t[:, 3:4])  
+                embedded_eff_xyz = self.emb['emb_eff_xyz'](w_t[:, 4:7])  
+                embedded_eff_rpy = self.emb['emb_eff_rpy'](w_t[:, 7:10])  
+
+                embedded_actions = torch.cat([embedded_xyz, embedded_body_rot, embedded_eff_xyz, embedded_eff_rpy], dim=1)
+                e_t = embedded_actions.view(embedded_actions.size(0), -1) #flatten
+            else: #regression
+                e_t = w_t
+        
         results = {
+            # 'out_action_low': torch.stack(actions, dim=1).flatten(start_dim=2) if self.class_mode else torch.stack(actions, dim=1), #reshapes it group each trajectory's steps' distributions together. new shape is [batch, steps, action_space] (groups steps within the same traj together)
             'out_action_low': torch.stack(actions, dim=1), #reshapes it group each trajectory's steps' distributions together. new shape is [batch, steps, action_space] (groups steps within the same traj together)
             'out_attn_scores': torch.stack(attn_scores, dim=1),
             'state_t': state_t
         }
         self.flag = False
-        return results
-
-class ConvFrameMaskDecoderProgressMonitor(nn.Module):
-    '''
-    action decoder with subgoal and progress monitoring
-    '''
-
-    def __init__(self, emb, dframe, dhid, pframe=300,
-                 attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0.,
-                 teacher_forcing=False):
-        super().__init__()
-        demb = emb.weight.size(1)
-
-        self.emb = emb
-        self.pframe = pframe
-        self.dhid = dhid
-        self.vis_encoder = ResnetVisualEncoder(dframe=dframe)
-        self.cell = nn.LSTMCell(dhid+dframe+demb, dhid)
-        self.attn = DotAttn()
-        self.input_dropout = nn.Dropout(input_dropout)
-        self.attn_dropout = nn.Dropout(attn_dropout)
-        self.hstate_dropout = nn.Dropout(hstate_dropout)
-        self.actor_dropout = nn.Dropout(actor_dropout)
-        self.go = nn.Parameter(torch.Tensor(demb))
-        self.actor = nn.Linear(dhid+dhid+dframe+demb, demb)
-        self.mask_dec = MaskDecoder(dhid=dhid+dhid+dframe+demb, pframe=self.pframe)
-        self.teacher_forcing = teacher_forcing
-        self.h_tm1_fc = nn.Linear(dhid, dhid)
-
-        self.subgoal = nn.Linear(dhid+dhid+dframe+demb, 1)
-        self.progress = nn.Linear(dhid+dhid+dframe+demb, 1)
-
-        nn.init.uniform_(self.go, -0.1, 0.1)
-
-    def step(self, enc, frame, e_t, state_tm1):
-        # previous decoder hidden state
-        h_tm1 = state_tm1[0]
-
-        # encode vision and lang feat
-        vis_feat_t = self.vis_encoder(frame)
-        lang_feat_t = enc # language is encoded once at the start
-
-        # attend over language
-        weighted_lang_t, lang_attn_t = self.attn(self.attn_dropout(lang_feat_t), self.h_tm1_fc(h_tm1))
-
-        # concat visual feats, weight lang, and previous action embedding
-        inp_t = torch.cat([vis_feat_t, weighted_lang_t, e_t], dim=1)
-        inp_t = self.input_dropout(inp_t)
-
-        # update hidden state
-        state_t = self.cell(inp_t, state_tm1)
-        state_t = [self.hstate_dropout(x) for x in state_t]
-        h_t, c_t = state_t[0], state_t[1]
-
-        # decode action and mask
-        cont_t = torch.cat([h_t, inp_t], dim=1)
-        action_emb_t = self.actor(self.actor_dropout(cont_t))
-        action_t = action_emb_t.mm(self.emb.weight.t())
-        mask_t = self.mask_dec(cont_t)
-
-        # predict subgoals completed and task progress
-        subgoal_t = F.sigmoid(self.subgoal(cont_t))
-        progress_t = F.sigmoid(self.progress(cont_t))
-
-        return action_t, mask_t, state_t, lang_attn_t, subgoal_t, progress_t
-
-    def forward(self, enc, frames, gold=None, max_decode=150, state_0=None):
-        max_t = gold.size(1) if self.training else min(max_decode, frames.shape[1])
-        batch = enc.size(0)
-        e_t = self.go.repeat(batch, 1)
-        state_t = state_0
-
-        actions = []
-        masks = []
-        attn_scores = []
-        subgoals = []
-        progresses = []
-        for t in range(max_t):
-            action_t, mask_t, state_t, attn_score_t, subgoal_t, progress_t = self.step(enc, frames[:, t], e_t, state_t)
-            masks.append(mask_t)
-            actions.append(action_t)
-            attn_scores.append(attn_score_t)
-            subgoals.append(subgoal_t)
-            progresses.append(progress_t)
-
-            # find next emb
-            if self.teacher_forcing and self.training:
-                w_t = gold[:, t]
-            else:
-                w_t = action_t.max(1)[1]
-            e_t = self.emb(w_t)
-
-        results = {
-            'out_action_low': torch.stack(actions, dim=1),
-            'out_action_low_mask': torch.stack(masks, dim=1),
-            'out_attn_scores': torch.stack(attn_scores, dim=1),
-            'out_subgoal': torch.stack(subgoals, dim=1),
-            'out_progress': torch.stack(progresses, dim=1),
-            'state_t': state_t
-        }
         return results
