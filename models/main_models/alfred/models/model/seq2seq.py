@@ -20,7 +20,7 @@ class Module(nn.Module):
         # sentinel tokens
         self.pad = 0 #for lang
         if args.class_mode:
-            self.action_pad = -2
+            self.action_pad = 1 # action index
         else:
             self.action_pad = -2.0
         self.seg = 1
@@ -32,11 +32,12 @@ class Module(nn.Module):
         # emb modules
         self.emb_word = nn.Embedding(len(vocab['word']), self.args.demb)
 
-        self.emb_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z locations
-        self.emb_body_rot = nn.Embedding(self.args.bins+2, self.args.demb)  # For robot body rotation
-        self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector locations
-        self.emb_eff_rpy = nn.Embedding(self.args.bins+2, self.args.demb)  # For roll, pitch, yaw of the end-effector
-        self.emb_action_low = {"emb_xyz": self.emb_xyz, "emb_body_rot": self.emb_body_rot, "emb_eff_xyz": self.emb_eff_xyz, "emb_eff_rpy": self.emb_eff_rpy}
+        if self.args.class_mode:
+            self.emb_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z locations
+            self.emb_body_rot = nn.Embedding(self.args.bins+2, self.args.demb)  # For robot body rotation
+            self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector locations
+            self.emb_eff_rpy = nn.Embedding(self.args.bins+2, self.args.demb)  # For roll, pitch, yaw of the end-effector
+            self.emb_action_low = {"emb_xyz": self.emb_xyz, "emb_body_rot": self.emb_body_rot, "emb_eff_xyz": self.emb_eff_xyz, "emb_eff_rpy": self.emb_eff_rpy}
 
         # set random seed (Note: this is not the seed used to initialize THOR object locations)
         random.seed(a=args.seed)

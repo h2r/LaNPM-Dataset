@@ -36,7 +36,7 @@ class Dataset(object):
         for name, split_keys in split_keys_dict.items():
             #debugging
             if self.args.fast_epoch:
-                split_keys = split_keys[:5]
+                split_keys = split_keys[:10]
 
             for task in split_keys: #task is a trajectory
                 self.process_actions(task, None)
@@ -59,14 +59,15 @@ class Dataset(object):
         with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys_discrete.json", 'w') as f:
             json.dump(split_keys_dict, f)
 
+        #double check this part
+        self.find_all_max_min(split_keys_dict)
         if self.args.class_mode:
-            self.find_all_max_min(split_keys_dict)
             self.discretize_actions()
 
         for name, split_keys in split_keys_dict.items():
             #debugging
             if self.args.fast_epoch:
-                split_keys = split_keys[:5]
+                split_keys = split_keys[:10]
 
             for task in progressbar.progressbar(split_keys): #task is a trajectory
                 with h5py.File(self.args.data, 'r') as hdf:
@@ -135,6 +136,11 @@ class Dataset(object):
                 self.max_vals[i] = actions[i]
             if actions[i] < self.min_vals[i]:
                 self.min_vals[i] = actions[i]
+    
+    def get_deltas(self, state_body, state_ee, next_state_body, next_state_ee):
+        state_body_delta = np.subtract(next_state_body, state_body)
+        state_ee_delta = np.subtract(next_state_ee, state_ee)
+        return state_body_delta.tolist(), state_ee_delta.tolist()
 
     def process_actions(self, task, traj):
         if traj is not None:
@@ -142,33 +148,51 @@ class Dataset(object):
         with h5py.File(self.args.data, 'r') as hdf:
             traj_group = hdf[task]
             traj_steps = list(traj_group.keys())
-            for step in traj_steps:
+            for i, step in enumerate(traj_steps):
+                if i==0 and traj is not None:
+                    print(len(traj_steps))
+                    print(len(traj_steps))
                 json_str = traj_group[step].attrs['metadata']
                 traj_json_dict = json.loads(json_str)
                 state_body = traj_json_dict['steps'][0]['state_body']
                 state_ee = traj_json_dict['steps'][0]['state_ee']
+                
+                if self.args.relative:
+                    if i != len(traj_steps)-1: #works for both regression and classification modes
+                        next_step = traj_steps[i+1]
+                        next_json_str = traj_group[next_step].attrs['metadata']
+                        next_traj_json_dict = json.loads(next_json_str)
+                        next_state_body = next_traj_json_dict['steps'][0]['state_body']
+                        next_state_ee = next_traj_json_dict['steps'][0]['state_ee']
+                        state_body, state_ee = self.get_deltas(state_body, state_ee, next_state_body, next_state_ee)
 
                 if traj is None:
                     self.find_min_max(state_body, state_ee)
                 
-                if not self.args.class_mode:
+                if not self.args.class_mode: #regression
                     traj['num']['action_low'].append(
                         {'state_body': state_body, 'state_ee': state_ee}
                     )
-                elif self.args.class_mode and traj is not None:
-                    final_action_indices = []
-                    state = state_body + state_ee
-                    for i, val in enumerate(state):
-                        bin_indx = np.digitize(val, self.bins[i])
-                        #in case it thinks the value is equal to the max in the bins due to floating point precision error
-                        if bin_indx == len(self.bins[i]):
-                            bin_indx = len(self.bins[i])-1
-                        final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
-                    traj['num']['action_low'].append(
-                        {'state_body': final_action_indices[:4], 'state_ee': final_action_indices[4:]}
-                    )
-                    
-
+                elif self.args.class_mode and traj is not None: #classification
+                    def get_indices():
+                        final_action_indices = []
+                        state = state_body + state_ee
+                        for i, val in enumerate(state):
+                            bin_indx = np.digitize(val, self.bins[i])
+                            #in case it thinks the value is equal to the max in the bins due to floating point precision error
+                            if bin_indx == len(self.bins[i]):
+                                bin_indx = len(self.bins[i])-1
+                            final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
+                        traj['num']['action_low'].append(
+                            {'state_body': final_action_indices[:4], 'state_ee': final_action_indices[4:]}
+                        )
+                    # add action indices, but skip the last action for relative actions since they use deltas
+                    if self.args.relative:
+                        if i != len(traj_steps)-1:
+                            get_indices()
+                    else:
+                        get_indices()        
+                        
             if traj is not None:
                 #append end/stop action index of bins
                 traj['num']['action_low'].append(
