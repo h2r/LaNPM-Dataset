@@ -54,7 +54,7 @@ class Module(nn.Module):
         args = args or self.args
 
         # splits
-        with open('/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys.json', 'r') as f:
+        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             split_keys = json.load(f)
             train = split_keys['train']
             valid_unseen = split_keys['val']

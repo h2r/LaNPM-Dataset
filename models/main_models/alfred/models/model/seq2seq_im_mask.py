@@ -142,12 +142,14 @@ class Module(Base):
             # load Resnet features from disk
             if load_frames and not self.test_mode:
                 root = ex['root']
-                root = 'data/feats' + root[19:] #delete later maybe
+                breakpoint()
+                root = 'data/feats' + root[28:] #delete later maybe
                 im = torch.load(os.path.join(root, 'pp', self.feat_pt))
 
                 
                 num_low_actions =  len(ex['num']['action_low']) #already has the stop action so len is already +1
-                im = torch.cat((im, im[-1].unsqueeze(0)), dim=0) #add one more frame that's a copy of the last frame so len(frames) matches len(actions) due to a stop action being added
+                if not self.args.relative:
+                    im = torch.cat((im, im[-1].unsqueeze(0)), dim=0) #add one more frame that's a copy of the last frame so len(frames) matches len(actions) due to a stop action being added
                 num_feat_frames = im.shape[0]
 
                 # Modeling Quickstart (without filler frames)
@@ -157,6 +159,7 @@ class Module(Base):
                 # Full Dataset (contains filler frames)
                 #won't run for ours since every frame is accompanied by an action
                 else:
+                    breakpoint()
                     keep = [None] * num_low_actions
                     for i, d in enumerate(ex['images']):
                         # only add frames linked with low-level actions (i.e. skip filler frames like smooth rotations and dish washing)

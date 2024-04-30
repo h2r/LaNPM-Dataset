@@ -55,12 +55,12 @@ class Dataset(object):
         '''
         train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
         split_keys_dict = {'train':train_keys, 'val':val_keys, 'test':test_keys}
-        #make this path reltive later
-        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/splits/split_keys_discrete.json", 'w') as f:
+        #make this path relative later
+        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'w') as f:
             json.dump(split_keys_dict, f)
 
-        #double check this part
-        self.find_all_max_min(split_keys_dict)
+        
+        self.find_all_max_min(split_keys_dict) #for both regression and classification
         if self.args.class_mode:
             self.discretize_actions()
 
@@ -89,7 +89,6 @@ class Dataset(object):
                 # numericalize actions for train/valid splits
                 # if 'test' not in name: # expert actions are not available for the test set
                 self.process_actions(task, traj)
-
                 # check if preprocessing storage folder exists
                 preprocessed_folder = os.path.join(self.args.pp_data, task, self.args.pp_folder)
                 if not os.path.isdir(preprocessed_folder):
@@ -142,6 +141,15 @@ class Dataset(object):
         state_ee_delta = np.subtract(next_state_ee, state_ee)
         return state_body_delta.tolist(), state_ee_delta.tolist()
 
+    def normalize(self, state):
+        '''
+        Min-Max Scaling
+        '''
+        normalized_state = state.copy()
+        for dim, val in enumerate(state):
+            normalized_state[dim] =  (val - self.min_vals[dim]) / (self.max_vals[dim] - self.min_vals[dim])
+        return normalized_state
+
     def process_actions(self, task, traj):
         if traj is not None:
             traj['num']['action_low'] = []
@@ -149,7 +157,7 @@ class Dataset(object):
             traj_group = hdf[task]
             traj_steps = list(traj_group.keys())
             for i, step in enumerate(traj_steps):
-                if i==0 and traj is not None:
+                if traj is not None: #debugging, delete later
                     print(len(traj_steps))
                     print(len(traj_steps))
                 json_str = traj_group[step].attrs['metadata']
@@ -169,7 +177,8 @@ class Dataset(object):
                 if traj is None:
                     self.find_min_max(state_body, state_ee)
                 
-                if not self.args.class_mode: #regression
+                if not self.args.class_mode and traj is not None: #regression
+                    # TODO normalization here 
                     traj['num']['action_low'].append(
                         {'state_body': state_body, 'state_ee': state_ee}
                     )
@@ -177,6 +186,8 @@ class Dataset(object):
                     def get_indices():
                         final_action_indices = []
                         state = state_body + state_ee
+                        if self.args.normalize:
+                            state = self.normalize(state)
                         for i, val in enumerate(state):
                             bin_indx = np.digitize(val, self.bins[i])
                             #in case it thinks the value is equal to the max in the bins due to floating point precision error
@@ -198,12 +209,17 @@ class Dataset(object):
                 traj['num']['action_low'].append(
                         {'state_body': [0]*4, 'state_ee': [0]*6}
                 )
+                breakpoint()
+                print('hi')
 
     def discretize_actions(self):
         # Discretize each dimension
         for dim in range(len(self.min_vals)):
             # Create bin edges using linspace
-            bin_edges = np.linspace(self.min_vals[dim], self.max_vals[dim], self.args.bins + 1)
+            if self.args.normalize:
+                bin_edges = np.linspace(0, 1, self.args.bins + 1)
+            else:
+                bin_edges = np.linspace(self.min_vals[dim], self.max_vals[dim], self.args.bins + 1)
             bin_edges = np.insert(bin_edges, 0, -1000) #adding bin for pad action (index 1)
             bin_edges = np.insert(bin_edges, 0, -2000) #adding bin for stop action (index 0)
             # in the case where self.args.bins is 256, then there are now 258 bins and len(bin_edges) is 259. index for last bin is 257

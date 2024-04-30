@@ -19,19 +19,21 @@ if __name__ == '__main__':
     # settings
     parser.add_argument('--seed', help='random seed', default=123, type=int)
     parser.add_argument('--data', help='dataset folder', default='/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5')
-    parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats_discrete')
-    parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
-    parser.add_argument('--preprocess', help='store preprocessed data to json files', action='store_true')
+    parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats')
     parser.add_argument('--pp_folder', help='folder name for preprocessed data', default='pp')
+    parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
+    parser.add_argument('--split_keys', help='json file containing split trajectories', default='data/splits/split_keys.json')
+    parser.add_argument('--preprocess', help='store preprocessed data to json files', action='store_true')
     parser.add_argument('--save_every_epoch', help='save model after every epoch (warning: consumes a lot of space)', action='store_true')
     parser.add_argument('--model', help='model to use', default='seq2seq_im')
     parser.add_argument('--gpu', help='use gpu', action='store_true')
     parser.add_argument('--dout', help='where to save model', default='exp/model:{model}')
     parser.add_argument('--resume', help='load a checkpoint')
-    parser.add_argument('--finetune', help='pretrained model path', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_seen.pth')
+    parser.add_argument('--finetune', help='pretrained model path', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_unseen.pth')
     parser.add_argument('--class_mode', help='use regression for action pred', action='store_true')
     parser.add_argument('--continuous_action_dim', help='for regression, number of dimensions for the continous action output size', default=10, type=int)
     parser.add_argument('--relative', help='use relative actions (deltas)', action='store_true')
+    parser.add_argument('--normalize', help='normalize action values', action='store_true')
 
 
     # hyper parameters
