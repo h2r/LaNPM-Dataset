@@ -9,3 +9,7 @@ __pycache__/
 /models/main_models/alfred/data/json_2.1.0/*
 /models/main_models/alfred/data/feats/*
 /models/main_models/alfred/data/feats_discrete/*
+/models/main_models/alfred/data/feats_discrete_global/*
+/models/main_models/alfred/data/feats_discrete_relative/*
+/models/main_models/alfred/data/feats_discrete_relative_extra/*
+/models/main_models/alfred/data/feats_discrete_relative_normalize/*

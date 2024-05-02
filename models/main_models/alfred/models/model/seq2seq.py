@@ -20,9 +20,9 @@ class Module(nn.Module):
         # sentinel tokens
         self.pad = 0 #for lang
         if args.class_mode:
-            self.action_pad = 1 # action index
+            self.action_pad = 1 # action index for classification
         else:
-            self.action_pad = -2.0
+            self.action_pad = -2.0 #regression
         self.seg = 1
 
         # args and vocab
@@ -37,7 +37,9 @@ class Module(nn.Module):
             self.emb_body_rot = nn.Embedding(self.args.bins+2, self.args.demb)  # For robot body rotation
             self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector locations
             self.emb_eff_rpy = nn.Embedding(self.args.bins+2, self.args.demb)  # For roll, pitch, yaw of the end-effector
-            self.emb_action_low = {"emb_xyz": self.emb_xyz, "emb_body_rot": self.emb_body_rot, "emb_eff_xyz": self.emb_eff_xyz, "emb_eff_rpy": self.emb_eff_rpy}
+            self.emb_grasp_drop = nn.Embedding(5, self.args.demb) # make a var later
+            self.emb_up_down = nn.Embedding(5, self.args.demb) # make a var later
+            self.emb_action = {"emb_xyz": self.emb_xyz, "emb_body_rot": self.emb_body_rot, "emb_eff_xyz": self.emb_eff_xyz, "emb_eff_rpy": self.emb_eff_rpy, "emb_grasp_drop": self.emb_grasp_drop, "emb_up_down": self.emb_up_down}
 
         # set random seed (Note: this is not the seed used to initialize THOR object locations)
         random.seed(a=args.seed)

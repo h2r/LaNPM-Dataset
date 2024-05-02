@@ -36,7 +36,7 @@ class Module(Base):
 
         # model to be finetuned
         decoder = vnn.ConvFrameMaskDecoder
-        self.dec = decoder(max_vals, min_vals, self.emb_action_low, self.args.bins, args.class_mode, args.demb, args.dframe, 2*args.dhid,
+        self.dec = decoder(max_vals, min_vals, self.emb_action, self.args.bins, args.class_mode, args.demb, args.dframe, 2*args.dhid,
                            pframe=args.pframe,
                            attn_dropout=args.attn_dropout,
                            hstate_dropout=args.hstate_dropout,
@@ -44,7 +44,7 @@ class Module(Base):
                            input_dropout=args.input_dropout,
                            adapter_dropout=args.adapter_dropout,
                            teacher_forcing=args.dec_teacher_forcing,
-                           continuous_action_dim = args.continuous_action_dim)
+                           action_dims = args.action_dims)
         self.load_pretrained_model(args.finetune)
         self.freeze()
         
@@ -110,21 +110,6 @@ class Module(Base):
         feat = collections.defaultdict(list) # for all trajs in the batch
 
         for ex in batch:
-            ###########
-            # auxillary
-            ###########
-
-            # if not self.test_mode:
-                # subgoal completion supervision
-                # if self.args.subgoal_aux_loss_wt > 0:
-                #     feat['subgoals_completed'].append(np.array(ex['num']['low_to_high_idx']) / self.max_subgoals)
-
-                # progress monitor supervision
-                # if self.args.pm_aux_loss_wt > 0:
-                #     num_actions = len([a for sg in ex['num']['action_low'] for a in sg])
-                #     subgoal_progress = [(i+1)/float(num_actions) for i in range(num_actions)]
-                #     feat['subgoal_progress'].append(subgoal_progress)
-
             #########
             # inputs
             #########
@@ -142,8 +127,7 @@ class Module(Base):
             # load Resnet features from disk
             if load_frames and not self.test_mode:
                 root = ex['root']
-                breakpoint()
-                root = 'data/feats' + root[28:] #delete later maybe
+                root = 'data/feats' + root[34:] #delete later maybe
                 im = torch.load(os.path.join(root, 'pp', self.feat_pt))
 
                 
@@ -159,7 +143,6 @@ class Module(Base):
                 # Full Dataset (contains filler frames)
                 #won't run for ours since every frame is accompanied by an action
                 else:
-                    breakpoint()
                     keep = [None] * num_low_actions
                     for i, d in enumerate(ex['images']):
                         # only add frames linked with low-level actions (i.e. skip filler frames like smooth rotations and dish washing)
@@ -199,8 +182,10 @@ class Module(Base):
                     max_length = max(len(lst) for lst in seqs)
 
                     template_dict = {
-                        'state_body': torch.full((4,), 1),
-                        'state_ee': torch.full((6,), 1) 
+                        'state_body': torch.full((4,), self.action_pad),
+                        'state_ee': torch.full((6,), self.action_pad),
+                        'grasp_drop': self.action_pad,
+                        'up_down': self.action_pad
                     }
 
                     # Pad each list in seqs to the maximum length
@@ -334,21 +319,32 @@ class Module(Base):
 
         # GT and predictions
         if self.args.class_mode:
-            p_alow = out['out_action_low'].flatten(0, 1)
+            action_logits = out['out_action_low']
+            logits_10d = action_logits[:, :, :(self.args.action_dims-2) * (self.args.bins+2)].view(-1, action_logits.shape[1], (self.args.action_dims-2), self.args.bins+2)
+            logits_2d = action_logits[:, :, (self.args.action_dims-2) * (self.args.bins+2):].view(-1, action_logits.shape[1], 2, 5)
+            # p_alow = out['out_action_low'].flatten(0, 1)
+            p_alow_10d = logits_10d.flatten(0,1)
+            p_alow_2d = logits_2d.flatten(0,1)
         else:
-            p_alow = out['out_action_low'].view(-1, self.args.continuous_action_dim)
+            p_alow = out['out_action_low'].view(-1, self.args.action_dims)
         
-        l_alow = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device)]) for sublist in feat['action_low'] for item in sublist]
+        l_alow = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
+        breakpoint() #stopped here. check that stop is indeed 0 for the grab/drop and up/down then check validity mask line and beyond. should be runnable to fine-tune
         l_alow = torch.stack(l_alow)
 
         # action loss
         pad_tensor = torch.full_like(l_alow, 1) #1 is the action pad index for class mode
+        breakpoint()
         pad_valid = (l_alow != pad_tensor).all(dim=1) #collapse the bools in the inner tensors to 1 bool
         if self.args.class_mode:
             total_loss = torch.zeros(l_alow.shape[0]).to('cuda')
-            for dim in range(p_alow.shape[1]): #loops 10 times, one for each action dim
-                loss = nn.CrossEntropyLoss(reduction='none')(p_alow[:, dim, :], l_alow[:, dim])
+            for dim in range(l_alow.shape[1]): #loops 10 times, one for each action dim
+                if dim < 10:
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_10d[:, dim, :], l_alow[:, dim])
+                else:
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d[:, dim-10, :], l_alow[:, dim])
                 total_loss += loss #add all action dims losses together for each trajectory
+            breakpoint()
             alow_loss = total_loss / l_alow.shape[1] #avg loss for all action dims losses for each trajectory
         else:
             alow_loss = F.mse_loss(p_alow, l_alow, reduction='none')

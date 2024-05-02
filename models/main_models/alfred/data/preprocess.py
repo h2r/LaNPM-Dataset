@@ -21,8 +21,6 @@ class Dataset(object):
         if vocab is None:
             self.vocab = {
                 'word': Vocab(['<<pad>>', '<<seg>>', '<<goal>>']),
-                # 'action_low': Vocab(['<<pad>>', '<<seg>>', '<<stop>>']),
-                # 'action_high': Vocab(['<<pad>>', '<<seg>>', '<<stop>>']),
             }
         else:
             self.vocab = vocab
@@ -31,6 +29,8 @@ class Dataset(object):
         self.max_vals = [-1000000] * 10
         self.min_vals = [1000000] * 10
         self.bins = {}
+        self.grasp_drop = {'stop': 0, 'pad': 1, 'PickupObject': 2, 'ReleaseObject': 3, 'NoOP': 4} # grasp/drop objects classes
+        self.up_down = {'stop': 0, 'pad': 1, 'LookUp': 2, 'LookDown': 3, 'NoOP': 4} # look-up/look-down classes
 
     def find_all_max_min(self, split_keys_dict): #only called if class_mode is true
         for name, split_keys in split_keys_dict.items():
@@ -107,6 +107,11 @@ class Dataset(object):
         vocab_data_path = os.path.join(self.args.pp_data, '%s.vocab' % self.args.pp_folder) # #looks something like this: /path/to/output/pp.vocab. saved in data folder
         torch.save(self.vocab, vocab_data_path)
 
+        actions_high = {'grasp_drop': self.grasp_drop, 'up_down': self.up_down}
+        actions_high_path = os.path.join(self.args.pp_data, 'actions_high.json')
+        with open(actions_high_path, 'w') as f:
+            json.dump(actions_high, f, indent=4)
+
         # save max and min values
         max_min = {'max': self.max_vals, 'min': self.min_vals}
         max_min_path = os.path.join(self.args.pp_data, 'max_min.json')
@@ -157,14 +162,23 @@ class Dataset(object):
             traj_group = hdf[task]
             traj_steps = list(traj_group.keys())
             for i, step in enumerate(traj_steps):
-                if traj is not None: #debugging, delete later
-                    print(len(traj_steps))
-                    print(len(traj_steps))
                 json_str = traj_group[step].attrs['metadata']
                 traj_json_dict = json.loads(json_str)
                 state_body = traj_json_dict['steps'][0]['state_body']
                 state_ee = traj_json_dict['steps'][0]['state_ee']
+                action_high = traj_json_dict['steps'][0]['action']
                 
+                grasp_drop = self.grasp_drop['NoOP'] 
+                up_down = self.up_down['NoOP'] 
+                if action_high == 'PickupObject':
+                    grasp_drop = self.grasp_drop['PickupObject']
+                elif action_high == 'ReleaseObject':
+                    grasp_drop = self.grasp_drop['ReleaseObject']
+                elif action_high == 'LookUp':
+                    up_down = self.up_down['LookUp']
+                elif action_high == 'LookDown':
+                    up_down = self.up_down['LookDown']
+
                 if self.args.relative:
                     if i != len(traj_steps)-1: #works for both regression and classification modes
                         next_step = traj_steps[i+1]
@@ -180,7 +194,7 @@ class Dataset(object):
                 if not self.args.class_mode and traj is not None: #regression
                     # TODO normalization here 
                     traj['num']['action_low'].append(
-                        {'state_body': state_body, 'state_ee': state_ee}
+                        {'state_body': state_body, 'state_ee': state_ee, 'grasp_drop': grasp_drop, 'up_down': up_down}
                     )
                 elif self.args.class_mode and traj is not None: #classification
                     def get_indices():
@@ -195,7 +209,7 @@ class Dataset(object):
                                 bin_indx = len(self.bins[i])-1
                             final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
                         traj['num']['action_low'].append(
-                            {'state_body': final_action_indices[:4], 'state_ee': final_action_indices[4:]}
+                            {'state_body': final_action_indices[:4], 'state_ee': final_action_indices[4:], 'grasp_drop': grasp_drop, 'up_down': up_down}
                         )
                     # add action indices, but skip the last action for relative actions since they use deltas
                     if self.args.relative:
@@ -207,10 +221,8 @@ class Dataset(object):
             if traj is not None:
                 #append end/stop action index of bins
                 traj['num']['action_low'].append(
-                        {'state_body': [0]*4, 'state_ee': [0]*6}
+                        {'state_body': [0]*4, 'state_ee': [0]*6, 'grasp_drop': self.grasp_drop['stop'], 'up_down': self.up_down['stop']}
                 )
-                breakpoint()
-                print('hi')
 
     def discretize_actions(self):
         # Discretize each dimension

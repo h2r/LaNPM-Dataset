@@ -31,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('--resume', help='load a checkpoint')
     parser.add_argument('--finetune', help='pretrained model path', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_unseen.pth')
     parser.add_argument('--class_mode', help='use regression for action pred', action='store_true')
-    parser.add_argument('--continuous_action_dim', help='for regression, number of dimensions for the continous action output size', default=10, type=int)
+    parser.add_argument('--action_dims', help='number of dimensions for the action size', default=12, type=int)
     parser.add_argument('--relative', help='use relative actions (deltas)', action='store_true')
     parser.add_argument('--normalize', help='normalize action values', action='store_true')
 

@@ -67,7 +67,7 @@ class ConvFrameMaskDecoder(nn.Module):
     action decoder
     '''
 
-    def __init__(self, max_vals, min_vals, emb, num_bins, class_mode, demb, dframe, dhid, continuous_action_dim, pframe=300,
+    def __init__(self, max_vals, min_vals, emb, num_bins, class_mode, demb, dframe, dhid, action_dims, pframe=300,
                  attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0., adapter_dropout=0,
                  teacher_forcing=False):
         super().__init__()
@@ -88,16 +88,16 @@ class ConvFrameMaskDecoder(nn.Module):
         self.actor_dropout = nn.Dropout(actor_dropout)
         self.adapter_dropout = nn.Dropout(adapter_dropout)
         self.go = nn.Parameter(torch.Tensor(demb))
-        self.continuous_action_dim = continuous_action_dim
+        self.action_dims = action_dims
         if self.class_mode: #action layer for classification
-            self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim * self.num_bins)
+            self.actor = nn.Linear(dhid + dhid + dframe + demb, ((self.action_dims-2) * self.num_bins) + (2*5))
+            # self.actor2 = nn.Linear(dhid + dhid + dframe + demb,, 2 * 5) # 2 dimensions, 5 classes each
         else: #action layer for regression
-            self.actor = nn.Linear(dhid + dhid + dframe + demb, continuous_action_dim)
+            self.actor = nn.Linear(dhid + dhid + dframe + demb, self.action_dims)
         if self.class_mode:
-            #double check this along with the embeddings in the bottom of the forward method
-            self.adapter = nn.Linear(continuous_action_dim * demb, demb) #reduce dim size
+            self.adapter = nn.Linear(self.action_dims * demb, demb) #reduce dim size
         else: # only for regression since classification has embeddings of proper size
-            self.adapter = nn.Linear(continuous_action_dim, demb) #enlarge dim size
+            self.adapter = nn.Linear(self.action_dims, demb) #enlarge dim size
         self.teacher_forcing = teacher_forcing
         self.h_tm1_fc = nn.Linear(dhid, dhid)
 
@@ -107,13 +107,17 @@ class ConvFrameMaskDecoder(nn.Module):
         nn.init.xavier_uniform_(self.adapter.weight) #maybe initialize with custom range later but probably not needed
         
         if self.class_mode: #classification
-            #initialize each dimension's weights to a random value within the
-            prev = 0
-            num_bins_iter = self.num_bins
-            for dim in range(continuous_action_dim):
-                nn.init.uniform_(self.actor.weight[prev:num_bins_iter, :], a=self.min_vals[dim], b=self.max_vals[dim])
-                prev += self.num_bins
-                num_bins_iter += self.num_bins        
+            #initialize each dimension's weights to a random value within its actual value range
+            # prev = 0
+            # num_bins_iter = self.num_bins
+            # for dim in range(action_dim):
+            #     nn.init.uniform_(self.actor.weight[prev:num_bins_iter, :], a=self.min_vals[dim], b=self.max_vals[dim])
+            #     prev += self.num_bins
+            #     num_bins_iter += self.num_bins 
+            
+            #initialize weights to random values within the ranges
+            nn.init.uniform_(self.actor.weight[: ((self.action_dims-2) * self.num_bins) , :], a=0, b=self.num_bins) # b is exlusive
+            nn.init.uniform_(self.actor.weight[((self.action_dims-2) * self.num_bins) :, :], a=0, b=5)
         else: #regression
             nn.init.xavier_uniform_(self.actor.weight) #initialize with custom range later
 
@@ -129,10 +133,9 @@ class ConvFrameMaskDecoder(nn.Module):
         # attend over language
         weighted_lang_t, lang_attn_t = self.attn(self.attn_dropout(lang_feat_t), self.h_tm1_fc(h_tm1))
         
-        #skip the first LSTM cell
+        #skip the first LSTM cell, reduce dim for 2nd LSTM cell and beyond
         if self.flag:
-            e_t = self.adapter(e_t)
-            e_t = self.adapter_dropout(e_t)
+            e_t = self.adapter(self.adapter_dropout(e_t))
         self.flag = True
 
         # concat visual feats, weight lang, and previous action embedding
@@ -149,8 +152,9 @@ class ConvFrameMaskDecoder(nn.Module):
         action_emb_t = self.actor(self.actor_dropout(cont_t))
         #action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch (old discrete)
         if self.class_mode: #classification
-            logits = action_emb_t.view(-1, self.continuous_action_dim, self.num_bins)
-            action_t = logits
+            # logits = action_emb_t.view(-1, self.action_dim, self.num_bins)
+            # action_t = logits
+            action_t = action_emb_t
         else: #regression
             action_t = action_emb_t
 
@@ -171,20 +175,24 @@ class ConvFrameMaskDecoder(nn.Module):
             if self.teacher_forcing and self.training:
                 w_t = gold[:, t]
             else:
-                # w_t = action_t.max(1)[1] #the indices of the max actions from each traj's action distribution
                 if self.class_mode:
-                    w_t = action_t.max(dim=2)[1]
+                    logits_10d = action_t[:, :(self.action_dims-2) * self.num_bins].view(-1, (self.action_dims-2), self.num_bins)
+                    logits_2d = action_t[:, (self.action_dims-2) * self.num_bins:].view(-1, 2, 5)
+                    w_t_10d = logits_10d.max(dim=2)[1]
+                    w_t_2d = logits_2d.max(dim=2)[1]
+                    w_t = torch.cat((w_t_10d, w_t_2d), dim=1)
                 else:
                     w_t = action_t  # No need to find max index, assume action_t gives continuous output directly
 
-            # e_t = self.emb(w_t) #setting the predicted action as the next one to be passed into the network
             if self.class_mode: #classification
+                # embedding to input into next step in the sequence
                 embedded_xyz = self.emb['emb_xyz'](w_t[:, :3])
                 embedded_body_rot = self.emb['emb_body_rot'](w_t[:, 3:4])  
                 embedded_eff_xyz = self.emb['emb_eff_xyz'](w_t[:, 4:7])  
                 embedded_eff_rpy = self.emb['emb_eff_rpy'](w_t[:, 7:10])  
-
-                embedded_actions = torch.cat([embedded_xyz, embedded_body_rot, embedded_eff_xyz, embedded_eff_rpy], dim=1)
+                embedded_grasp_drop = self.emb['emb_grasp_drop'](w_t[:, 10:11])
+                embedded_up_down = self.emb['emb_up_down'](w_t[:, 11:12])  
+                embedded_actions = torch.cat([embedded_xyz, embedded_body_rot, embedded_eff_xyz, embedded_eff_rpy, embedded_grasp_drop, embedded_up_down], dim=1)
                 e_t = embedded_actions.view(embedded_actions.size(0), -1) #flatten
             else: #regression
                 e_t = w_t
