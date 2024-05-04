@@ -329,12 +329,10 @@ class Module(Base):
             p_alow = out['out_action_low'].view(-1, self.args.action_dims)
         
         l_alow = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
-        breakpoint() #stopped here. check that stop is indeed 0 for the grab/drop and up/down then check validity mask line and beyond. should be runnable to fine-tune
         l_alow = torch.stack(l_alow)
 
         # action loss
         pad_tensor = torch.full_like(l_alow, 1) #1 is the action pad index for class mode
-        breakpoint()
         pad_valid = (l_alow != pad_tensor).all(dim=1) #collapse the bools in the inner tensors to 1 bool
         if self.args.class_mode:
             total_loss = torch.zeros(l_alow.shape[0]).to('cuda')
@@ -344,7 +342,6 @@ class Module(Base):
                 else:
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d[:, dim-10, :], l_alow[:, dim])
                 total_loss += loss #add all action dims losses together for each trajectory
-            breakpoint()
             alow_loss = total_loss / l_alow.shape[1] #avg loss for all action dims losses for each trajectory
         else:
             alow_loss = F.mse_loss(p_alow, l_alow, reduction='none')
@@ -355,7 +352,6 @@ class Module(Base):
         valid_count = pad_valid.float().sum()
         alow_loss_mean = valid_loss_sum / valid_count
         losses['action_low'] = alow_loss_mean * self.args.action_loss_wt
-        
         return losses
 
     def flip_tensor(self, tensor, on_zero=1, on_non_zero=0):

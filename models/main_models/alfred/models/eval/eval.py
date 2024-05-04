@@ -20,10 +20,10 @@ class Eval(object):
         self.args = args
         self.manager = manager
 
-        # load splits
-        with open(self.args.splits) as f:
+        # load test split
+        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             self.splits = json.load(f)
-            pprint.pprint({k: len(v) for k, v in self.splits.items()})
+
 
         # load model
         print("Loading: ", self.args.model_path)
@@ -35,14 +35,9 @@ class Eval(object):
 
         # updated args
         self.model.args.dout = self.args.model_path.replace(self.args.model_path.split('/')[-1], '')
-        self.model.args.data = self.args.data if self.args.data else self.model.args.data
+        #come back to, may or may not need
+        # self.model.args.data = self.args.data if self.args.data else self.model.args.data
 
-        # preprocess and save
-        if args.preprocess:
-            print("\nPreprocessing dataset and saving to %s folders ... This is will take a while. Do this once as required:" % self.model.args.pp_folder)
-            self.model.args.fast_epoch = self.args.fast_epoch
-            dataset = Dataset(self.model.args, self.model.vocab)
-            dataset.preprocess_splits(self.splits)
 
         # load resnet
         args.visual_model = 'resnet18'
@@ -63,7 +58,15 @@ class Eval(object):
         create queue of trajectories to be evaluated
         '''
         task_queue = self.manager.Queue()
-        files = self.splits[self.args.eval_split]
+        
+        if self.args.eval_split == 'valid_unseen':
+            files = self.splits['val']
+        elif self.args.eval_split == 'valid_seen':
+            train = self.splits['train']
+            valid_unseen = self.splits['val']
+            files = random.sample(train, len(valid_unseen))
+        else:
+            files = self.splits['test']
 
         # debugging: fast epoch
         if self.args.fast_epoch:

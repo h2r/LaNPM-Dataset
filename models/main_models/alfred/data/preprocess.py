@@ -146,14 +146,16 @@ class Dataset(object):
         state_ee_delta = np.subtract(next_state_ee, state_ee)
         return state_body_delta.tolist(), state_ee_delta.tolist()
 
-    def normalize(self, state):
+    def normalize(self, state, grasp_drop, up_down):
         '''
-        Min-Max Scaling
+        Min-Max Scaling. Only used for regression.
         '''
         normalized_state = state.copy()
         for dim, val in enumerate(state):
             normalized_state[dim] =  (val - self.min_vals[dim]) / (self.max_vals[dim] - self.min_vals[dim])
-        return normalized_state
+        normalized_grasp_drop = (grasp_drop - 2) / (4 - 2)
+        normalized_up_down = (up_down - 2) / (4 - 2)
+        return normalized_state, normalized_grasp_drop, normalized_up_down
 
     def process_actions(self, task, traj):
         if traj is not None:
@@ -166,18 +168,18 @@ class Dataset(object):
                 traj_json_dict = json.loads(json_str)
                 state_body = traj_json_dict['steps'][0]['state_body']
                 state_ee = traj_json_dict['steps'][0]['state_ee']
-                action_high = traj_json_dict['steps'][0]['action']
+                # action_high = traj_json_dict['steps'][0]['action']
                 
-                grasp_drop = self.grasp_drop['NoOP'] 
-                up_down = self.up_down['NoOP'] 
-                if action_high == 'PickupObject':
-                    grasp_drop = self.grasp_drop['PickupObject']
-                elif action_high == 'ReleaseObject':
-                    grasp_drop = self.grasp_drop['ReleaseObject']
-                elif action_high == 'LookUp':
-                    up_down = self.up_down['LookUp']
-                elif action_high == 'LookDown':
-                    up_down = self.up_down['LookDown']
+                # grasp_drop = self.grasp_drop['NoOP'] 
+                # up_down = self.up_down['NoOP'] 
+                # if action_high == 'PickupObject':
+                #     grasp_drop = self.grasp_drop['PickupObject']
+                # elif action_high == 'ReleaseObject':
+                #     grasp_drop = self.grasp_drop['ReleaseObject']
+                # elif action_high == 'LookUp':
+                #     up_down = self.up_down['LookUp']
+                # elif action_high == 'LookDown':
+                #     up_down = self.up_down['LookDown']
 
                 if self.args.relative:
                     if i != len(traj_steps)-1: #works for both regression and classification modes
@@ -187,6 +189,19 @@ class Dataset(object):
                         next_state_body = next_traj_json_dict['steps'][0]['state_body']
                         next_state_ee = next_traj_json_dict['steps'][0]['state_ee']
                         state_body, state_ee = self.get_deltas(state_body, state_ee, next_state_body, next_state_ee)
+
+                        action_high = next_traj_json_dict['steps'][0]['action']
+                        grasp_drop = self.grasp_drop['NoOP'] 
+                        up_down = self.up_down['NoOP'] 
+                        if action_high == 'PickupObject':
+                            grasp_drop = self.grasp_drop['PickupObject']
+                        elif action_high == 'ReleaseObject':
+                            grasp_drop = self.grasp_drop['ReleaseObject']
+                        elif action_high == 'LookUp':
+                            up_down = self.up_down['LookUp']
+                        elif action_high == 'LookDown':
+                            up_down = self.up_down['LookDown']
+
 
                 if traj is None:
                     self.find_min_max(state_body, state_ee)
@@ -200,8 +215,8 @@ class Dataset(object):
                     def get_indices():
                         final_action_indices = []
                         state = state_body + state_ee
-                        if self.args.normalize:
-                            state = self.normalize(state)
+                        # if self.args.normalize:
+                        #     state, grasp_drop, up_down = self.normalize(state, grasp_drop, up_down)
                         for i, val in enumerate(state):
                             bin_indx = np.digitize(val, self.bins[i])
                             #in case it thinks the value is equal to the max in the bins due to floating point precision error
