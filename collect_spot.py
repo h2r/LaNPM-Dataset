@@ -134,7 +134,6 @@ def is_robot_sitting(robot_state):
     """Determine if the robot is in a sitting position."""
     # Placeholder for demonstration
     # Replace with actual logic to determine if the robot is sitting
-    # odom_position = robot_state.kinematic_state.transforms_snapshot.child_to_parent_edge_map['odom'].parent_tform_child.position
     vision_position = robot_state.kinematic_state.transforms_snapshot.child_to_parent_edge_map['vision'].parent_tform_child.position
     if vision_position.z >= 0.15:
         return True
