@@ -29,18 +29,22 @@ from bosdyn.client.recording import GraphNavRecordingServiceClient
 class RecordingInterface(object):
     """Recording service command line interface."""
 
-    def __init__(self, robot, download_filepath, client_metadata):
+    def __init__(self, robot, download_filepath, task_name, client_metadata):
         # Keep the robot instance and it's ID.
         self._robot = robot
         # Force trigger timesync.
         self._robot.time_sync.wait_for_sync()
+        
+        
 
         # Filepath for the location to put the downloaded graph and snapshots.
         if download_filepath[-1] == "/":
-            self._download_filepath = download_filepath + "downloaded_graph"
+            self._download_filepath = download_filepath + task_name
         else:
-            self._download_filepath = download_filepath + "/downloaded_graph"
-        
+            self._download_filepath = download_filepath + "/{}".format(task_name)
+
+        if not os.path.exists(download_filepath):
+            os.mkdir(download_filepath)
         if not os.path.exists(self._download_filepath):
             os.mkdir(self._download_filepath)
 
@@ -468,21 +472,24 @@ class RecordingInterface(object):
 def main(argv):
     """Run the command-line interface."""
 
-    HOSTNAME = ''
+    HOSTNAME = 'gouger'
     USER = 'user'
     PASS = 'bigbubbabigbubba'
+    DOWNLOAD_ROOT = './Trajectories'
 
     # Create robot object.
     sdk = bosdyn.client.create_standard_sdk('RecordingClient')
     robot = sdk.create_robot(HOSTNAME)
     robot.authenticate(USER, PASS)
 
+    user_name = robot._current_user
+    session_name = DOWNLOAD_ROOT
 
     # Crate metadata for the recording session.
     client_metadata = GraphNavRecordingServiceClient.make_client_metadata(
         session_name=session_name, client_username=user_name, client_id='RecordingClient',
         client_type='Python SDK')
-    recording_command_line = RecordingInterface(robot, options.download_filepath, client_metadata)
+    recording_command_line = RecordingInterface(robot, DOWNLOAD_ROOT, 'demo', client_metadata)
 
     try:
         recording_command_line.run_new()

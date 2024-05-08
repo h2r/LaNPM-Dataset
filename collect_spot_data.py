@@ -176,7 +176,8 @@ class GraphNavInterface(object):
             self._current_graph.ParseFromString(data)
             print("Loaded graph has {} waypoints and {} edges".format(
                 len(self._current_graph.waypoints), len(self._current_graph.edges)))
-        for waypoint in self._current_gr ts from disk.
+        for waypoint in self._current_graph.waypoints:
+             # Load the waypoint snapshots from disk.
             with open(self._upload_filepath + "/waypoint_snapshots/{}".format(waypoint.snapshot_id),
                       "rb") as snapshot_file:
                 waypoint_snapshot = map_pb2.WaypointSnapshot()
@@ -691,7 +692,7 @@ class GraphNavInterface(object):
 
 def main(argv):
 
-    HOSTNAME = ''
+    HOSTNAME = 'gouger'
     USER = 'user'
     PASS = 'bigbubbabigbubba'
 
