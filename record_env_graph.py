@@ -29,7 +29,7 @@ from bosdyn.client.recording import GraphNavRecordingServiceClient
 class RecordingInterface(object):
     """Recording service command line interface."""
 
-    def __init__(self, robot, download_filepath, task_name, client_metadata):
+    def __init__(self, robot, download_filepath, scene_name, client_metadata):
         # Keep the robot instance and it's ID.
         self._robot = robot
         # Force trigger timesync.
@@ -39,9 +39,9 @@ class RecordingInterface(object):
 
         # Filepath for the location to put the downloaded graph and snapshots.
         if download_filepath[-1] == "/":
-            self._download_filepath = download_filepath + task_name
+            self._download_filepath = download_filepath + scene_name
         else:
-            self._download_filepath = download_filepath + "/{}".format(task_name)
+            self._download_filepath = download_filepath + "/{}".format(scene_name)
 
         if not os.path.exists(download_filepath):
             os.mkdir(download_filepath)
