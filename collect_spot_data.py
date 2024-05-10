@@ -126,8 +126,8 @@ class GraphNavInterface(object):
         curr_index = len(os.listdir('./Trajectories'))
 
         self.save_base_path = os.path.join('./Trajectories/data_{}'.format(curr_index))
-        # if not os.path.exists(self.save_base_path):
-        #     os.mkdir(self.save_base_path)
+        if not os.path.exists(self.save_base_path):
+            os.mkdir(self.save_base_path)
         self.data_counter = 0
 
     def _get_localization_state(self, *args):
@@ -643,8 +643,9 @@ class GraphNavInterface(object):
         #collect and save all the necessary images + store the image paths
         hand_depth, hand_color_image, left_fisheye_depth, left_fisheye_image, right_fisheye_depth, right_fisheye_image, object_held = self.collect_images()
         
-        curr_save_path = os.path.join(self.save_base_path, 'folder_{}'.format(self.data_counter))
-        
+        curr_save_path = os.path.join(self.save_base_path, 'folder_{}.zip'.format(self.data_counter))
+        # if not os.path.exists(curr_save_path):
+        #     os.mkdir(curr_save_path)
         
        
 
@@ -718,9 +719,9 @@ class GraphNavInterface(object):
                                 'gripper_fisheye_instance_seg': os.path.join(curr_save_path, 'gripper_image_instance_seg_{}.npy'.format(self.data_counter)),
                 }
                  
-                with zipfile.ZipFile(self.save_base_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                with zipfile.ZipFile(curr_save_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     
-                    with zipf.open(os.path.join(curr_save_path,'data_chunk_{}.json'.format(self.data_counter)), 'w') as json_file:
+                    with zipf.open('data_chunk_{}.json'.format(self.data_counter), 'w') as json_file:
                         # Convert the chunk to a JSON string and encode it to bytes
                         json_data = json.dumps(current_data).encode('utf-8')
                         json_file.write(json_data)
@@ -733,12 +734,12 @@ class GraphNavInterface(object):
                         with zipf.open(filename, 'w') as npy_file:
                             npy_file.write(npy_data.getvalue())
         
-                    save_npy_to_zip(hand_depth, os.path.join(curr_save_path, 'gripper_depth_{}.npy'.format(self.data_counter)))
-                    save_npy_to_zip(left_fisheye_depth, os.path.join(curr_save_path, 'left_fisheye_depth_{}.npy'.format(self.data_counter)))
-                    save_npy_to_zip(right_fisheye_depth, os.path.join(curr_save_path, 'right_fisheye_depth_{}.npy'.format(self.data_counter)))
-                    save_npy_to_zip(hand_color_image, os.path.join(curr_save_path, 'gripper_image_{}.npy'.format(self.data_counter)))
-                    save_npy_to_zip(left_fisheye_image, os.path.join(curr_save_path, 'left_fisheye_image_{}.npy'.format(self.data_counter)))
-                    save_npy_to_zip(right_fisheye_image, os.path.join(curr_save_path, 'right_fisheye_image_{}.npy'.format(self.data_counter)))
+                    save_npy_to_zip(hand_depth, 'gripper_depth_{}.npy'.format(self.data_counter))
+                    save_npy_to_zip(left_fisheye_depth, 'left_fisheye_depth_{}.npy'.format(self.data_counter))
+                    save_npy_to_zip(right_fisheye_depth, 'right_fisheye_depth_{}.npy'.format(self.data_counter))
+                    save_npy_to_zip(hand_color_image, 'gripper_image_{}.npy'.format(self.data_counter))
+                    save_npy_to_zip(left_fisheye_image,'left_fisheye_image_{}.npy'.format(self.data_counter))
+                    save_npy_to_zip(right_fisheye_image, 'right_fisheye_image_{}.npy'.format(self.data_counter))
                 
                 self.data_counter += 1
 
