@@ -687,13 +687,16 @@ class GraphNavInterface(object):
                 global current_data
                 current_data = {'language_command': self.task_name,
                                 'scene_name':self.scene_name,
+                                'wall_clock_time': curr_time,
                                 'left_fisheye_rgb': os.path.join(curr_save_path, 'left_fisheye_image_{}.npy'.format(self.data_counter)),
                                 'left_fisheye_depth': os.path.join(curr_save_path, 'left_fisheye_depth_{}.npy'.format(self.data_counter)),
                                 'right_fisheye_rgb': os.path.join(curr_save_path, 'right_fisheye_image_{}.npy'.format(self.data_counter)),
                                 'right_fisheye_depth': os.path.join(curr_save_path, 'right_fisheye_depth_{}.npy'.format(self.data_counter)),
                                 'gripper_rgb': os.path.join(curr_save_path, 'gripper_image_{}.npy'.format(self.data_counter)),
                                 'gripper_depth': os.path.join(curr_save_path, 'gripper_depth_{}.npy'.format(self.data_counter)),
-                                'wall_clock_time': curr_time,
+                                'left_fisheye_instance_seg': os.path.join(curr_save_path, 'left_fisheye_image_instance_seg_{}.npy'.format(self.data_counter)),
+                                'right_fisheye_instance_seg': os.path.join(curr_save_path, 'right_fisheye_image_instance_seg_{}.npy'.format(self.data_counter)),
+                                'gripper_fisheye_instance_seg': os.path.join(curr_save_path, 'gripper_image_instance_seg_{}.npy'.format(self.data_counter)),
                                 'body_state': {'x': robot_curr_position[0], 'y':robot_curr_position[1], 'z': robot_curr_position[2]},
                                 'body_quaternion': {'w': robot_curr_quaternion[0], 'x': robot_curr_quaternion[1], 'y':robot_curr_quaternion[2], 'z':robot_curr_quaternion[3]},
                                 'body_orientation': {'r': robot_curr_orientation[0], 'p': robot_curr_orientation[1], 'y': robot_curr_orientation[2]},
@@ -707,16 +710,15 @@ class GraphNavInterface(object):
                                 'arm_orientation_global': {'x':arm_curr_orientation_rel_seed[0], 'y':arm_curr_orientation_rel_seed[1], 'z':arm_curr_orientation_rel_seed[2]},
                                 'arm_linear_velocity': {'x':arm_linear_velocity_in_seed_frame[0], 'y':arm_linear_velocity_in_seed_frame[1], 'z':arm_linear_velocity_in_seed_frame[2]},
                                 'arm_angular_velocity': {'x': arm_angular_velocity_in_seed_frame[0], 'y':arm_angular_velocity_in_seed_frame[1], 'z':arm_angular_velocity_in_seed_frame[2]},
-                                'feet_state_rel_body': feet_curr_position_rel_body,
-                                'feet_state_global': feet_curr_position_rel_seed,
-                                'joint_angles': joint_states,
-                                'joint_velocities': joint_velocities,
                                 'arm_stowed': current_stow_state,
                                 'gripper_open_percentage': current_gripper_percentage,
                                 'object_held': object_held,
-                                'left_fisheye_instance_seg': os.path.join(curr_save_path, 'left_fisheye_image_instance_seg_{}.npy'.format(self.data_counter)),
-                                'right_fisheye_instance_seg': os.path.join(curr_save_path, 'right_fisheye_image_instance_seg_{}.npy'.format(self.data_counter)),
-                                'gripper_fisheye_instance_seg': os.path.join(curr_save_path, 'gripper_image_instance_seg_{}.npy'.format(self.data_counter)),
+                                'feet_state_rel_body': feet_curr_position_rel_body,
+                                'feet_state_global': feet_curr_position_rel_seed,
+                                'all_joint_angles': joint_states,
+                                'all_joint_velocities': joint_velocities,
+                                
+                                
                 }
                  
                 with zipfile.ZipFile(curr_save_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -733,6 +735,9 @@ class GraphNavInterface(object):
                         npy_data.seek(0)  # Rewind the buffer
                         with zipf.open(filename, 'w') as npy_file:
                             npy_file.write(npy_data.getvalue())
+                    
+                    
+
         
                     save_npy_to_zip(hand_depth, 'gripper_depth_{}.npy'.format(self.data_counter))
                     save_npy_to_zip(left_fisheye_depth, 'left_fisheye_depth_{}.npy'.format(self.data_counter))
@@ -740,6 +745,7 @@ class GraphNavInterface(object):
                     save_npy_to_zip(hand_color_image, 'gripper_image_{}.npy'.format(self.data_counter))
                     save_npy_to_zip(left_fisheye_image,'left_fisheye_image_{}.npy'.format(self.data_counter))
                     save_npy_to_zip(right_fisheye_image, 'right_fisheye_image_{}.npy'.format(self.data_counter))
+
                 
                 self.data_counter += 1
 
@@ -820,8 +826,7 @@ class GraphNavInterface(object):
             except Exception as e:
                 print(e)
 
-            pdb.set_trace()
-            self.collect_images_and_metadata()
+            
 
             if self.collect_data is True and self.collection_thread_spawned is False:
                 data_collection_thread.start()

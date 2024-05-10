@@ -385,6 +385,7 @@ class RecordingInterface(object):
         return from_T_to.to_proto()
 
     def run_new(self):
+        #NOTE: ENSURE SPOT IS FACING A FIDUCIAL WHEN YOU START RUNNING THIS!!!
         while True:
             print("""
             Options:
