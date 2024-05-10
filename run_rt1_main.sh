@@ -1,0 +1,23 @@
+#!/bin/bash
+#SBATCH -n 1
+#SBATCH --mem=20G
+#SBATCH -t 24:00:00
+#SBATCH -p 3090-gcondo --gres=gpu:1
+module load miniconda3/23.11.0s
+source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.sh
+conda activate rt1_pytorch
+
+#try 1
+#module load cuda/12.2.0-4lgnkrh
+#module load cudnn/8.9.6.50-12-56zgdoa
+
+#try working
+module load cuda/11.8.0-lpttyok
+module load cudnn/8.7.0.84-11.8-lg2dpd5
+
+#try 2:
+#module load  cuda/10.2.89-xnfjmrt
+#module load cudnn/8.7.0.84-11.8-lg2dpd5
+cd rt1-pytorch
+python main.py --dataset "jaco_play"  --train-split "train[:500]" --eval-split "train[:500]" --tra>
+echo $PATH
