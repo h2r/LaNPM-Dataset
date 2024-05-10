@@ -1,17 +1,27 @@
 #TODO LIST
 '''
-1) Color images from left and right front fish eye lenses (MED)
-2) Best way of representing depth images (EASY)
-3) Saving images as npz files instead of image directly (EASY)
-4) Find ways to quit the generated thread deployed for data collection (IDK)
 5) Double check data for the arm position in global frame (IDK)
+8) Double check frame of reference for joint positions
 '''
+
+#DONE LIST
+'''
+6) Folder structure renaming: data_{x}/folder_{y}/.... (all the images/datainside) + data_chunk_{y}.json + image_{y}.npy
+7) Save json file using zipfile directly for floatingpoint values
+4) Find ways to quit the generated thread deployed for data collection (IDK)
+2) Best way of representing depth images (EASY)
+3) Saving images as npy files instead of image directly (EASY)
+9) Collect joint angles too if needed
+1) Color images from left and right front fish eye lenses (MED)
+'''
+
 """Command line interface for graph nav with options to download/upload a map and to navigate a map. """
 
 import argparse
 import logging
 import math
 import os
+from io import BytesIO
 import sys
 from datetime import datetime
 import time
@@ -34,12 +44,13 @@ from bosdyn.client.math_helpers import Quat, SE3Pose
 from bosdyn.client.power import PowerClient, power_on, safe_power_off
 from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient
 from bosdyn.client.robot_state import RobotStateClient
-from bosdyn.client.image import ImageClient
+from bosdyn.client.image import ImageClient, build_image_request
 from bosdyn.client.frame_helpers import VISION_FRAME_NAME, GRAV_ALIGNED_BODY_FRAME_NAME, get_a_tform_b, GRAV_ALIGNED_BODY_FRAME_NAME, ODOM_FRAME_NAME
-
+from bosdyn.api.image_pb2 import Image
 import threading
 import selectors
 import json
+import zipfile 
 
 
 LOCK = threading.Lock()
@@ -59,6 +70,9 @@ class GraphNavInterface(object):
         self._robot_state_client = self._robot.ensure_client(RobotStateClient.default_service_name)
 
         self.image_client = self._robot.ensure_client(ImageClient.default_service_name)
+        
+        
+        
         self.previous_robot_state = None
         self.previous_gripper_percentage = None
         self.previous_robot_position = [0,0,0]
@@ -103,14 +117,18 @@ class GraphNavInterface(object):
 
         #additional data for toggling continuous data collection
         self.collect_data = False
-        self.pic_hz = 2.5
+        self.pic_hz = 3
 
         #store the current task name in natural language
         self.task_name = task_name
         self.scene_name = upload_path.split('/')[-1]
-        self.save_base_path = os.path.join('./Trajectories/{}'.format(self.task_name))
-        if not os.path.exists(self.save_base_path):
-            os.mkdir(self.save_base_path)
+
+        curr_index = len(os.listdir('./Trajectories'))
+
+        self.save_base_path = os.path.join('./Trajectories/data_{}'.format(curr_index))
+        # if not os.path.exists(self.save_base_path):
+        #     os.mkdir(self.save_base_path)
+        self.data_counter = 0
 
     def _get_localization_state(self, *args):
         """Get the current localization and state of the robot."""
@@ -498,45 +516,53 @@ class GraphNavInterface(object):
         return moving or rotating
 
     def collect_images(self):
-        camera_sources = ['hand_depth_in_hand_color_frame', 'hand_color_image', 'frontleft_depth', 'frontleft_fisheye_image','frontleft_depth', 'frontright_fisheye_image']
+        depth_sources = ['hand_depth_in_hand_color_frame', 'frontleft_depth','frontright_depth']
+        image_sources = ['hand_color_image', 'frontleft_fisheye_image', 'frontright_fisheye_image','hand_color_in_hand_depth_frame']
 
-        image_responses = self.image_client.get_image_from_sources(camera_sources)
+        
+        image_responses = [build_image_request(source, quality_percent=90, pixel_format=Image.PIXEL_FORMAT_RGB_U8) for source in image_sources]
+        image_responses = self.image_client.get_image(image_responses)
+
+
+        depth_responses = [build_image_request(source, quality_percent=90, pixel_format=Image.PIXEL_FORMAT_DEPTH_U16) for source in depth_sources]
+        depth_responses = self.image_client.get_image(depth_responses)
+        
 
 
         #hand depth image: extract and convert from mm to meters (div by 1000)
-        hand_depth = np.frombuffer(image_responses[0].shot.image.data, dtype=np.uint16)
-        hand_depth = hand_depth.reshape(image_responses[0].shot.image.rows,
-                                    image_responses[0].shot.image.cols)
-        hand_depth = hand_depth / 1000.0
+        hand_depth = np.frombuffer(depth_responses[0].shot.image.data, dtype=np.uint16)
+        hand_depth = hand_depth.reshape(depth_responses[0].shot.image.rows, depth_responses[0].shot.image.cols)
 
         #if the min and max depth on image are < 12cm (length of gripper) then object is there
-        object_held = np.min(hand_depth) <= 0.12 and np.max(hand_depth) <= 0.12
+        object_held = int(np.min(hand_depth) <= 0.12 and np.max(hand_depth) <= 0.12)
        
 
         #hand color image
-        hand_color_image = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
+        hand_color_image = cv2.imdecode(np.frombuffer(image_responses[0].shot.image.data, dtype=np.uint8), -1)
         hand_color_image = hand_color_image if len(hand_color_image.shape)==3 else cv2.cvtColor(hand_color_image, cv2.COLOR_GRAY2RGB)
 
         #left fisheye depth
-        left_fisheye_depth = np.frombuffer(image_responses[2].shot.image.data, dtype=np.uint16)
-        left_fisheye_depth = left_fisheye_depth.reshape(image_responses[2].shot.image.rows, image_responses[2].shot.image.cols)
-        left_fisheye_depth = left_fisheye_depth / 1000.0
+        left_fisheye_depth = np.frombuffer(depth_responses[1].shot.image.data, dtype=np.uint16)
+        left_fisheye_depth = left_fisheye_depth.reshape(depth_responses[1].shot.image.rows, depth_responses[1].shot.image.cols)
 
         #left fisheye image
-        left_fisheye_image = cv2.imdecode(np.frombuffer(image_responses[3].shot.image.data, dtype=np.uint8), -1)
+        left_fisheye_image = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
         left_fisheye_image = np.rot90(left_fisheye_image, k=3)
         left_fisheye_image = left_fisheye_image if len(left_fisheye_image.shape)==3 else cv2.cvtColor(left_fisheye_image, cv2.COLOR_GRAY2RGB) 
 
         #right fisheye depth
-        right_fisheye_depth = np.frombuffer(image_responses[4].shot.image.data, dtype=np.uint16)
-        right_fisheye_depth = right_fisheye_depth.reshape(image_responses[4].shot.image.rows, image_responses[4].shot.image.cols)
-        right_fisheye_depth = right_fisheye_depth / 1000.0
+        right_fisheye_depth = np.frombuffer(depth_responses[2].shot.image.data, dtype=np.uint16)
+        right_fisheye_depth = right_fisheye_depth.reshape(depth_responses[2].shot.image.rows, depth_responses[2].shot.image.cols)
 
         #right fisheye image
-        right_fisheye_image = cv2.imdecode(np.frombuffer(image_responses[5].shot.image.data, dtype=np.uint8),-1)
+        right_fisheye_image = cv2.imdecode(np.frombuffer(image_responses[2].shot.image.data, dtype=np.uint8),-1)
         right_fisheye_image = np.rot90(right_fisheye_image, k=3)
         right_fisheye_image = right_fisheye_image if len(right_fisheye_image.shape)==3 else cv2.cvtColor(right_fisheye_image, cv2.COLOR_GRAY2RGB)
 
+        #hand color in depth
+        # hand_color_in_depth = cv2.imdecode(np.frombuffer(image_responses[3].shot.image.data, dtype=np.uint8), -1)
+        # hand_color_in_depth = hand_color_in_depth if len(hand_color_in_depth.shape)==3 else cv2.cvtColor(hand_color_in_depth, cv2.COLOR_GRAY2RGB)
+        
 
         return hand_depth, hand_color_image, left_fisheye_depth, left_fisheye_image, right_fisheye_depth, right_fisheye_image, object_held
 
@@ -547,6 +573,7 @@ class GraphNavInterface(object):
 
         frame_tree_snapshot = self._robot.get_frame_tree_snapshot()
         body_tform_hand = get_a_tform_b(frame_tree_snapshot, "body", "hand")
+        odom_tform_body = get_a_tform_b(frame_tree_snapshot, "odom", "body")
 
 
         #get all the graphnav related localizations, positions and orientations relative to the seed frame
@@ -554,15 +581,34 @@ class GraphNavInterface(object):
 
 
         seed_tform_body = graphnav_localization_state.localization.seed_tform_body
-        #seed_tform_hand = seed_tform_body * body_tform_hand
-
         seed_tform_body = bosdyn.client.math_helpers.SE3Pose(seed_tform_body.position.x, seed_tform_body.position.y, seed_tform_body.position.z, seed_tform_body.rotation)
         
-        seed_tform_hand = seed_tform_body * body_tform_hand
+        
+        seed_tform_hand = seed_tform_body*body_tform_hand
+
+        seed_tform_body_rotation_matrix = seed_tform_body.to_matrix()[:-1,:-1]
+        body_tform_odom_rotation_matrix = odom_tform_body.inverse().to_matrix()[:-1,:-1]
+
+        #---------------------------------------------------------------------#
 
         robot_curr_position = np.array([seed_tform_body.position.x,seed_tform_body.position.y, seed_tform_body.position.z])
         robot_curr_quaternion = np.array([seed_tform_body.rotation.w, seed_tform_body.rotation.x, seed_tform_body.rotation.y, seed_tform_body.rotation.z])
         robot_curr_orientation = np.array([seed_tform_hand.rotation.to_roll(), seed_tform_hand.rotation.to_pitch(), seed_tform_hand.rotation.to_yaw()])
+
+        robot_curr_velocity_in_odom_frame = curr_robot_state.kinematic_state.velocity_of_body_in_odom
+        robot_linear_velocity_in_seed_frame = np.array([robot_curr_velocity_in_odom_frame.linear.x, robot_curr_velocity_in_odom_frame.linear.y, robot_curr_velocity_in_odom_frame.linear.z])
+        robot_linear_velocity_in_seed_frame = np.matmul(seed_tform_body_rotation_matrix, np.matmul(body_tform_odom_rotation_matrix, robot_linear_velocity_in_seed_frame))
+
+        robot_angular_velocity_in_seed_frame = np.array([robot_curr_velocity_in_odom_frame.angular.x, robot_curr_velocity_in_odom_frame.angular.y, robot_curr_velocity_in_odom_frame.angular.z])
+        robot_angular_velocity_in_seed_frame = np.matmul(seed_tform_body_rotation_matrix, np.matmul(body_tform_odom_rotation_matrix, robot_angular_velocity_in_seed_frame))
+
+        arm_curr_velocity_in_odom_frame = curr_robot_state.manipulator_state.velocity_of_hand_in_odom
+        arm_linear_velocity_in_seed_frame = np.array([arm_curr_velocity_in_odom_frame.linear.x, arm_curr_velocity_in_odom_frame.linear.y, arm_curr_velocity_in_odom_frame.linear.z])
+        arm_linear_velocity_in_seed_frame = np.matmul(seed_tform_body_rotation_matrix, np.matmul(body_tform_odom_rotation_matrix, arm_linear_velocity_in_seed_frame))
+
+        arm_angular_velocity_in_seed_frame = np.array([arm_curr_velocity_in_odom_frame.angular.x, arm_curr_velocity_in_odom_frame.angular.y, arm_curr_velocity_in_odom_frame.angular.z])
+        arm_angular_velocity_in_seed_frame = np.matmul(seed_tform_body_rotation_matrix, np.matmul(body_tform_odom_rotation_matrix, arm_angular_velocity_in_seed_frame))
+
 
         arm_curr_position_rel_body = np.array([body_tform_hand.position.x, body_tform_hand.position.y, body_tform_hand.position.z])
         arm_curr_quaternion_rel_body = np.array([body_tform_hand.rotation.w, body_tform_hand.rotation.x, body_tform_hand.rotation.y, body_tform_hand.rotation.z])
@@ -574,17 +620,30 @@ class GraphNavInterface(object):
 
         #additional state variables e.g. stowing and grasping
         current_gripper_percentage = curr_robot_state.manipulator_state.gripper_open_percentage
-        current_stow_state = bool(curr_robot_state.manipulator_state.stow_state)
+        current_stow_state = int(curr_robot_state.manipulator_state.stow_state)
 
         #TODO: figure out how to make this in the body frame
-        joint_states = {x.name: str(x.position)[:-1] for x in curr_robot_state.kinematic_state.joint_states}
+        joint_states = {x.name: x.position.value for x in curr_robot_state.kinematic_state.joint_states}
+        joint_velocities = {x.name: x.velocity.value for x in curr_robot_state.kinematic_state.joint_states}
         curr_time = datetime.utcnow().strftime('%H:%M:%S.%f')[:-3]
+
+
+        #get the position of the foot relative to body and seed frames
+        feet_curr_position_rel_seed = []
+        for idx in range(len(curr_robot_state.foot_state)):
+            foot_position = np.array([curr_robot_state.foot_state[idx].foot_position_rt_body.x, curr_robot_state.foot_state[idx].foot_position_rt_body.y, curr_robot_state.foot_state[idx].foot_position_rt_body.z])
+            foot_position = np.matmul(seed_tform_body_rotation_matrix, foot_position)
+            feet_curr_position_rel_seed.append({'x': foot_position[0], 'y': foot_position[1], 'z': foot_position[2]})
+        
+        feet_curr_position_rel_body = []
+        for idx in range(len(curr_robot_state.foot_state)):
+            feet_curr_position_rel_body.append({'x':curr_robot_state.foot_state[idx].foot_position_rt_body.x,'y':curr_robot_state.foot_state[idx].foot_position_rt_body.y, 'z':curr_robot_state.foot_state[idx].foot_position_rt_body.z})
 
 
         #collect and save all the necessary images + store the image paths
         hand_depth, hand_color_image, left_fisheye_depth, left_fisheye_image, right_fisheye_depth, right_fisheye_image, object_held = self.collect_images()
         
-        curr_save_path = os.path.join(self.save_base_path, curr_time)
+        curr_save_path = os.path.join(self.save_base_path, 'folder_{}'.format(self.data_counter))
         
         
        
@@ -593,7 +652,7 @@ class GraphNavInterface(object):
         with LOCK:
             if self.is_arm_moving(curr_robot_state) or self.is_gripper_moving(curr_robot_state) or self.is_robot_sitting(curr_robot_state) or self.is_body_moving(robot_curr_position, robot_curr_orientation):
                 
-                os.mkdir(curr_save_path)
+                # os.mkdir(curr_save_path)
                 #Step 2: if all conditions are met, capture the current data including
                 '''
                 Language command (given)
@@ -613,47 +672,76 @@ class GraphNavInterface(object):
                 Gripper instance segmentation
                 '''
 
-                pickle.dump(hand_depth, open(os.path.join(curr_save_path, 'hand_depth'), "wb"))
-                pickle.dump(left_fisheye_depth, open(os.path.join(curr_save_path, 'left_fisheye_depth'), "wb"))
-                pickle.dump(right_fisheye_depth, open(os.path.join(curr_save_path, 'right_fisheye_depth'), "wb"))
-                cv2.imwrite(os.path.join(curr_save_path, 'hand_depth.jpeg'), hand_depth)
-                cv2.imwrite(os.path.join(curr_save_path, 'left_fisheye_depth.jpeg'), left_fisheye_depth)
-                cv2.imwrite(os.path.join(curr_save_path, 'right_fisheye_depth.jpeg'), right_fisheye_depth)
-                cv2.imwrite(os.path.join(curr_save_path, 'hand_color_image.jpeg'), hand_color_image)
-                cv2.imwrite(os.path.join(curr_save_path, 'left_fisheye_image.jpeg'), left_fisheye_image)
-                cv2.imwrite(os.path.join(curr_save_path, 'right_fisheye_image.jpeg'), right_fisheye_image)
+                
+                # pickle.dump(hand_depth, open(os.path.join(curr_save_path, 'hand_depth_{}'.format(self.data_counter)), "wb"))
+                # pickle.dump(left_fisheye_depth, open(os.path.join(curr_save_path, 'left_fisheye_depth_{}'.format(self.data_counter)), "wb"))
+                # pickle.dump(right_fisheye_depth, open(os.path.join(curr_save_path, 'right_fisheye_depth'), "wb"))
+                # cv2.imwrite(os.path.join(curr_save_path, 'hand_depth.jpeg'), hand_depth)
+                # cv2.imwrite(os.path.join(curr_save_path, 'left_fisheye_depth.jpeg'), left_fisheye_depth)
+                # cv2.imwrite(os.path.join(curr_save_path, 'right_fisheye_depth.jpeg'), right_fisheye_depth)
+                # cv2.imwrite(os.path.join(curr_save_path, 'hand_color_image.jpeg'), hand_color_image)
+                # cv2.imwrite(os.path.join(curr_save_path, 'left_fisheye_image.jpeg'), left_fisheye_image)
+                # cv2.imwrite(os.path.join(curr_save_path, 'right_fisheye_image.jpeg'), right_fisheye_image)
                 
                 global current_data
                 current_data = {'language_command': self.task_name,
                                 'scene_name':self.scene_name,
-                                'left_fisheye_rgb': os.path.join(curr_save_path, 'left_fisheye_image.jpeg'),
-                                'left_fisheye_depth': os.path.join(curr_save_path, 'left_fisheye_depth'),
-                                'right_fisheye_rgb': os.path.join(curr_save_path, 'right_fisheye_image.jpeg'),
-                                'right_fisheye_depth': os.path.join(curr_save_path, 'right_fisheye_depth'),
-                                'gripper_rgb': os.path.join(curr_save_path, 'hand_color_image.jpeg'),
-                                'gripper_depth': os.path.join(curr_save_path, 'hand_depth'),
+                                'left_fisheye_rgb': os.path.join(curr_save_path, 'left_fisheye_image_{}.npy'.format(self.data_counter)),
+                                'left_fisheye_depth': os.path.join(curr_save_path, 'left_fisheye_depth_{}.npy'.format(self.data_counter)),
+                                'right_fisheye_rgb': os.path.join(curr_save_path, 'right_fisheye_image_{}.npy'.format(self.data_counter)),
+                                'right_fisheye_depth': os.path.join(curr_save_path, 'right_fisheye_depth_{}.npy'.format(self.data_counter)),
+                                'gripper_rgb': os.path.join(curr_save_path, 'gripper_image_{}.npy'.format(self.data_counter)),
+                                'gripper_depth': os.path.join(curr_save_path, 'gripper_depth_{}.npy'.format(self.data_counter)),
                                 'wall_clock_time': curr_time,
-                                'body_state': {'x': str(robot_curr_position[0]), 'y':str(robot_curr_position[1]), 'z': str(robot_curr_position[2])},
-                                'body_quaternion': {'w': str(robot_curr_quaternion[0]), 'x': str(robot_curr_quaternion[1]), 'y':str(robot_curr_quaternion[2]), 'z':str(robot_curr_quaternion[3])},
-                                'body_orientation': {'r': str(robot_curr_orientation[0]), 'p': str(robot_curr_orientation[1]), 'y': str(robot_curr_orientation[2])},
-                                'arm_state_rel_body': {'x': str(arm_curr_position_rel_body[0]), 'y': str(arm_curr_position_rel_body[1]), 'z': str(arm_curr_position_rel_body[2])},
-                                'arm_quaternion_rel_body': {'w': str(arm_curr_quaternion_rel_body[0]), 'x': str(arm_curr_quaternion_rel_body[1]), 'y': str(arm_curr_quaternion_rel_body[2]), 'z': str(arm_curr_quaternion_rel_body[2])},
-                                'arm_orientation_rel_body': {'x': str(arm_curr_orientation_rel_body[0]), 'y': str(arm_curr_orientation_rel_body[1]), 'z': str(arm_curr_orientation_rel_body[2])},
-                                'arm_state_global': {'x': str(arm_curr_position_rel_seed[0]), 'y': str(arm_curr_position_rel_seed[1]), 'z': str(arm_curr_position_rel_seed[2])},
-                                'arm_quaternion_global': {'w': str(arm_curr_quaternion_rel_seed[0]), 'x':str(arm_curr_quaternion_rel_seed[1]), 'y': str(arm_curr_quaternion_rel_seed[2]), 'z':str(arm_curr_quaternion_rel_seed[3])},
-                                'arm_orientation_global': {'x':str(arm_curr_orientation_rel_seed[0]), 'y':str(arm_curr_orientation_rel_seed[1]), 'z':str(arm_curr_orientation_rel_seed[2])},
-                                'joint_positions': joint_states,
-                                'arm_stowed': str(current_stow_state),
-                                'gripper_open_percentage': str(current_gripper_percentage),
-                                'object_held': str(object_held),
-                                'left_fisheye_instance_seg': os.path.join(curr_save_path, 'left_fisheye_instance_seg.jpeg'),
-                                'right_fisheye_instance_seg': os.path.join(curr_save_path, 'right_fisheye_instance_seg.jpeg'),
-                                'gripper_fisheye_instance_seg': os.path.join(curr_save_path, 'hand_color_image_instance_seg.jpeg'),
-                                }
-            
-                with open(os.path.join(curr_save_path,'data_{}.json'.format(curr_time)), 'w') as file:
+                                'body_state': {'x': robot_curr_position[0], 'y':robot_curr_position[1], 'z': robot_curr_position[2]},
+                                'body_quaternion': {'w': robot_curr_quaternion[0], 'x': robot_curr_quaternion[1], 'y':robot_curr_quaternion[2], 'z':robot_curr_quaternion[3]},
+                                'body_orientation': {'r': robot_curr_orientation[0], 'p': robot_curr_orientation[1], 'y': robot_curr_orientation[2]},
+                                'body_linear_velocity': {'x':robot_linear_velocity_in_seed_frame[0], 'y':robot_linear_velocity_in_seed_frame[1], 'z': robot_linear_velocity_in_seed_frame[2]},
+                                'body_angular_velocity': {'x': robot_angular_velocity_in_seed_frame[0], 'y': robot_angular_velocity_in_seed_frame[1], 'z': robot_angular_velocity_in_seed_frame[2]},
+                                'arm_state_rel_body': {'x': arm_curr_position_rel_body[0], 'y': arm_curr_position_rel_body[1], 'z': arm_curr_position_rel_body[2]},
+                                'arm_quaternion_rel_body': {'w': arm_curr_quaternion_rel_body[0], 'x': arm_curr_quaternion_rel_body[1], 'y': arm_curr_quaternion_rel_body[2], 'z': arm_curr_quaternion_rel_body[2]},
+                                'arm_orientation_rel_body': {'x': arm_curr_orientation_rel_body[0], 'y': arm_curr_orientation_rel_body[1], 'z': arm_curr_orientation_rel_body[2]},
+                                'arm_state_global': {'x': arm_curr_position_rel_seed[0], 'y': arm_curr_position_rel_seed[1], 'z': arm_curr_position_rel_seed[2]},
+                                'arm_quaternion_global': {'w': arm_curr_quaternion_rel_seed[0], 'x':arm_curr_quaternion_rel_seed[1], 'y': arm_curr_quaternion_rel_seed[2], 'z':arm_curr_quaternion_rel_seed[3]},
+                                'arm_orientation_global': {'x':arm_curr_orientation_rel_seed[0], 'y':arm_curr_orientation_rel_seed[1], 'z':arm_curr_orientation_rel_seed[2]},
+                                'arm_linear_velocity': {'x':arm_linear_velocity_in_seed_frame[0], 'y':arm_linear_velocity_in_seed_frame[1], 'z':arm_linear_velocity_in_seed_frame[2]},
+                                'arm_angular_velocity': {'x': arm_angular_velocity_in_seed_frame[0], 'y':arm_angular_velocity_in_seed_frame[1], 'z':arm_angular_velocity_in_seed_frame[2]},
+                                'feet_state_rel_body': feet_curr_position_rel_body,
+                                'feet_state_global': feet_curr_position_rel_seed,
+                                'joint_angles': joint_states,
+                                'joint_velocities': joint_velocities,
+                                'arm_stowed': current_stow_state,
+                                'gripper_open_percentage': current_gripper_percentage,
+                                'object_held': object_held,
+                                'left_fisheye_instance_seg': os.path.join(curr_save_path, 'left_fisheye_image_instance_seg_{}.npy'.format(self.data_counter)),
+                                'right_fisheye_instance_seg': os.path.join(curr_save_path, 'right_fisheye_image_instance_seg_{}.npy'.format(self.data_counter)),
+                                'gripper_fisheye_instance_seg': os.path.join(curr_save_path, 'gripper_image_instance_seg_{}.npy'.format(self.data_counter)),
+                }
+                 
+                with zipfile.ZipFile(self.save_base_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     
-                    json.dump(current_data, file, indent=4)
+                    with zipf.open(os.path.join(curr_save_path,'data_chunk_{}.json'.format(self.data_counter)), 'w') as json_file:
+                        # Convert the chunk to a JSON string and encode it to bytes
+                        json_data = json.dumps(current_data).encode('utf-8')
+                        json_file.write(json_data)
+
+                    # Define a helper function to save numpy data
+                    def save_npy_to_zip(data, filename):
+                        npy_data = BytesIO()
+                        np.save(npy_data, data, allow_pickle=True, fix_imports=True)
+                        npy_data.seek(0)  # Rewind the buffer
+                        with zipf.open(filename, 'w') as npy_file:
+                            npy_file.write(npy_data.getvalue())
+        
+                    save_npy_to_zip(hand_depth, os.path.join(curr_save_path, 'gripper_depth_{}.npy'.format(self.data_counter)))
+                    save_npy_to_zip(left_fisheye_depth, os.path.join(curr_save_path, 'left_fisheye_depth_{}.npy'.format(self.data_counter)))
+                    save_npy_to_zip(right_fisheye_depth, os.path.join(curr_save_path, 'right_fisheye_depth_{}.npy'.format(self.data_counter)))
+                    save_npy_to_zip(hand_color_image, os.path.join(curr_save_path, 'gripper_image_{}.npy'.format(self.data_counter)))
+                    save_npy_to_zip(left_fisheye_image, os.path.join(curr_save_path, 'left_fisheye_image_{}.npy'.format(self.data_counter)))
+                    save_npy_to_zip(right_fisheye_image, os.path.join(curr_save_path, 'right_fisheye_image_{}.npy'.format(self.data_counter)))
+                
+                self.data_counter += 1
+
 
             else:
                 print('NO DATA COLLECTED: ROBOT IS NOT MOVING') 
@@ -731,8 +819,8 @@ class GraphNavInterface(object):
             except Exception as e:
                 print(e)
 
-
-            # self.collect_images_and_metadata()
+            pdb.set_trace()
+            self.collect_images_and_metadata()
 
             if self.collect_data is True and self.collection_thread_spawned is False:
                 data_collection_thread.start()
@@ -767,7 +855,7 @@ def main(argv):
     sdk = bosdyn.client.create_standard_sdk('GraphNavClient')
     robot = sdk.create_robot(HOSTNAME)
     robot.authenticate(USER, PASS)
-
+    
     graph_nav_command_line = GraphNavInterface(robot, options.upload_filepath, options.task)
     
     try:
