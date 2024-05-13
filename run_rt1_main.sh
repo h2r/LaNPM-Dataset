@@ -19,5 +19,5 @@ module load cudnn/8.7.0.84-11.8-lg2dpd5
 #module load  cuda/10.2.89-xnfjmrt
 #module load cudnn/8.7.0.84-11.8-lg2dpd5
 cd rt1-pytorch
-python main.py --dataset "jaco_play"  --train-split "train[:500]" --eval-split "train[:500]" --tra>
+python main.py --datasets jaco_play --train-split "train[:500]" --eval-split "train[:500]" --train-batch-size 8 --eval-batch-size 8 --eval-freq 100 --checkpoint-freq 100
 echo $PATH
