@@ -11,9 +11,9 @@ from importlib import import_module
 class Eval(object):
 
     # tokens
-    STOP_TOKEN = "<<stop>>"
-    SEQ_TOKEN = "<<seg>>"
-    TERMINAL_TOKENS = [STOP_TOKEN, SEQ_TOKEN]
+    # STOP_TOKEN = "<<stop>>"
+    # SEQ_TOKEN = "<<seg>>"
+    # TERMINAL_TOKENS = [STOP_TOKEN, SEQ_TOKEN]
 
     def __init__(self, args, manager):
         # args and manager
@@ -54,7 +54,7 @@ class Eval(object):
         random.seed(int(time.time()))
 
     def queue_tasks(self):
-        '''
+        '''python models/eval/eval_seq2seq.py --model_path /users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/exp/model:seq2seq_im_mask_discrete_relative_extra/best_unseen.pth --data data/json_feat_2.1.0 --gpu --model models.model.seq2seq_im_mask
         create queue of trajectories to be evaluated
         '''
         task_queue = self.manager.Queue()
@@ -87,41 +87,33 @@ class Eval(object):
         # start threads
         threads = []
         lock = self.manager.Lock()
-        for n in range(self.args.num_threads):
-            thread = mp.Process(target=self.run, args=(self.model, self.resnet, task_queue, self.args, lock,
-                                                       self.successes, self.failures, self.results))
-            thread.start()
-            threads.append(thread)
+        self.run(self.model, self.resnet, task_queue, self.args, lock, self.successes, self.failures, self.results)
+        # for n in range(self.args.num_threads):
+            # thread = mp.Process(target=self.run, args=(self.model, self.resnet, task_queue, self.args, lock,
+            #                                            self.successes, self.failures, self.results))
+            # thread.start()
+            # threads.append(thread)
 
-        for t in threads:
-            t.join()
+        # for t in threads:
+        #     t.join()
 
         # save
         self.save_results()
 
     @classmethod
-    def setup_scene(cls, env, traj_data, r_idx, args, reward_type='dense'):
+    def setup_scene(cls, env, traj_data, args):
         '''
         intialize the scene and agent from the task info
         '''
         # scene setup
-        scene_num = traj_data['scene']['scene_num']
-        object_poses = traj_data['scene']['object_poses']
-        dirty_and_empty = traj_data['scene']['dirty_and_empty']
-        object_toggles = traj_data['scene']['object_toggles']
-
-        scene_name = 'FloorPlan%d' % scene_num
+        scene_name = traj_data['scene']
         env.reset(scene_name)
-        env.restore_scene(object_poses, object_toggles, dirty_and_empty)
 
         # initialize to start position
-        env.step(dict(traj_data['scene']['init_action']))
+        # env.step(dict(traj_data['scene']['init_action']))
 
         # print goal instr
-        print("Task: %s" % (traj_data['turk_annotations']['anns'][r_idx]['task_desc']))
-
-        # setup task for reward
-        env.set_task(traj_data, args, reward_type=reward_type)
+        print("Task: %s" % (traj_data['ann']['task_desc']))
 
     @classmethod
     def run(cls, model, resnet, task_queue, args, lock, successes, failures):

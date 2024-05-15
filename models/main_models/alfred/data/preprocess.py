@@ -29,8 +29,9 @@ class Dataset(object):
         self.max_vals = [-1000000] * 10
         self.min_vals = [1000000] * 10
         self.bins = {}
-        self.grasp_drop = {'stop': 0, 'pad': 1, 'PickupObject': 2, 'ReleaseObject': 3, 'NoOP': 4} # grasp/drop objects classes
-        self.up_down = {'stop': 0, 'pad': 1, 'LookUp': 2, 'LookDown': 3, 'NoOP': 4} # look-up/look-down classes
+        self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm': 3, 'ee': 4, 'look': 5} #different action modes
+        self.grasp_drop = {'stop': 0, 'PickupObject': 1, 'ReleaseObject': 2, 'NoOp': 3} # grasp/drop objects classes
+        self.up_down = {'stop': 0, 'LookUp': 1, 'LookDown': 2, 'NoOp': 3} # look-up/look-down classes
 
     def find_all_max_min(self, split_keys_dict): #only called if class_mode is true
         for name, split_keys in split_keys_dict.items():
@@ -76,12 +77,14 @@ class Dataset(object):
                     first_step_key = traj_steps[0]  # Get the first step key
                     json_str = traj_group[first_step_key].attrs['metadata']
                     traj_json_dict = json.loads(json_str)
+                    scene = traj_json_dict['scene']
                     nl_command = traj_json_dict['nl_command']
 
                 traj = {}
                 # root & split
                 traj['root'] = os.path.join(self.args.pp_data, task)
                 traj['split'] = name
+                traj['scene'] = scene
 
                 # numericalize language
                 self.process_language(traj, nl_command)
@@ -124,8 +127,11 @@ class Dataset(object):
         ex and traj are single trajectory that have about 3 'high_descs' which are the step by step instructions and 'task_desc' which is the final goal.
         ex and traj are the same with traj having a few more dic keys for some metadata
         '''
+
+        
         # tokenize language
         traj['ann'] = {
+            'task_desc': nl_command,
             'goal': revtok.tokenize(remove_spaces_and_lower(nl_command)) + ['<<goal>>'],
         }
 
@@ -191,8 +197,20 @@ class Dataset(object):
                         state_body, state_ee = self.get_deltas(state_body, state_ee, next_state_body, next_state_ee)
 
                         action_high = next_traj_json_dict['steps'][0]['action']
-                        grasp_drop = self.grasp_drop['NoOP'] 
-                        up_down = self.up_down['NoOP'] 
+                        mode = None
+                        if action_high in ['MoveRight', 'MoveLeft', 'MoveAhead', 'MoveBack']:
+                            mode = self.mode['base']
+                        elif action_high in ['MoveArm', 'MoveArmBase']:
+                            mode = self.mode['arm']
+                        elif action_high in ['RotateAgent']:
+                            mode = self.mode['rotate']
+                        elif action_high in ['LookUp', 'LookDown']:
+                            mode = self.mode['look']
+                        elif action_high in ['PickupObject', 'ReleaseObject']:
+                            mode = self.mode['ee']
+                        
+                        grasp_drop = self.grasp_drop['NoOp'] 
+                        up_down = self.up_down['NoOp']
                         if action_high == 'PickupObject':
                             grasp_drop = self.grasp_drop['PickupObject']
                         elif action_high == 'ReleaseObject':
@@ -223,8 +241,10 @@ class Dataset(object):
                             if bin_indx == len(self.bins[i]):
                                 bin_indx = len(self.bins[i])-1
                             final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
+                        
+                        #final_action_indices [xbase, ybase, zbase, yaw, xee, yee, zee, rollee, pitchee, yawee]
                         traj['num']['action_low'].append(
-                            {'state_body': final_action_indices[:4], 'state_ee': final_action_indices[4:], 'grasp_drop': grasp_drop, 'up_down': up_down}
+                            {'mode': mode, 'state_body': final_action_indices[:2]+final_action_indices[3:4], 'state_ee': final_action_indices[4:7], 'grasp_drop': grasp_drop, 'up_down': up_down}
                         )
                     # add action indices, but skip the last action for relative actions since they use deltas
                     if self.args.relative:
@@ -236,7 +256,7 @@ class Dataset(object):
             if traj is not None:
                 #append end/stop action index of bins
                 traj['num']['action_low'].append(
-                        {'state_body': [0]*4, 'state_ee': [0]*6, 'grasp_drop': self.grasp_drop['stop'], 'up_down': self.up_down['stop']}
+                        {'mode': self.mode['stop'], 'state_body': [0]*3, 'state_ee': [0]*3, 'grasp_drop': self.grasp_drop['stop'], 'up_down': self.up_down['stop']}
                 )
 
     def discretize_actions(self):
@@ -248,7 +268,7 @@ class Dataset(object):
             else:
                 bin_edges = np.linspace(self.min_vals[dim], self.max_vals[dim], self.args.bins + 1)
             bin_edges = np.insert(bin_edges, 0, -1000) #adding bin for pad action (index 1)
-            bin_edges = np.insert(bin_edges, 0, -2000) #adding bin for stop action (index 0)
+            # bin_edges = np.insert(bin_edges, 0, -2000) #adding bin for stop action (index 0)
             # in the case where self.args.bins is 256, then there are now 258 bins and len(bin_edges) is 259. index for last bin is 257
             self.bins[dim] = bin_edges
 

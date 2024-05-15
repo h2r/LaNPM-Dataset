@@ -44,7 +44,9 @@ class Module(Base):
                            input_dropout=args.input_dropout,
                            adapter_dropout=args.adapter_dropout,
                            teacher_forcing=args.dec_teacher_forcing,
-                           action_dims = args.action_dims)
+                           action_dims = args.action_dims,
+                           mode_class_num = self.mode_class_num, 
+                           grasp_drop_class_num = self.grasp_drop_class_num)
         self.load_pretrained_model(args.finetune)
         self.freeze()
         
@@ -102,7 +104,7 @@ class Module(Base):
         #loads in the keys shared between the current model and the pretrained model while also removing the keys we want to fine-tune
         self.load_state_dict(filtered_dict, strict=False)
 
-    def featurize(self, batch, load_mask=True, load_frames=True):
+    def featurize(self, batch, load_frames=True):
         '''
         tensorize and pad batch input
         '''
@@ -171,7 +173,6 @@ class Module(Base):
                 feat[k] = packed_input
             else:
                 # default: tensorize and pad sequence
-
                 seqs = [vv.clone().detach().to(device=device, dtype=torch.float) if 'frames' in k else 
                                 [{key: torch.tensor(value, device=device, dtype=torch.int) for key, value in d.items()} for d in vv] 
                                 for vv in v]
@@ -182,8 +183,9 @@ class Module(Base):
                     max_length = max(len(lst) for lst in seqs)
 
                     template_dict = {
-                        'state_body': torch.full((4,), self.action_pad),
-                        'state_ee': torch.full((6,), self.action_pad),
+                        'mode': self.action_pad,
+                        'state_body': torch.full((3,), self.action_pad),
+                        'state_ee': torch.full((3,), self.action_pad),
                         'grasp_drop': self.action_pad,
                         'up_down': self.action_pad
                     }
@@ -248,51 +250,92 @@ class Module(Base):
             self.r_state['state_t'] = self.r_state['cont_lang'], torch.zeros_like(self.r_state['cont_lang'])
 
         # previous action embedding
+        # may need to get rid of this embed
         e_t = self.embed_action(prev_action) if prev_action is not None else self.r_state['e_t']
 
         # decode and save embedding and hidden states
-        out_action_low, out_action_low_mask, state_t, *_ = self.dec.step(self.r_state['enc_lang'], feat['frames'][:, 0], e_t=e_t, state_tm1=self.r_state['state_t'])
+        action_logits, out_attn_scores, state_t, *_ = self.dec.step(self.r_state['enc_lang'], feat['frames'][:, 0], e_t=e_t, state_tm1=self.r_state['state_t'])
 
         # save states
         self.r_state['state_t'] = state_t
-        self.r_state['e_t'] = self.dec.emb(out_action_low.max(1)[1])
+
+        max_action = self.get_max_action(action_logits)
+        self.r_state['e_t'] = self.embed_action(max_action)
 
         # output formatting
-        feat['out_action_low'] = out_action_low.unsqueeze(0)
-        feat['out_action_low_mask'] = out_action_low_mask.unsqueeze(0)
+        feat['out_action_low'] = action_logits.unsqueeze(0)
         return feat
 
+    def get_max_action(self, action_logits):
+        logits_1d = action_logits[:, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
+        last = (1*self.mode_class_num)
+        logits_6d = action_logits[:, last : last+((self.dec.action_dims-3) * self.dec.num_bins)].view(-1, 6, self.dec.num_bins)
+        last = last +((self.dec.action_dims-3) * self.dec.num_bins)
+        logits_2d = action_logits[:, last :  last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
+        max_1d = logits_1d.max(dim=2)[1]
+        max_6d = logits_6d.max(dim=2)[1]
+        max_2d = logits_2d.max(dim=2)[1]
+        max_action = torch.cat((max_1d, max_6d, max_2d), dim=1)
+
+        return max_action
 
     def extract_preds(self, out, batch, feat, clean_special_tokens=True):
         '''
         output processing
         '''
         pred = {}
-        for ex, alow, alow_mask in zip(batch, feat['out_action_low'].max(2)[1].tolist(), feat['out_action_low_mask']):
+        for idx, ex in enumerate(batch):
+            current_action_low = feat['out_action_low'][idx]
+            alow = self.get_max_action(current_action_low)
             # remove padding tokens
             if self.pad in alow:
                 pad_start_idx = alow.index(self.pad)
                 alow = alow[:pad_start_idx]
-                alow_mask = alow_mask[:pad_start_idx]
 
             if clean_special_tokens:
                 # remove <<stop>> tokens
                 if self.stop_token in alow:
                     stop_start_idx = alow.index(self.stop_token)
                     alow = alow[:stop_start_idx]
-                    alow_mask = alow_mask[:stop_start_idx]
+            breakpoint()
 
-            # index to API actions
-            words = self.vocab['action_low'].index2word(alow)
+            # self.grasp_drop = {'stop': 0, 'pad': 1, 'PickupObject': 2, 'ReleaseObject': 3, 'NoOp': 4} # grasp/drop objects classes
+            # self.up_down = {'stop': 0, 'pad': 1, 'LookUp': 2, 'LookDown': 3, 'NoOp': 4} # look-up/look-down classes
+            # self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm': 3, 'ee': 4, 'look': 5} #different action modes
+            
+            word_action = None
+            num_action = None
+            #FIXME
+            if alow[0] == 1: #base
+                word_action = 'MoveBase' #made up by me
+                num_action = alow[1:3]
+            elif alow[0] == 2: #rotate
+                word_action = "RotateAgent"
+                num_action = alow[3:4]
+            elif alow[0] == 3: #arm
+                word_action = 'MoveArm' #made up by me
+                num_action = alow[4:7]
+            elif alow[0] == 4: #ee
+                if alow[-2] == 2:
+                    word_action = 'PickupObject'
+                elif alow[-2] == 3:
+                    word_action = 'ReleaseObject'
+                num_action = alow[7:8]
+            elif alow[0] == 5: #look
+                if alow[-1] == 2:
+                    word_action = 'LookUp'
+                elif alow[-1] == 3:
+                    word_action = 'LookDown'
+                num_action = alow[8:9]
 
-            # sigmoid preds to binary mask
-            alow_mask = F.sigmoid(alow_mask)
-            p_mask = [(alow_mask[t] > 0.5).cpu().numpy() for t in range(alow_mask.shape[0])]
+            # index to API actions (only for lookdown/lookup and grasp/release)
+            # words = self.vocab['action_low'].index2word(alow)
+            
 
-            task_id_ann = self.get_task_and_ann_id(ex)
+            task_id_ann = ex['root'].split('/')[-1]
             pred[task_id_ann] = {
-                'action_low': ' '.join(words),
-                'action_low_mask': p_mask,
+                'action_low_word': word_action,
+                'action_low': alow
             }
 
         return pred
@@ -302,9 +345,22 @@ class Module(Base):
         '''
         embed low-level action
         '''
-        device = torch.device('cuda') if self.args.gpu else torch.device('cpu')
-        action_num = torch.tensor(self.vocab['action_low'].word2index(action), device=device)
-        action_emb = self.dec.emb(action_num).unsqueeze(0)
+        # device = torch.device('cuda') if self.args.gpu else torch.device('cpu')
+        # action_num = torch.tensor(self.vocab['action_low'].word2index(action), device=device)
+        # action_emb = self.dec.emb(action_num).unsqueeze(0)
+        
+        breakpoint()
+        # embedding to input into next step in the sequence
+        #FIXME
+        embedded_mode = self.dec.emb['emb_mode'](action[:, :1])
+        embedded_xy = self.dec.emb['emb_xy'](action[:, 1:3])  
+        embedded_yaw = self.dec.emb['emb_yaw'](action[:, 3:4])  
+        embedded_eff_xyz = self.dec.emb['emb_eff_xyz'](action[:, 4:7])  
+        embedded_grasp_drop = self.dec.emb['emb_grasp_drop'](action[:, 7:8])
+        embedded_up_down = self.dec.emb['emb_up_down'](action[:, 8:9])  
+        embedded_actions = torch.cat([embedded_mode, embedded_xy, embedded_yaw, embedded_eff_xyz, embedded_grasp_drop, embedded_up_down], dim=1)
+        action_emb = embedded_actions.view(embedded_actions.size(0), -1) #flatten
+
         return action_emb
 
 
@@ -320,27 +376,49 @@ class Module(Base):
         # GT and predictions
         if self.args.class_mode:
             action_logits = out['out_action_low']
-            logits_10d = action_logits[:, :, :(self.args.action_dims-2) * (self.args.bins+2)].view(-1, action_logits.shape[1], (self.args.action_dims-2), self.args.bins+2)
-            logits_2d = action_logits[:, :, (self.args.action_dims-2) * (self.args.bins+2):].view(-1, action_logits.shape[1], 2, 5)
+            #get top predicted action from distribution
+            logits_1d = action_logits[:, :, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
+            last = (1*self.mode_class_num)
+            logits_6d = action_logits[:, :, last : last+((self.dec.action_dims-3) * self.dec.num_bins)].view(-1, 6, self.dec.num_bins)
+            last = last +((self.dec.action_dims-3) * self.dec.num_bins)
+            logits_2d = action_logits[:, :, last : last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
             # p_alow = out['out_action_low'].flatten(0, 1)
-            p_alow_10d = logits_10d.flatten(0,1)
+            p_alow_1d = logits_1d.flatten(0,1)
+            p_alow_6d = logits_6d.flatten(0,1)
             p_alow_2d = logits_2d.flatten(0,1)
         else:
             p_alow = out['out_action_low'].view(-1, self.args.action_dims)
         
-        l_alow = [torch.cat([item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
+        # ignore the warning in the line below since it's just torch scalars being converted to tensors
+        l_alow = []  # Initialize an empty list to store the concatenated tensors
+
+        # Iterate over each sublist in feat['action_low']
+        l_alow = [torch.cat([torch.tensor(item['mode']).unsqueeze(0).to(device), item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
         l_alow = torch.stack(l_alow)
+        breakpoint()
 
         # action loss
-        pad_tensor = torch.full_like(l_alow, 1) #1 is the action pad index for class mode
+        #FIXME change the way pad masking is done
+        pad_tensor = torch.full_like(l_alow, self.action_pad) # -1 is the action pad index for class mode
         pad_valid = (l_alow != pad_tensor).all(dim=1) #collapse the bools in the inner tensors to 1 bool
         if self.args.class_mode:
             total_loss = torch.zeros(l_alow.shape[0]).to('cuda')
-            for dim in range(l_alow.shape[1]): #loops 10 times, one for each action dim
-                if dim < 10:
-                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_10d[:, dim, :], l_alow[:, dim])
-                else:
-                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d[:, dim-10, :], l_alow[:, dim])
+            breakpoint()
+            for dim in range(l_alow.shape[1]): #loops 9 times, one for each action dim
+                # if dim < 10:
+                #     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_10d[:, dim, :], l_alow[:, dim])
+                # else:
+                #     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d[:, dim-10, :], l_alow[:, dim])
+
+                if dim == 0:
+                    #FIXME cuda error
+                    breakpoint()
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d, l_alow[:, dim])
+                elif dim > 0 and dim < 7:
+                    breakpoint()
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_6d[:, dim], l_alow[:, dim])
+
+
                 total_loss += loss #add all action dims losses together for each trajectory
             alow_loss = total_loss / l_alow.shape[1] #avg loss for all action dims losses for each trajectory
         else:

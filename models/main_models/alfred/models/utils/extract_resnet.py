@@ -53,6 +53,9 @@ if __name__ == '__main__':
                             # Access the rgb dataset
                             rgb_dataset = folder_group[dataset_name]
                             rgb_data = rgb_dataset[:]
+                            #verification of images
+                            #image = Image.fromarray(rgb_data, 'RGB')
+                            #image.show()
                             raw_imgs.append(rgb_data)
                         
 

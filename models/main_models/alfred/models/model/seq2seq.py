@@ -20,7 +20,10 @@ class Module(nn.Module):
         # sentinel tokens
         self.pad = 0 #for lang
         if args.class_mode:
-            self.action_pad = 1 # action index for classification
+            self.action_pad = -1 # action index for classification
+            self.grasp_drop_class_num = 4
+            self.up_down_class_num = 4
+            self.mode_class_num = 6
         else:
             self.action_pad = -2.0 #regression
         self.seg = 1
@@ -33,13 +36,13 @@ class Module(nn.Module):
         self.emb_word = nn.Embedding(len(vocab['word']), self.args.demb)
 
         if self.args.class_mode:
-            self.emb_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z locations
-            self.emb_body_rot = nn.Embedding(self.args.bins+2, self.args.demb)  # For robot body rotation
-            self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector locations
-            self.emb_eff_rpy = nn.Embedding(self.args.bins+2, self.args.demb)  # For roll, pitch, yaw of the end-effector
-            self.emb_grasp_drop = nn.Embedding(5, self.args.demb) # make a var later
-            self.emb_up_down = nn.Embedding(5, self.args.demb) # make a var later
-            self.emb_action = {"emb_xyz": self.emb_xyz, "emb_body_rot": self.emb_body_rot, "emb_eff_xyz": self.emb_eff_xyz, "emb_eff_rpy": self.emb_eff_rpy, "emb_grasp_drop": self.emb_grasp_drop, "emb_up_down": self.emb_up_down}
+            self.emb_mode = nn.Embedding(self.mode_class_num, self.args.demb)
+            self.emb_xy = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y of the base
+            self.emb_yaw = nn.Embedding(self.args.bins+2, self.args.demb) # For yaw of the base
+            self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector position
+            self.emb_grasp_drop = nn.Embedding(self.grasp_drop_class_num, self.args.demb)
+            self.emb_up_down = nn.Embedding(self.up_down_class_num, self.args.demb)
+            self.emb_action = {"emb_mode": self.emb_mode, "emb_xy": self.emb_xy, "emb_yaw": self.emb_yaw, "emb_eff_xyz": self.emb_eff_xyz, "emb_grasp_drop": self.emb_grasp_drop, "emb_up_down": self.emb_up_down}
 
         # set random seed (Note: this is not the seed used to initialize THOR object locations)
         random.seed(a=args.seed)
@@ -282,6 +285,7 @@ class Module(nn.Module):
         '''
         json_path = os.path.join(self.args.pp_data, task, '%s' % self.args.pp_folder, 'ann_0.json')
         with open(json_path) as f:
+            #check the split returned here. says 'train', but may not be a problem
             data = json.load(f)
         return data
 

@@ -11,109 +11,41 @@ from gen.utils import game_util
 from gen.utils.game_util import get_objects_of_type, get_obj_of_type_closest_to_obj
 
 
-DEFAULT_RENDER_SETTINGS = {'renderImage': True,
-                           'renderDepthImage': True,
-                           'renderClassImage': False,
-                           'renderObjectImage': False,
-                           }
+# DEFAULT_RENDER_SETTINGS = {'renderImage': True,
+#                            'renderDepthImage': True,
+#                            'renderClassImage': False,
+#                            'renderObjectImage': False,
+#                            }
 
-class ThorEnv(Controller):
-    '''
-    an extension of ai2thor.controller.Controller for ALFRED tasks
-    '''
-    def __init__(self, x_display=constants.X_DISPLAY,
-                 player_screen_height=constants.DETECTION_SCREEN_HEIGHT,
-                 player_screen_width=constants.DETECTION_SCREEN_WIDTH,
-                 quality='MediumCloseFitShadows',
-                 build_path=constants.BUILD_PATH):
+class ThorEnv():
+    def __init__(self):
 
-        self.task = None
-
-        super().__init__(quality=quality, 
-                        x_display=x_display, 
-                        height=player_screen_height, 
-                        width=player_screen_width)
-
-        # internal states
-        self.cleaned_objects = set()
-        self.cooled_objects = set()
-        self.heated_objects = set()
+        self.controller = None
+        self.last_event = None
 
         print("ThorEnv started.")
 
-    def reset(self, scene_name_or_num,
-              grid_size=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR,
-              camera_y=constants.CAMERA_HEIGHT_OFFSET,
-              render_image=constants.RENDER_IMAGE,
-              render_depth_image=constants.RENDER_DEPTH_IMAGE,
-              render_class_image=constants.RENDER_CLASS_IMAGE,
-              render_object_image=constants.RENDER_OBJECT_IMAGE,
-              visibility_distance=constants.VISIBILITY_DISTANCE):
+    def reset(self, scene_name):
         '''
-        reset scene and task states
+        reset scene / start scene
         '''
-        print("Resetting ThorEnv")
+        print("Resetting/starting ThorEnv")
+        self.controller = Controller(
+            agentMode="arm",
+            massThreshold=None,
+            scene=scene_name,
+            visibilityDistance=1.5,
+            gridSize=0.25,
+            renderDepthImage=False,
+            renderInstanceSegmentation=False,
+            width=300,
+            height=300,
+            fieldOfView=60
+        )
+        # self.controller.step(action="Initialize")
+        self.last_event = self.controller.last_event
+        return self.last_event
 
-        if type(scene_name_or_num) == str:
-            scene_name = scene_name_or_num
-        else:
-            scene_name = 'FloorPlan%d' % scene_name_or_num
-
-        super().reset(scene_name)
-        event = super().step(dict(
-            action='Initialize',
-            gridSize=grid_size,
-            renderImage=render_image,
-            renderDepthImage=render_depth_image,
-            renderClassImage=render_class_image,
-            renderObjectImage=render_object_image,
-            visibility_distance=visibility_distance,
-            makeAgentsVisible=False,
-        ))
-
-        # reset task if specified
-        if self.task is not None:
-            self.task.reset()
-
-        # clear object state changes
-        self.reset_states()
-
-        return event
-
-
-    def restore_scene(self, object_poses, object_toggles, dirty_and_empty):
-        '''
-        restore object locations and states
-        '''
-        super().step(dict(
-            action='Initialize',
-            gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR,
-            renderImage=constants.RENDER_IMAGE,
-            renderDepthImage=constants.RENDER_DEPTH_IMAGE,
-            renderClassImage=constants.RENDER_CLASS_IMAGE,
-            renderObjectImage=constants.RENDER_OBJECT_IMAGE,
-            visibility_distance=constants.VISIBILITY_DISTANCE,
-            makeAgentsVisible=False,
-        ))
-
-        
-
-        if len(object_toggles) > 0:
-            # TODO: problem here: the API has change on these two attributes.
-            for o in object_toggles:
-                super().step((dict(action='SetObjectStates', 
-                                SetObjectStates=o)))
-        
-        if dirty_and_empty:
-            # TODO: problem here: the API also change on these two attributes.
-            for o in object_poses:
-                super().step(dict(action='SetObjectStates',
-                    SetObjectStates={'objectType': o['objectName'].split('_')[0], 'stateChange': 'dirtyable', 'isDirty': True}))
-
-                super().step(dict(action='SetObjectStates',
-                    SetObjectStates={'objectType': o['objectName'].split('_')[0], 'stateChange': 'canFillWithLiquid', 'isFilledWithLiquid': False}))
-        
-        super().step((dict(action='SetObjectPoses', objectPoses=object_poses)))
 
     def set_task(self, traj, args, reward_type='sparse', max_episode_length=2000):
         '''
@@ -150,14 +82,6 @@ class ThorEnv(Controller):
         self.check_post_conditions(action)
         return event
 
-    def check_post_conditions(self, action):
-        '''
-        handle special action post-conditions
-        '''
-        if 'action' in action:
-            if action['action'] == 'ToggleObjectOn':
-                self.check_clean(action['objectId'])
-
 
     def get_goal_satisfied(self):
         if self.task is None:
@@ -171,11 +95,11 @@ class ThorEnv(Controller):
         else:
             return self.task.goal_conditions_met(self.last_event)
 
-    def get_subgoal_idx(self):
-        if self.task is None:
-            raise Exception("WARNING: no task setup for subgoal_idx")
-        else:
-            return self.task.get_subgoal_idx()
+    # def get_subgoal_idx(self):
+    #     if self.task is None:
+    #         raise Exception("WARNING: no task setup for subgoal_idx")
+    #     else:
+    #         return self.task.get_subgoal_idx()
 
     def noop(self):
         '''
