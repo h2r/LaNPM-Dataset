@@ -133,7 +133,7 @@ def capture(robot, format=None, mode="front"):
         image = image_responses[0]
         if image.shot.image.pixel_format == image_pb2.Image.PIXEL_FORMAT_DEPTH_U16:
             dtype = np.uint16
-            print('hi')
+            
         else:
             dtype = np.uint8
         img = np.fromstring(image.shot.image.data, dtype=dtype)
