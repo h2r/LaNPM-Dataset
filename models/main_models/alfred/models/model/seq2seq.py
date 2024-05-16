@@ -115,13 +115,13 @@ class Module(nn.Module):
 
                 # optimizer backward pass
                 optimizer.zero_grad()
-                sum_loss = sum(loss.values())
-                sum_loss.backward() # performs gradients
+                scalar_loss = next(iter(loss.values())) #extract tensor scalar from dict
+                scalar_loss.backward() # performs gradients
                 optimizer.step() # makes the change based on the gradients
 
-                self.summary_writer.add_scalar('train/loss', sum_loss, train_iter)
-                sum_loss = sum_loss.detach().cpu()
-                total_train_loss.append(float(sum_loss))
+                self.summary_writer.add_scalar('train/loss', scalar_loss, train_iter)
+                scalar_loss = scalar_loss.detach().cpu()
+                total_train_loss.append(float(scalar_loss))
                 # train_iter += self.args.batch
                 train_iter += 1
 

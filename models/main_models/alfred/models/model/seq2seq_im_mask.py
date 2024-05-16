@@ -382,10 +382,6 @@ class Module(Base):
             logits_6d = action_logits[:, :, last : last+((self.dec.action_dims-3) * self.dec.num_bins)].view(-1, 6, self.dec.num_bins)
             last = last +((self.dec.action_dims-3) * self.dec.num_bins)
             logits_2d = action_logits[:, :, last : last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
-            # p_alow = out['out_action_low'].flatten(0, 1)
-            p_alow_1d = logits_1d.flatten(0,1)
-            p_alow_6d = logits_6d.flatten(0,1)
-            p_alow_2d = logits_2d.flatten(0,1)
         else:
             p_alow = out['out_action_low'].view(-1, self.args.action_dims)
         
@@ -395,40 +391,30 @@ class Module(Base):
         # Iterate over each sublist in feat['action_low']
         l_alow = [torch.cat([torch.tensor(item['mode']).unsqueeze(0).to(device), item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
         l_alow = torch.stack(l_alow)
-        breakpoint()
-
+    
         # action loss
-        #FIXME change the way pad masking is done
         pad_tensor = torch.full_like(l_alow, self.action_pad) # -1 is the action pad index for class mode
         pad_valid = (l_alow != pad_tensor).all(dim=1) #collapse the bools in the inner tensors to 1 bool
+        p_alow_1d_valid = logits_1d[pad_valid]
+        p_alow_6d_valid = logits_6d[pad_valid]
+        p_alow_2d_valid = logits_2d[pad_valid]
+        l_alow_valid = l_alow[pad_valid]
+
         if self.args.class_mode:
-            total_loss = torch.zeros(l_alow.shape[0]).to('cuda')
-            breakpoint()
-            for dim in range(l_alow.shape[1]): #loops 9 times, one for each action dim
-                # if dim < 10:
-                #     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_10d[:, dim, :], l_alow[:, dim])
-                # else:
-                #     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d[:, dim-10, :], l_alow[:, dim])
-
+            total_loss = torch.zeros(l_alow_valid.shape[0]).to('cuda')
+            for dim in range(l_alow_valid.shape[1]): #loops 9 times, one for each action dim
                 if dim == 0:
-                    #FIXME cuda error
-                    breakpoint()
-                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d, l_alow[:, dim])
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_valid[:, dim, :], l_alow_valid[:, dim])
                 elif dim > 0 and dim < 7:
-                    breakpoint()
-                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_6d[:, dim], l_alow[:, dim])
-
-
-                total_loss += loss #add all action dims losses together for each trajectory
-            alow_loss = total_loss / l_alow.shape[1] #avg loss for all action dims losses for each trajectory
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_6d_valid[:, dim-1, :], l_alow_valid[:, dim])
+                else:
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d_valid[:, dim-7, :], l_alow_valid[:, dim])
+                total_loss += loss #add all action dims losses together for each step
+            alow_loss = total_loss / l_alow_valid.shape[1] #avg loss for all action dims losses for each trajectory (each step's total across all dims is divided by num of dims)
         else:
-            alow_loss = F.mse_loss(p_alow, l_alow, reduction='none')
-        # Apply the validity mask to the loss tensor
-        alow_loss *= pad_valid.float()
+            alow_loss = F.mse_loss(p_alow, l_alow, reduction='none') #regression
         # Calculate the mean loss only over valid elements
-        valid_loss_sum = alow_loss.sum()
-        valid_count = pad_valid.float().sum()
-        alow_loss_mean = valid_loss_sum / valid_count
+        alow_loss_mean = alow_loss.mean()
         losses['action_low'] = alow_loss_mean * self.args.action_loss_wt
         return losses
 
