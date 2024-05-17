@@ -323,3 +323,25 @@ class ThorEnv():
             raise Exception("Invalid action. Conversion to THOR API failed! (action='" + str(action) + "')")
 
         return event, action
+
+    def take_action(self, word_action, num_action):
+        i = 0
+        incr = 0.025
+        x = 0
+        y = 0
+        z = 0
+        fixedDeltaTime = 0.02
+        move = 0.2
+
+        a = None
+        if word_action in ['PickupObject','ReleaseObject', 'LookUp', 'LookDown']:
+            a = dict(action = word_action)
+        elif word_action in ['MoveArm']
+            global_coord_ee = self.last_event.metadata["arm"]["joints"][3]['position']
+            curr_x, curr_y, curr_z = global_coord_ee['x'], global_coord_ee['y'], global_coord_ee['z']
+            x_del, y_del, z_del = num_action
+            new_x, new_y, new_z = curr_x + x_del, curr_y + y_del, curr_z + z_del
+            a = dict(action=word_action,position=dict(x=new_x, y=new_y, z=new_z),coordinateSpace="global",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+
+
+        event = self.controller.step(a)
