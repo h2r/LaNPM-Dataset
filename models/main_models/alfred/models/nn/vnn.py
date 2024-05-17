@@ -162,7 +162,6 @@ class ConvFrameMaskDecoder(nn.Module):
             action_t = action_emb_t
         else: #regression
             action_t = action_emb_t
-
         return action_t, state_t, lang_attn_t
 
     def forward(self, enc, frames, gold=None, max_decode=150, state_0=None): #max_decode = the max num of actions to predict

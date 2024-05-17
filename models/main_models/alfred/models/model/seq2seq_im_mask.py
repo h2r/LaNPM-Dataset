@@ -281,60 +281,58 @@ class Module(Base):
 
     def extract_preds(self, out, batch, feat, clean_special_tokens=True):
         '''
-        output processing
+        output processing for real-time inference
         '''
         pred = {}
         for idx, ex in enumerate(batch):
             current_action_low = feat['out_action_low'][idx]
             alow = self.get_max_action(current_action_low)
-            # remove padding tokens
-            if self.pad in alow:
-                pad_start_idx = alow.index(self.pad)
+            # remove padding tokens in case they're there (shouldn't be)
+            if self.action_pad in alow:
+                pad_start_idx = alow.index(self.action_pad)
                 alow = alow[:pad_start_idx]
 
-            if clean_special_tokens:
-                # remove <<stop>> tokens
-                if self.stop_token in alow:
-                    stop_start_idx = alow.index(self.stop_token)
-                    alow = alow[:stop_start_idx]
-            breakpoint()
+            # if clean_special_tokens:
+            #     # remove <<stop>> tokens
+            #     if self.stop_token in alow:
+            #         stop_start_idx = alow.index(self.stop_token)
+            #         alow = alow[:stop_start_idx]
 
-            # self.grasp_drop = {'stop': 0, 'pad': 1, 'PickupObject': 2, 'ReleaseObject': 3, 'NoOp': 4} # grasp/drop objects classes
-            # self.up_down = {'stop': 0, 'pad': 1, 'LookUp': 2, 'LookDown': 3, 'NoOp': 4} # look-up/look-down classes
             # self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm': 3, 'ee': 4, 'look': 5} #different action modes
+            # self.grasp_drop = {'stop': 0, 'PickupObject': 1, 'ReleaseObject': 2, 'NoOp': 3} # grasp/drop objects classes
+            # self.up_down = {'stop': 0, 'LookUp': 1, 'LookDown': 2, 'NoOp': 3} # look-up/look-down classes
             
             word_action = None
             num_action = None
-            #FIXME
-            if alow[0] == 1: #base
+            if alow[0][0] == 0:
+                word_action = 'Stop' #made up by me
+                num_action = [0] #made up by me
+            elif alow[0][0] == 1: #base
                 word_action = 'MoveBase' #made up by me
-                num_action = alow[1:3]
-            elif alow[0] == 2: #rotate
+                num_action = alow[0][1:3]
+            elif alow[0][0] == 2: #rotate
                 word_action = "RotateAgent"
-                num_action = alow[3:4]
-            elif alow[0] == 3: #arm
+                num_action = alow[0][3:4]
+            elif alow[0][0] == 3: #arm
                 word_action = 'MoveArm' #made up by me
-                num_action = alow[4:7]
-            elif alow[0] == 4: #ee
-                if alow[-2] == 2:
+                num_action = alow[0][4:7]
+            elif alow[0][0] == 4: #ee
+                if alow[0][7] == 2:
                     word_action = 'PickupObject'
-                elif alow[-2] == 3:
+                elif alow[0][7] == 3:
                     word_action = 'ReleaseObject'
-                num_action = alow[7:8]
-            elif alow[0] == 5: #look
-                if alow[-1] == 2:
+                num_action = alow[0][7]
+            elif alow[0][0] == 5: #look
+                if alow[0][8] == 2:
                     word_action = 'LookUp'
-                elif alow[-1] == 3:
+                elif alow[0][8] == 3:
                     word_action = 'LookDown'
-                num_action = alow[8:9]
-
-            # index to API actions (only for lookdown/lookup and grasp/release)
-            # words = self.vocab['action_low'].index2word(alow)
-            
+                num_action = alow[0][8]
 
             task_id_ann = ex['root'].split('/')[-1]
             pred[task_id_ann] = {
                 'action_low_word': word_action,
+                'action_low_num': num_action,
                 'action_low': alow
             }
 
@@ -343,15 +341,13 @@ class Module(Base):
 
     def embed_action(self, action):
         '''
-        embed low-level action
+        embed low-level action for real-time inference
         '''
         # device = torch.device('cuda') if self.args.gpu else torch.device('cpu')
         # action_num = torch.tensor(self.vocab['action_low'].word2index(action), device=device)
         # action_emb = self.dec.emb(action_num).unsqueeze(0)
         
-        breakpoint()
         # embedding to input into next step in the sequence
-        #FIXME
         embedded_mode = self.dec.emb['emb_mode'](action[:, :1])
         embedded_xy = self.dec.emb['emb_xy'](action[:, 1:3])  
         embedded_yaw = self.dec.emb['emb_yaw'](action[:, 3:4])  

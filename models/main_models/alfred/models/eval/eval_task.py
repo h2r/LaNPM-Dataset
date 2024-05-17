@@ -67,21 +67,24 @@ class EvalTask(Eval):
 
             # forward model
             m_out = model.step(feat)
-            # breakpoint()
             m_pred = model.extract_preds(m_out, [traj_data], feat, clean_special_tokens=False)
-            # m_pred = list(m_pred.values())[0]
+            m_pred = list(m_pred.values())[0]
+
 
             # # check if <<stop>> was predicted
-            # if m_pred['action_low'] == cls.STOP_TOKEN:
-            #     print("\tpredicted STOP")
-            #     break
+            if m_pred['action_low_word'] == "Stop":
+                print("\tpredicted STOP")
+                break
 
             # get action
-            action = m_pred['action_low']
+            word_action = m_pred['action_low_word']
+            num_action = m_pred['action_low_num']
 
-        #     # print action
-        #     if args.debug:
-        #         print(action)
+            # print action
+            if args.debug:
+                print(action)
+
+            env.take_action(word_action, num_action)
 
         #     # use predicted action and mask (if available) to interact with the env
         #     t_success, _, _, err, _ = env.va_interact(action, interact_mask=mask, smooth_nav=args.smooth_nav, debug=args.debug)
