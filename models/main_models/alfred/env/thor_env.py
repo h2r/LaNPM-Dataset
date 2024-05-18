@@ -6,6 +6,8 @@ from collections import Counter, OrderedDict
 from env.tasks import get_task
 import ai2thor
 from ai2thor.controller import Controller
+from json import load
+from os import path
 import gen.utils.image_util as image_util
 from gen.utils import game_util
 from gen.utils.game_util import get_objects_of_type, get_obj_of_type_closest_to_obj
@@ -18,10 +20,13 @@ from gen.utils.game_util import get_objects_of_type, get_obj_of_type_closest_to_
 #                            }
 
 class ThorEnv():
-    def __init__(self):
+    def __init__(self, pp_data_path):
 
         self.controller = None
         self.last_event = None
+        self.bins_path = path.join(pp_data_path, 'bins.json')
+        with open(self.bins_path, 'r') as f:
+            self.bins = load(f)
 
         print("ThorEnv started.")
 
@@ -336,12 +341,22 @@ class ThorEnv():
         a = None
         if word_action in ['PickupObject','ReleaseObject', 'LookUp', 'LookDown']:
             a = dict(action = word_action)
-        elif word_action in ['MoveArm']
+        elif word_action in ['MoveArm', 'MoveArmBase']:
             global_coord_ee = self.last_event.metadata["arm"]["joints"][3]['position']
             curr_x, curr_y, curr_z = global_coord_ee['x'], global_coord_ee['y'], global_coord_ee['z']
-            x_del, y_del, z_del = num_action
+            x_del, y_del, z_del = self.bins["4"][num_action[0]], self.bins["5"][num_action[1]], self.bins["6"][num_action[2]]
             new_x, new_y, new_z = curr_x + x_del, curr_y + y_del, curr_z + z_del
-            a = dict(action=word_action,position=dict(x=new_x, y=new_y, z=new_z),coordinateSpace="global",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+            a = dict(action='MoveArm',position=dict(x=new_x, y=new_y, z=new_z),coordinateSpace="global",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+        elif word_action in ['RotateAgent']:
+            yaw_del = num_action[0]
+            a = dict(action=word_action, degrees=yaw_del,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+        else: # move base
+            global_coord_agent = self.last_event.metadata['agent']['position']
+            curr_x, curr_y = global_coord_agent['x'], global_coord_agent['y']
+            x_del, y_del = self.bins["0"][num_action[0]], self.bins["1"][num_action[1]]
+            # new_x, new_y = curr_x + x_del, curr_y + y_del
+            #FIXME add new word action instead
+            a = dict(action="MoveAgent", ahead=20, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
 
-
+        breakpoint()
         event = self.controller.step(a)

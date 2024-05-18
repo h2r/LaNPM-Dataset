@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # settings
     parser.add_argument('--split_keys', help='json file containing split trajectories', default='data/splits/split_keys.json')
     parser.add_argument('--eval_split', type=str, default='test', choices=['test', 'valid_seen', 'valid_unseen'])
-    parser.add_argument('--pp_data', type=str, default="data/json_2.1.0")
+    parser.add_argument('--pp_data', type=str, default="data/feats")
     parser.add_argument('--model_path', type=str, default="model.pth")
     parser.add_argument('--model', type=str, default='models.model.seq2seq_im_mask')
     parser.add_argument('--shuffle', dest='shuffle', action='store_true')

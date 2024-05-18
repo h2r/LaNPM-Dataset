@@ -30,6 +30,7 @@ class Dataset(object):
         self.min_vals = [1000000] * 10
         self.bins = {}
         self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm': 3, 'ee': 4, 'look': 5} #different action modes
+        self.base = {'stop': 0, 'MoveAhead': 1, 'MoveBack': 2, 'MoveRight': 3, 'MoveLeft': 4, 'NoOp': 5} #word actions for base (navigation)
         self.grasp_drop = {'stop': 0, 'PickupObject': 1, 'ReleaseObject': 2, 'NoOp': 3} # grasp/drop objects classes
         self.up_down = {'stop': 0, 'LookUp': 1, 'LookDown': 2, 'NoOp': 3} # look-up/look-down classes
 
@@ -211,6 +212,7 @@ class Dataset(object):
                         
                         grasp_drop = self.grasp_drop['NoOp'] 
                         up_down = self.up_down['NoOp']
+                        base = self.base['NoOp']
                         if action_high == 'PickupObject':
                             grasp_drop = self.grasp_drop['PickupObject']
                         elif action_high == 'ReleaseObject':
@@ -219,7 +221,14 @@ class Dataset(object):
                             up_down = self.up_down['LookUp']
                         elif action_high == 'LookDown':
                             up_down = self.up_down['LookDown']
-
+                        elif action_high == 'MoveAhead':
+                            base = self.base['MoveAhead']
+                        elif action_high == 'MoveBack':
+                            base = self.base['MoveBack']
+                        elif action_high == 'MoveRight':
+                            base = self.base['MoveRight']
+                        elif action_high == 'MoveLeft':
+                            base = self.base['MoveLeft']
 
                 if traj is None:
                     self.find_min_max(state_body, state_ee)
@@ -242,9 +251,9 @@ class Dataset(object):
                                 bin_indx = len(self.bins[i])-1
                             final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
                         
-                        #final_action_indices [xbase, ybase, zbase, yaw, xee, yee, zee, rollee, pitchee, yawee]
+                        #final_action_indices [mode, base_action, yaw, xee, yee, zee, grasp_drop, lookup_lookdown]
                         traj['num']['action_low'].append(
-                            {'mode': mode, 'state_body': final_action_indices[:2]+final_action_indices[3:4], 'state_ee': final_action_indices[4:7], 'grasp_drop': grasp_drop, 'up_down': up_down}
+                            {'mode': mode, 'base_action': base, 'state_rot': final_action_indices[3:4], 'state_ee': final_action_indices[4:7], 'grasp_drop': grasp_drop, 'up_down': up_down}
                         )
                     # add action indices, but skip the last action for relative actions since they use deltas
                     if self.args.relative:
@@ -256,7 +265,7 @@ class Dataset(object):
             if traj is not None:
                 #append end/stop action index of bins
                 traj['num']['action_low'].append(
-                        {'mode': self.mode['stop'], 'state_body': [0]*3, 'state_ee': [0]*3, 'grasp_drop': self.grasp_drop['stop'], 'up_down': self.up_down['stop']}
+                        {'mode': self.mode['stop'], 'base_action': self.base['stop'], 'state_rot': [0], 'state_ee': [0]*3, 'grasp_drop': self.grasp_drop['stop'], 'up_down': self.up_down['stop']}
                 )
 
     def discretize_actions(self):

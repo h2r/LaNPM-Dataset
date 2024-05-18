@@ -17,7 +17,7 @@ class EvalTask(Eval):
         evaluation loop
         '''
         # start THOR
-        env = ThorEnv()
+        env = ThorEnv(args.pp_data)
 
         while True:
             if task_queue.qsize() == 0:

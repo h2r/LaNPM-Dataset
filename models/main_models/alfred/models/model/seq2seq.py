@@ -23,6 +23,7 @@ class Module(nn.Module):
             self.action_pad = -1 # action index for classification
             self.grasp_drop_class_num = 4
             self.up_down_class_num = 4
+            self.base_class_num = 6
             self.mode_class_num = 6
         else:
             self.action_pad = -2.0 #regression
@@ -37,12 +38,12 @@ class Module(nn.Module):
 
         if self.args.class_mode:
             self.emb_mode = nn.Embedding(self.mode_class_num, self.args.demb)
-            self.emb_xy = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y of the base
+            self.emb_base = nn.Embedding(self.base_class_num, self.args.demb)  # For base word action
             self.emb_yaw = nn.Embedding(self.args.bins+2, self.args.demb) # For yaw of the base
             self.emb_eff_xyz = nn.Embedding(self.args.bins+2, self.args.demb)  # For x, y, z end-effector position
             self.emb_grasp_drop = nn.Embedding(self.grasp_drop_class_num, self.args.demb)
             self.emb_up_down = nn.Embedding(self.up_down_class_num, self.args.demb)
-            self.emb_action = {"emb_mode": self.emb_mode, "emb_xy": self.emb_xy, "emb_yaw": self.emb_yaw, "emb_eff_xyz": self.emb_eff_xyz, "emb_grasp_drop": self.emb_grasp_drop, "emb_up_down": self.emb_up_down}
+            self.emb_action = {"emb_mode": self.emb_mode, "emb_base": self.emb_base, "emb_yaw": self.emb_yaw, "emb_eff_xyz": self.emb_eff_xyz, "emb_grasp_drop": self.emb_grasp_drop, "emb_up_down": self.emb_up_down}
 
         # set random seed (Note: this is not the seed used to initialize THOR object locations)
         random.seed(a=args.seed)

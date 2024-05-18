@@ -173,6 +173,7 @@ class Module(Base):
                 feat[k] = packed_input
             else:
                 # default: tensorize and pad sequence
+                #FIXME check this to see if impacted by the addition of the base word action
                 seqs = [vv.clone().detach().to(device=device, dtype=torch.float) if 'frames' in k else 
                                 [{key: torch.tensor(value, device=device, dtype=torch.int) for key, value in d.items()} for d in vv] 
                                 for vv in v]
@@ -184,7 +185,8 @@ class Module(Base):
 
                     template_dict = {
                         'mode': self.action_pad,
-                        'state_body': torch.full((3,), self.action_pad),
+                        'base_action': self.action_pad,
+                        'state_rot': self.action_pad,
                         'state_ee': torch.full((3,), self.action_pad),
                         'grasp_drop': self.action_pad,
                         'up_down': self.action_pad
@@ -269,13 +271,16 @@ class Module(Base):
     def get_max_action(self, action_logits):
         logits_1d = action_logits[:, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
         last = (1*self.mode_class_num)
-        logits_6d = action_logits[:, last : last+((self.dec.action_dims-3) * self.dec.num_bins)].view(-1, 6, self.dec.num_bins)
-        last = last +((self.dec.action_dims-3) * self.dec.num_bins)
+        logits_base_1d = action_logits[:, last: last+(1*self.base_class_num)].view(-1, 1, self.base_class_num)
+        last = last + (1*self.base_class_num)
+        logits_3d = action_logits[:, last : last+(3 * self.dec.num_bins)].view(-1, 3, self.dec.num_bins)
+        last = last + (3 * self.dec.num_bins)
         logits_2d = action_logits[:, last :  last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
         max_1d = logits_1d.max(dim=2)[1]
-        max_6d = logits_6d.max(dim=2)[1]
+        max_1d_base = logits_base_1d.max(dim=2)[1]
+        max_3d = logits_3d.max(dim=2)[1]
         max_2d = logits_2d.max(dim=2)[1]
-        max_action = torch.cat((max_1d, max_6d, max_2d), dim=1)
+        max_action = torch.cat((max_1d, max_1d_base, max_3d, max_2d), dim=1)
 
         return max_action
 
@@ -349,12 +354,12 @@ class Module(Base):
         
         # embedding to input into next step in the sequence
         embedded_mode = self.dec.emb['emb_mode'](action[:, :1])
-        embedded_xy = self.dec.emb['emb_xy'](action[:, 1:3])  
-        embedded_yaw = self.dec.emb['emb_yaw'](action[:, 3:4])  
-        embedded_eff_xyz = self.dec.emb['emb_eff_xyz'](action[:, 4:7])  
-        embedded_grasp_drop = self.dec.emb['emb_grasp_drop'](action[:, 7:8])
-        embedded_up_down = self.dec.emb['emb_up_down'](action[:, 8:9])  
-        embedded_actions = torch.cat([embedded_mode, embedded_xy, embedded_yaw, embedded_eff_xyz, embedded_grasp_drop, embedded_up_down], dim=1)
+        embedded_base = self.dec.emb['emb_base'](action[:, 1:2])  
+        embedded_yaw = self.dec.emb['emb_yaw'](action[:, 2:3])  
+        embedded_eff_xyz = self.dec.emb['emb_eff_xyz'](action[:, 3:6])  
+        embedded_grasp_drop = self.dec.emb['emb_grasp_drop'](action[:, 6:7])
+        embedded_up_down = self.dec.emb['emb_up_down'](action[:, 7:8])  
+        embedded_actions = torch.cat([embedded_mode, embedded_base, embedded_yaw, embedded_eff_xyz, embedded_grasp_drop, embedded_up_down], dim=1)
         action_emb = embedded_actions.view(embedded_actions.size(0), -1) #flatten
 
         return action_emb
@@ -375,8 +380,10 @@ class Module(Base):
             #get top predicted action from distribution
             logits_1d = action_logits[:, :, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
             last = (1*self.mode_class_num)
-            logits_6d = action_logits[:, :, last : last+((self.dec.action_dims-3) * self.dec.num_bins)].view(-1, 6, self.dec.num_bins)
-            last = last +((self.dec.action_dims-3) * self.dec.num_bins)
+            logits_base_1d = action_logits[:, last: last+(1*self.base_class_num)].view(-1, 1, self.base_class_num)
+            last = last + (1*self.base_class_num)
+            logits_3d = action_logits[:, last : last+(3 * self.dec.num_bins)].view(-1, 3, self.dec.num_bins)
+            last = last + (3 * self.dec.num_bins)
             logits_2d = action_logits[:, :, last : last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
         else:
             p_alow = out['out_action_low'].view(-1, self.args.action_dims)
@@ -385,12 +392,14 @@ class Module(Base):
         l_alow = []  # Initialize an empty list to store the concatenated tensors
 
         # Iterate over each sublist in feat['action_low']
+        #FIXME change dict processing for new base word action
         l_alow = [torch.cat([torch.tensor(item['mode']).unsqueeze(0).to(device), item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
         l_alow = torch.stack(l_alow)
     
         # action loss
         pad_tensor = torch.full_like(l_alow, self.action_pad) # -1 is the action pad index for class mode
         pad_valid = (l_alow != pad_tensor).all(dim=1) #collapse the bools in the inner tensors to 1 bool
+        #FIXME change dict processing for new base word action
         p_alow_1d_valid = logits_1d[pad_valid]
         p_alow_6d_valid = logits_6d[pad_valid]
         p_alow_2d_valid = logits_2d[pad_valid]
@@ -398,6 +407,7 @@ class Module(Base):
 
         if self.args.class_mode:
             total_loss = torch.zeros(l_alow_valid.shape[0]).to('cuda')
+            #FIXME change dims for new base word action
             for dim in range(l_alow_valid.shape[1]): #loops 9 times, one for each action dim
                 if dim == 0:
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_valid[:, dim, :], l_alow_valid[:, dim])

@@ -92,6 +92,7 @@ class ConvFrameMaskDecoder(nn.Module):
         self.mode_class_num = mode_class_num
         self.grasp_drop_class_num = grasp_drop_class_num
         if self.class_mode: #action layer for classification
+            #FIXME change dim nums
             self.actor = nn.Linear(dhid + dhid + dframe + demb, (1*self.mode_class_num)+((self.action_dims-3) * self.num_bins) + (2*self.grasp_drop_class_num))
             # self.actor2 = nn.Linear(dhid + dhid + dframe + demb,, 2 * 5) # 2 dimensions, 5 classes each
         else: #action layer for regression
@@ -118,6 +119,7 @@ class ConvFrameMaskDecoder(nn.Module):
             #     num_bins_iter += self.num_bins 
             
             #initialize weights to random values within the ranges
+            #FIXME change dim nums
             nn.init.uniform_(self.actor.weight[:(1*self.mode_class_num), :], a=0, b=self.mode_class_num) # b is exlusive
             last = (1*self.mode_class_num)
             nn.init.uniform_(self.actor.weight[last:last+((self.action_dims-3) * self.num_bins) , :], a=0, b=self.num_bins)
@@ -180,6 +182,7 @@ class ConvFrameMaskDecoder(nn.Module):
                 w_t = gold[:, t]
             else:
                 if self.class_mode:
+                    #FIXME change dim nums
                     logits_1d = action_t[:, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
                     last = (1*self.mode_class_num)
                     logits_6d = action_t[:, last : last+((self.action_dims-3) * self.num_bins)].view(-1, 6, self.num_bins)
@@ -194,6 +197,7 @@ class ConvFrameMaskDecoder(nn.Module):
 
             if self.class_mode: #classification
                 # embedding to input into next step in the sequence
+                #FIXME change dim nums
                 embedded_mode = self.emb['emb_mode'](w_t[:, :1])
                 embedded_xy = self.emb['emb_xy'](w_t[:, 1:3])  
                 embedded_yaw = self.emb['emb_yaw'](w_t[:, 3:4])  
