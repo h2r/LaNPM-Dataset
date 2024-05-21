@@ -67,7 +67,7 @@ class ConvFrameMaskDecoder(nn.Module):
     action decoder
     '''
 
-    def __init__(self, max_vals, min_vals, emb, num_bins, class_mode, demb, dframe, dhid, action_dims, mode_class_num, grasp_drop_class_num, pframe=300,
+    def __init__(self, max_vals, min_vals, emb, num_bins, bin_add, class_mode, demb, dframe, dhid, action_dims, mode_class_num, base_class_num, up_down_class_num, grasp_drop_class_num, pframe=300,
                  attn_dropout=0., hstate_dropout=0., actor_dropout=0., input_dropout=0., adapter_dropout=0,
                  teacher_forcing=False):
         super().__init__()
@@ -76,7 +76,7 @@ class ConvFrameMaskDecoder(nn.Module):
         self.max_vals = max_vals
         self.min_vals = min_vals
         self.class_mode = class_mode
-        self.num_bins = num_bins + 2
+        self.num_bins = num_bins + bin_add
         self.pframe = pframe
         self.dhid = dhid
         self.vis_encoder = ResnetVisualEncoder(dframe=dframe)
@@ -90,11 +90,11 @@ class ConvFrameMaskDecoder(nn.Module):
         self.go = nn.Parameter(torch.Tensor(demb))
         self.action_dims = action_dims
         self.mode_class_num = mode_class_num
+        self.base_class_num = base_class_num
+        self.up_down_class_num = up_down_class_num
         self.grasp_drop_class_num = grasp_drop_class_num
         if self.class_mode: #action layer for classification
-            #FIXME change dim nums
-            self.actor = nn.Linear(dhid + dhid + dframe + demb, (1*self.mode_class_num)+((self.action_dims-3) * self.num_bins) + (2*self.grasp_drop_class_num))
-            # self.actor2 = nn.Linear(dhid + dhid + dframe + demb,, 2 * 5) # 2 dimensions, 5 classes each
+            self.actor = nn.Linear(dhid + dhid + dframe + demb, (1*self.mode_class_num)+(1*self.base_class_num)+(1*self.num_bins)+(3 * self.num_bins) + (1*self.grasp_drop_class_num)+(1*self.up_down_class_num))
         else: #action layer for regression
             self.actor = nn.Linear(dhid + dhid + dframe + demb, self.action_dims)
         if self.class_mode:
@@ -119,12 +119,15 @@ class ConvFrameMaskDecoder(nn.Module):
             #     num_bins_iter += self.num_bins 
             
             #initialize weights to random values within the ranges
-            #FIXME change dim nums
             nn.init.uniform_(self.actor.weight[:(1*self.mode_class_num), :], a=0, b=self.mode_class_num) # b is exlusive
             last = (1*self.mode_class_num)
-            nn.init.uniform_(self.actor.weight[last:last+((self.action_dims-3) * self.num_bins) , :], a=0, b=self.num_bins)
-            last = last+((self.action_dims-3) * self.num_bins)
-            nn.init.uniform_(self.actor.weight[last:last+((self.action_dims-7) * self.grasp_drop_class_num), :], a=0, b=self.grasp_drop_class_num)
+            nn.init.uniform_(self.actor.weight[last : last + (1*self.base_class_num), :], a=0, b=self.base_class_num)
+            last = last + (1*self.base_class_num)
+            nn.init.uniform_(self.actor.weight[last : last + (1*self.num_bins), :], a=0, b=self.num_bins)
+            last = last + (1*self.num_bins)
+            nn.init.uniform_(self.actor.weight[last:last+(3 * self.num_bins) , :], a=0, b=self.num_bins)
+            last = last+(3 * self.num_bins)
+            nn.init.uniform_(self.actor.weight[last:last+(2 * self.grasp_drop_class_num), :], a=0, b=self.grasp_drop_class_num)
         else: #regression
             nn.init.xavier_uniform_(self.actor.weight) #initialize with custom range later
 
@@ -182,29 +185,33 @@ class ConvFrameMaskDecoder(nn.Module):
                 w_t = gold[:, t]
             else:
                 if self.class_mode:
-                    #FIXME change dim nums
                     logits_1d = action_t[:, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
                     last = (1*self.mode_class_num)
-                    logits_6d = action_t[:, last : last+((self.action_dims-3) * self.num_bins)].view(-1, 6, self.num_bins)
-                    last = last +((self.action_dims-3) * self.num_bins)
+                    logits_base_1d = action_t[:, last: last+(1*self.base_class_num)].view(-1, 1, self.base_class_num)
+                    last = last + (1*self.base_class_num)
+                    logits_yaw_1d = action_t[:, last: last+(1*self.num_bins)].view(-1, 1, self.num_bins)
+                    last = last + (1*self.num_bins)
+                    logits_3d = action_t[:, last : last+(3 * self.num_bins)].view(-1, 3, self.num_bins)
+                    last = last +(3 * self.num_bins)
                     logits_2d = action_t[:, last :  last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
                     w_t_1d = logits_1d.max(dim=2)[1]
-                    w_t_6d = logits_6d.max(dim=2)[1]
+                    w_t_1d_base = logits_base_1d.max(dim=2)[1]
+                    w_t_1d_yaw = logits_yaw_1d.max(dim=2)[1]
+                    w_t_3d = logits_3d.max(dim=2)[1]
                     w_t_2d = logits_2d.max(dim=2)[1]
-                    w_t = torch.cat((w_t_1d, w_t_6d, w_t_2d), dim=1)
+                    w_t = torch.cat((w_t_1d, w_t_1d_base, w_t_1d_yaw, w_t_3d, w_t_2d), dim=1)
                 else:
                     w_t = action_t  # No need to find max index, assume action_t gives continuous output directly
 
             if self.class_mode: #classification
                 # embedding to input into next step in the sequence
-                #FIXME change dim nums
                 embedded_mode = self.emb['emb_mode'](w_t[:, :1])
-                embedded_xy = self.emb['emb_xy'](w_t[:, 1:3])  
-                embedded_yaw = self.emb['emb_yaw'](w_t[:, 3:4])  
-                embedded_eff_xyz = self.emb['emb_eff_xyz'](w_t[:, 4:7])  
-                embedded_grasp_drop = self.emb['emb_grasp_drop'](w_t[:, 7:8])
-                embedded_up_down = self.emb['emb_up_down'](w_t[:, 8:9])  
-                embedded_actions = torch.cat([embedded_mode, embedded_xy, embedded_yaw, embedded_eff_xyz, embedded_grasp_drop, embedded_up_down], dim=1)
+                embedded_base = self.emb['emb_base'](w_t[:, 1:2])  
+                embedded_yaw = self.emb['emb_yaw'](w_t[:, 2:3])  
+                embedded_eff_xyz = self.emb['emb_eff_xyz'](w_t[:, 3:6])  
+                embedded_grasp_drop = self.emb['emb_grasp_drop'](w_t[:, 6:7])
+                embedded_up_down = self.emb['emb_up_down'](w_t[:, 7:8])  
+                embedded_actions = torch.cat([embedded_mode, embedded_base, embedded_yaw, embedded_eff_xyz, embedded_grasp_drop, embedded_up_down], dim=1)
                 e_t = embedded_actions.view(embedded_actions.size(0), -1) #flatten
             else: #regression
                 e_t = w_t

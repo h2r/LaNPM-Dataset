@@ -36,7 +36,7 @@ class Module(Base):
 
         # model to be finetuned
         decoder = vnn.ConvFrameMaskDecoder
-        self.dec = decoder(max_vals, min_vals, self.emb_action, self.args.bins, args.class_mode, args.demb, args.dframe, 2*args.dhid,
+        self.dec = decoder(max_vals, min_vals, self.emb_action, self.args.bins, self.bin_add, args.class_mode, args.demb, args.dframe, 2*args.dhid,
                            pframe=args.pframe,
                            attn_dropout=args.attn_dropout,
                            hstate_dropout=args.hstate_dropout,
@@ -46,6 +46,8 @@ class Module(Base):
                            teacher_forcing=args.dec_teacher_forcing,
                            action_dims = args.action_dims,
                            mode_class_num = self.mode_class_num, 
+                           base_class_num = self.base_class_num,
+                           up_down_class_num = self.up_down_class_num,
                            grasp_drop_class_num = self.grasp_drop_class_num)
         self.load_pretrained_model(args.finetune)
         self.freeze()
@@ -173,7 +175,6 @@ class Module(Base):
                 feat[k] = packed_input
             else:
                 # default: tensorize and pad sequence
-                #FIXME check this to see if impacted by the addition of the base word action
                 seqs = [vv.clone().detach().to(device=device, dtype=torch.float) if 'frames' in k else 
                                 [{key: torch.tensor(value, device=device, dtype=torch.int) for key, value in d.items()} for d in vv] 
                                 for vv in v]
@@ -184,12 +185,12 @@ class Module(Base):
                     max_length = max(len(lst) for lst in seqs)
 
                     template_dict = {
-                        'mode': self.action_pad,
-                        'base_action': self.action_pad,
-                        'state_rot': self.action_pad,
+                        'mode': torch.tensor(self.action_pad),
+                        'base_action': torch.tensor(self.action_pad),
+                        'state_rot': torch.tensor(self.action_pad),
                         'state_ee': torch.full((3,), self.action_pad),
-                        'grasp_drop': self.action_pad,
-                        'up_down': self.action_pad
+                        'grasp_drop': torch.tensor(self.action_pad),
+                        'up_down': torch.tensor(self.action_pad)
                     }
 
                     # Pad each list in seqs to the maximum length
@@ -273,14 +274,17 @@ class Module(Base):
         last = (1*self.mode_class_num)
         logits_base_1d = action_logits[:, last: last+(1*self.base_class_num)].view(-1, 1, self.base_class_num)
         last = last + (1*self.base_class_num)
+        logits_yaw_1d = action_logits[:, last: last+(1*self.dec.num_bins)].view(-1, 1, self.dec.num_bins)
+        last = last + (1*self.dec.num_bins)
         logits_3d = action_logits[:, last : last+(3 * self.dec.num_bins)].view(-1, 3, self.dec.num_bins)
         last = last + (3 * self.dec.num_bins)
         logits_2d = action_logits[:, last :  last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
         max_1d = logits_1d.max(dim=2)[1]
         max_1d_base = logits_base_1d.max(dim=2)[1]
+        max_1d_yaw = logits_yaw_1d.max(dim=2)[1]
         max_3d = logits_3d.max(dim=2)[1]
         max_2d = logits_2d.max(dim=2)[1]
-        max_action = torch.cat((max_1d, max_1d_base, max_3d, max_2d), dim=1)
+        max_action = torch.cat((max_1d, max_1d_base, max_1d_yaw, max_3d, max_2d), dim=1)
 
         return max_action
 
@@ -309,11 +313,21 @@ class Module(Base):
             
             word_action = None
             num_action = None
+            #FIXME
             if alow[0][0] == 0:
                 word_action = 'Stop' #made up by me
                 num_action = [0] #made up by me
             elif alow[0][0] == 1: #base
-                word_action = 'MoveBase' #made up by me
+                if alow[0][1] == 1:
+                    word_action = 'MoveAhead'
+                elif alow[0][1] == 2:
+                    word_action = 'MoveBack'
+                elif alow[0][1] == 3:
+                    word_action = 'MoveRight'
+                elif alow[0][1] == 4:
+                    word_action = 'Move'
+
+
                 num_action = alow[0][1:3]
             elif alow[0][0] == 2: #rotate
                 word_action = "RotateAgent"
@@ -380,9 +394,11 @@ class Module(Base):
             #get top predicted action from distribution
             logits_1d = action_logits[:, :, :(1*self.mode_class_num)].view(-1, 1, self.mode_class_num)
             last = (1*self.mode_class_num)
-            logits_base_1d = action_logits[:, last: last+(1*self.base_class_num)].view(-1, 1, self.base_class_num)
+            logits_base_1d = action_logits[:, :, last: last+(1*self.base_class_num)].view(-1, 1, self.base_class_num)
             last = last + (1*self.base_class_num)
-            logits_3d = action_logits[:, last : last+(3 * self.dec.num_bins)].view(-1, 3, self.dec.num_bins)
+            logits_yaw_1d = action_logits[:, :, last: last+(1*self.dec.num_bins)].view(-1, 1, self.dec.num_bins)
+            last = last + (1*self.dec.num_bins)
+            logits_3d = action_logits[:, :, last : last+(3 * self.dec.num_bins)].view(-1, 3, self.dec.num_bins)
             last = last + (3 * self.dec.num_bins)
             logits_2d = action_logits[:, :, last : last + (2 * self.grasp_drop_class_num)].view(-1, 2, self.grasp_drop_class_num)
         else:
@@ -392,29 +408,44 @@ class Module(Base):
         l_alow = []  # Initialize an empty list to store the concatenated tensors
 
         # Iterate over each sublist in feat['action_low']
-        #FIXME change dict processing for new base word action
-        l_alow = [torch.cat([torch.tensor(item['mode']).unsqueeze(0).to(device), item['state_body'].to(device), item['state_ee'].to(device), torch.tensor(item['grasp_drop']).unsqueeze(0).to(device), torch.tensor(item['up_down']).unsqueeze(0).to(device)]) for sublist in feat['action_low'] for item in sublist]
+        l_alow = []
+        for sublist in feat['action_low']:
+            for i, item in enumerate(sublist):
+                temp_tensor = torch.cat([
+                    item['mode'].unsqueeze(0),
+                    item['base_action'].unsqueeze(0),
+                    item['state_rot'] if item['state_rot'].dim() == 1 else item['state_rot'].unsqueeze(0),
+                    # item['state_rot'].unsqueeze(0),
+                    item['state_ee'] if item['state_ee'].dim() == 1 else item['state_ee'].unsqueeze(0),
+                    item['grasp_drop'].unsqueeze(0),
+                    item['up_down'].unsqueeze(0)
+                ], dim=0).to(device)
+                l_alow.append(temp_tensor)
         l_alow = torch.stack(l_alow)
     
         # action loss
         pad_tensor = torch.full_like(l_alow, self.action_pad) # -1 is the action pad index for class mode
         pad_valid = (l_alow != pad_tensor).all(dim=1) #collapse the bools in the inner tensors to 1 bool
-        #FIXME change dict processing for new base word action
         p_alow_1d_valid = logits_1d[pad_valid]
-        p_alow_6d_valid = logits_6d[pad_valid]
+        p_alow_1d_base_valid = logits_base_1d[pad_valid]
+        p_alow_1d_yaw_valid = logits_yaw_1d[pad_valid]
+        p_alow_3d_valid = logits_3d[pad_valid]
         p_alow_2d_valid = logits_2d[pad_valid]
         l_alow_valid = l_alow[pad_valid]
 
         if self.args.class_mode:
             total_loss = torch.zeros(l_alow_valid.shape[0]).to('cuda')
-            #FIXME change dims for new base word action
-            for dim in range(l_alow_valid.shape[1]): #loops 9 times, one for each action dim
+            for dim in range(l_alow_valid.shape[1]): #loops 8 times, one for each action dim
                 if dim == 0:
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_valid[:, dim, :], l_alow_valid[:, dim])
-                elif dim > 0 and dim < 7:
-                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_6d_valid[:, dim-1, :], l_alow_valid[:, dim])
+                elif dim == 1:
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_base_valid[:, dim-1, :], l_alow_valid[:, dim])
+                elif dim == 2:
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_yaw_valid[:, dim-2, :], l_alow_valid[:, dim])
+                elif dim > 2 and dim < 6:
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_3d_valid[:, dim-3, :], l_alow_valid[:, dim])
                 else:
-                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d_valid[:, dim-7, :], l_alow_valid[:, dim])
+                    loss = nn.CrossEntropyLoss(reduction='none')(p_alow_2d_valid[:, dim-6, :], l_alow_valid[:, dim])
                 total_loss += loss #add all action dims losses together for each step
             alow_loss = total_loss / l_alow_valid.shape[1] #avg loss for all action dims losses for each trajectory (each step's total across all dims is divided by num of dims)
         else:
