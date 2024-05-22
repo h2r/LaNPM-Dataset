@@ -11,6 +11,7 @@ from os import path
 import gen.utils.image_util as image_util
 from gen.utils import game_util
 from gen.utils.game_util import get_objects_of_type, get_obj_of_type_closest_to_obj
+# import time
 
 
 # DEFAULT_RENDER_SETTINGS = {'renderImage': True,
@@ -337,7 +338,8 @@ class ThorEnv():
         z = 0
         fixedDeltaTime = 0.02
         move = 0.2
-
+        
+        #TODO add random agent
         a = None
         if word_action in ['PickupObject','ReleaseObject', 'LookUp', 'LookDown']:
             a = dict(action = word_action)
@@ -348,15 +350,18 @@ class ThorEnv():
             new_x, new_y, new_z = curr_x + x_del, curr_y + y_del, curr_z + z_del
             a = dict(action='MoveArm',position=dict(x=new_x, y=new_y, z=new_z),coordinateSpace="global",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
         elif word_action in ['RotateAgent']:
-            yaw_del = num_action[0]
+            yaw_del = num_action.item()
             a = dict(action=word_action, degrees=yaw_del,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
         else: # move base
-            global_coord_agent = self.last_event.metadata['agent']['position']
-            curr_x, curr_y = global_coord_agent['x'], global_coord_agent['y']
-            x_del, y_del = self.bins["0"][num_action[0]], self.bins["1"][num_action[1]]
-            # new_x, new_y = curr_x + x_del, curr_y + y_del
-            #FIXME add new word action instead
-            a = dict(action="MoveAgent", ahead=20, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
-
-        breakpoint()
+            a = dict(action=word_action, moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+        
+        # time.sleep(1) #for debugging/movement analysis
         event = self.controller.step(a)
+        success = event.metadata['lastActionSuccess']
+        self.last_event = event
+        #for debugging/movement analysis
+        # time.sleep(1) 
+        # print(f"Word Action: {word_action} ", end="\r")
+        # print(f"Num Action: {num_action} ", end="\r")
+
+        return success

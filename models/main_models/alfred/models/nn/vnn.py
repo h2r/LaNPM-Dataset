@@ -132,7 +132,10 @@ class ConvFrameMaskDecoder(nn.Module):
             nn.init.xavier_uniform_(self.actor.weight) #initialize with custom range later
 
 
-    def step(self, enc, frame, e_t, state_tm1):
+    def step(self, enc, frame, e_t, state_tm1, flag_reset=False):
+        if flag_reset:
+            self.flag = False
+
         # previous decoder hidden state
         h_tm1 = state_tm1[0] #tm1 = t minus 1
 

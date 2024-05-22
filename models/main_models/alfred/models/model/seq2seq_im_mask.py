@@ -238,7 +238,7 @@ class Module(Base):
             'enc_lang': None
         }
 
-    def step(self, feat, prev_action=None):
+    def step(self, feat, t, prev_action=None):
         '''
         forward the model for a single time-step (used for real-time execution during eval)
         '''
@@ -257,8 +257,11 @@ class Module(Base):
         e_t = self.embed_action(prev_action) if prev_action is not None else self.r_state['e_t']
 
         # decode and save embedding and hidden states
-        action_logits, out_attn_scores, state_t, *_ = self.dec.step(self.r_state['enc_lang'], feat['frames'][:, 0], e_t=e_t, state_tm1=self.r_state['state_t'])
-
+        flag_reset = False 
+        if t == 0:
+            flag_reset = True
+        action_logits, state_t, *_ = self.dec.step(self.r_state['enc_lang'], feat['frames'][:, 0], e_t=e_t, state_tm1=self.r_state['state_t'], flag_reset=flag_reset)
+        
         # save states
         self.r_state['state_t'] = state_t
 
@@ -307,17 +310,14 @@ class Module(Base):
             #         stop_start_idx = alow.index(self.stop_token)
             #         alow = alow[:stop_start_idx]
 
-            # self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm': 3, 'ee': 4, 'look': 5} #different action modes
-            # self.grasp_drop = {'stop': 0, 'PickupObject': 1, 'ReleaseObject': 2, 'NoOp': 3} # grasp/drop objects classes
-            # self.up_down = {'stop': 0, 'LookUp': 1, 'LookDown': 2, 'NoOp': 3} # look-up/look-down classes
-            
             word_action = None
             num_action = None
-            #FIXME
             if alow[0][0] == 0:
-                word_action = 'Stop' #made up by me
-                num_action = [0] #made up by me
+                word_action = 'stop'
+                num_action = [0]
             elif alow[0][0] == 1: #base
+                if alow[0][1] == 0:
+                    word_action = 'NoOp' #made by me
                 if alow[0][1] == 1:
                     word_action = 'MoveAhead'
                 elif alow[0][1] == 2:
@@ -325,28 +325,30 @@ class Module(Base):
                 elif alow[0][1] == 3:
                     word_action = 'MoveRight'
                 elif alow[0][1] == 4:
-                    word_action = 'Move'
-
-
-                num_action = alow[0][1:3]
+                    word_action = 'MoveLeft'
+                num_action = alow[0][1]
             elif alow[0][0] == 2: #rotate
                 word_action = "RotateAgent"
-                num_action = alow[0][3:4]
+                num_action = alow[0][2]
             elif alow[0][0] == 3: #arm
                 word_action = 'MoveArm' #made up by me
-                num_action = alow[0][4:7]
+                num_action = alow[0][3:6]
             elif alow[0][0] == 4: #ee
-                if alow[0][7] == 2:
+                if alow[0][6] == 0:
+                    word_action = 'NoOp' #made by me
+                elif alow[0][6] == 1:
                     word_action = 'PickupObject'
-                elif alow[0][7] == 3:
+                elif alow[0][6] == 2:
                     word_action = 'ReleaseObject'
-                num_action = alow[0][7]
+                num_action = alow[0][6]
             elif alow[0][0] == 5: #look
-                if alow[0][8] == 2:
+                if alow[0][7] == 0:
+                    word_action = 'NoOp'
+                if alow[0][7] == 1:
                     word_action = 'LookUp'
-                elif alow[0][8] == 3:
+                elif alow[0][7] == 2:
                     word_action = 'LookDown'
-                num_action = alow[0][8]
+                num_action = alow[0][7]
 
             task_id_ann = ex['root'].split('/')[-1]
             pred[task_id_ann] = {

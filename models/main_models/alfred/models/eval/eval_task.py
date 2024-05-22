@@ -57,6 +57,8 @@ class EvalTask(Eval):
         fails = 0
         t = 0
         while not done:
+            print(f"Step: {t} ", end="\r")
+
             # break if max_steps reached
             if t >= args.max_steps:
                 break
@@ -66,13 +68,13 @@ class EvalTask(Eval):
             feat['frames'] = resnet.featurize([curr_image], batch=1).unsqueeze(0)
 
             # forward model
-            m_out = model.step(feat)
+            m_out = model.step(feat, t)
             m_pred = model.extract_preds(m_out, [traj_data], feat, clean_special_tokens=False)
             m_pred = list(m_pred.values())[0]
 
 
             # # check if <<stop>> was predicted
-            if m_pred['action_low_word'] == "Stop":
+            if m_pred['action_low_word'] == "stop":
                 print("\tpredicted STOP")
                 break
 
@@ -84,15 +86,15 @@ class EvalTask(Eval):
             if args.debug:
                 print(action)
 
-            env.take_action(word_action, num_action)
+            t_success = env.take_action(word_action, num_action)
 
-        #     # use predicted action and mask (if available) to interact with the env
-        #     t_success, _, _, err, _ = env.va_interact(action, interact_mask=mask, smooth_nav=args.smooth_nav, debug=args.debug)
-        #     if not t_success:
-        #         fails += 1
-        #         if fails >= args.max_fails:
-        #             print("Interact API failed %d times" % fails + "; latest error '%s'" % err)
-        #             break
+            #  use predicted action to interact with the env
+            if not t_success:
+                fails += 1
+                if fails >= args.max_fails:
+                    print("Interact API failed %d times" % fails)
+                    break
+            t += 1
 
         # # check if goal was satisfied
         # goal_satisfied = env.get_goal_satisfied() #change this method
@@ -147,18 +149,6 @@ class EvalTask(Eval):
         # print("PLW SR: %.3f" % (results['all']['path_length_weighted_success_rate']))
         # print("PLW GC: %.3f" % (results['all']['path_length_weighted_goal_condition_success_rate']))
         # print("-------------")
-
-        # # task type specific results
-        # task_types = ['pick_and_place_simple', 'pick_clean_then_place_in_recep', 'pick_heat_then_place_in_recep',
-        #               'pick_cool_then_place_in_recep', 'pick_two_obj_and_place', 'look_at_obj_in_light',
-        #               'pick_and_place_with_movable_recep']
-        # for task_type in task_types:
-        #     task_successes = [s for s in (list(successes)) if s['type'] == task_type]
-        #     task_failures = [f for f in (list(failures)) if f['type'] == task_type]
-        #     if len(task_successes) > 0 or len(task_failures) > 0:
-        #         results[task_type] = cls.get_metrics(task_successes, task_failures)
-        #     else:
-        #         results[task_type] = {}
 
         # lock.release()
 
