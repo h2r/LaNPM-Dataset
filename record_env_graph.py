@@ -474,13 +474,14 @@ def main(argv):
     """Run the command-line interface."""
 
     HOSTNAME = 'gouger'
+    IP = "138.16.161.23"
     USER = 'user'
     PASS = 'bigbubbabigbubba'
     DOWNLOAD_ROOT = './Trajectories'
 
     # Create robot object.
     sdk = bosdyn.client.create_standard_sdk('RecordingClient')
-    robot = sdk.create_robot(HOSTNAME)
+    robot = sdk.create_robot(IP)
     robot.authenticate(USER, PASS)
 
     user_name = robot._current_user

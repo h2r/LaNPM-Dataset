@@ -517,8 +517,7 @@ class GraphNavInterface(object):
 
     def collect_images(self):
         depth_sources = ['hand_depth_in_hand_color_frame', 'frontleft_depth','frontright_depth']
-        image_sources = ['hand_color_image', 'frontleft_fisheye_image', 'frontright_fisheye_image']
-        #'hand_color_in_hand_depth_frame'
+        image_sources = ['hand_color_image', 'frontleft_fisheye_image', 'frontright_fisheye_image','hand_color_in_hand_depth_frame']
 
         
         image_responses = [build_image_request(source, quality_percent=90, pixel_format=Image.PIXEL_FORMAT_RGB_U8) for source in image_sources]
@@ -768,18 +767,17 @@ class GraphNavInterface(object):
     
 
     def run_data_collection(self):
-        last_collect = datetime.now()
+        
         while self.collect_data:  
-            if (datetime.now() - last_collect).total_seconds() >= 1 / float(self.pic_hz):
+            start = datetime.now() 
+            self.collect_images_and_metadata()
+            end = datetime.now()
 
-                print((datetime.now() - last_collect).total_seconds())
-                
-                last_collect = datetime.now()
-                self.collect_images_and_metadata()
-                
-                #if (end - start).total_seconds() < 1/float(self.pic_hz):
-                #    # 3Hz frequency for data collection: capture sample every 1/3 seconds
-                #    time.sleep(1/float(self.pic_hz) - (end - start).total_seconds())
+            print((end - start).total_seconds())
+
+            if (end - start).total_seconds() < 1/float(self.pic_hz):
+                # 3Hz frequency for data collection: capture sample every 1/3 seconds
+                time.sleep(1/float(self.pic_hz) - (end - start).total_seconds())
 
     def run(self):
         """Main loop for the command line interface."""
@@ -858,9 +856,8 @@ class GraphNavInterface(object):
 
 def main(argv):
 
-    # HOSTNAME = '138.16.160.202'
-    # HOSTNAME = 'gouger'
-    HOSTNAME = '138.16.161.23'
+    HOSTNAME = 'gouger'
+    # IP = '138.16.161.23'
     USER = 'user'
     PASS = 'bigbubbabigbubba'
 
