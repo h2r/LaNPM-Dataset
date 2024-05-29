@@ -123,9 +123,9 @@ class GraphNavInterface(object):
         self.task_name = task_name
         self.scene_name = upload_path.split('/')[-1]
 
-        curr_index = len(os.listdir('./Trajectories'))
+        curr_index = len(os.listdir('./Trajectories/trajectories'))
 
-        self.save_base_path = os.path.join('./Trajectories/data_{}'.format(curr_index))
+        self.save_base_path = os.path.join('./Trajectories/trajectories/data_{}'.format(curr_index))
         if not os.path.exists(self.save_base_path):
             os.mkdir(self.save_base_path)
         self.data_counter = 0
