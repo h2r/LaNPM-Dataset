@@ -127,6 +127,9 @@ class DatasetManager(object):
         body_pose = {'min_x': float('inf'), 'max_x': float('-inf'), 'min_y': float('inf'), 'max_y': float('-inf'), 'min_z': float('inf'), 'max_z':float('-inf')}
         body_orientation = {'min_yaw': float('inf'), 'max_yaw': float('-inf')}
         end_effector_pose = {'min_x': float('inf'), 'max_x': float('-inf'), 'min_y': float('inf'), 'max_y': float('-inf'), 'min_z': float('inf'), 'max_z': float('-inf')}
+        
+        
+
 
         with h5py.File(DATASET_PATH, 'r') as hdf:
             for dataset_keys in data_subset_keys:
@@ -134,7 +137,16 @@ class DatasetManager(object):
                 if dataset_keys is None:
                     continue
 
+
                 for i in range(len(dataset_keys)):
+                    prev_body_x = None
+                    prev_body_y = None
+                    prev_body_z = None
+                    prev_body_yaw = None
+                    prev_ee_x = None
+                    prev_ee_y = None
+                    prev_ee_z = None
+
                     print('Index: {} of {}'.format(i, len(dataset_keys)))
                     traj_group = hdf[dataset_keys[i]]
                     traj_steps = list(traj_group.keys())
@@ -157,26 +169,36 @@ class DatasetManager(object):
 
 
 
-                        body_pose['min_x'] = min(body_pose['min_x'], body_x)
-                        body_pose['max_x'] = max(body_pose['max_x'], body_x)
+                        body_pose['min_x'] = min(body_pose['min_x'], body_x - prev_body_x if prev_body_x is not None else 0)
+                        body_pose['max_x'] = max(body_pose['max_x'], body_x - prev_body_x if prev_body_x is not None else 0)
 
-                        body_pose['min_y'] = min(body_pose['min_y'], body_y)
-                        body_pose['max_y'] = max(body_pose['max_y'], body_y)
+                        body_pose['min_y'] = min(body_pose['min_y'], body_y - prev_body_y if prev_body_y is not None else 0)
+                        body_pose['max_y'] = max(body_pose['max_y'], body_y - prev_body_y if prev_body_y is not None else 0)
                         
-                        body_pose['min_z'] = min(body_pose['min_z'], body_z)
-                        body_pose['max_z'] = max(body_pose['max_z'], body_z)
+                        body_pose['min_z'] = min(body_pose['min_z'], body_z - prev_body_z if prev_body_z is not None else 0)
+                        body_pose['max_z'] = max(body_pose['max_z'], body_z - prev_body_z if prev_body_z is not None else 0)
 
-                        body_orientation['min_yaw'] = min(body_orientation['min_yaw'], body_yaw)
-                        body_orientation['max_yaw'] = max(body_orientation['max_yaw'], body_yaw)
+                        body_orientation['min_yaw'] = min(body_orientation['min_yaw'], body_yaw - prev_body_yaw if prev_body_yaw is not None else 0)
+                        body_orientation['max_yaw'] = max(body_orientation['max_yaw'], body_yaw - prev_body_yaw if prev_body_yaw is not None else 0)
 
-                        end_effector_pose['min_x'] = min(end_effector_pose['min_x'], ee_x)
-                        end_effector_pose['max_x'] = max(end_effector_pose['max_x'], ee_x)
+                        end_effector_pose['min_x'] = min(end_effector_pose['min_x'], ee_x - prev_ee_x if prev_ee_x is not None else 0)
+                        end_effector_pose['max_x'] = max(end_effector_pose['max_x'], ee_x - prev_ee_x if prev_ee_x is not None else 0)
 
-                        end_effector_pose['min_y'] = min(end_effector_pose['min_y'], ee_y)
-                        end_effector_pose['max_y'] = max(end_effector_pose['max_y'], ee_y)
+                        end_effector_pose['min_y'] = min(end_effector_pose['min_y'], ee_y - prev_ee_y if prev_ee_y is not None else 0)
+                        end_effector_pose['max_y'] = max(end_effector_pose['max_y'], ee_y - prev_ee_y if prev_ee_y is not None else 0)
 
-                        end_effector_pose['min_z'] = min(end_effector_pose['min_z'], ee_z)
-                        end_effector_pose['max_z'] = max(end_effector_pose['max_z'], ee_z)
+                        end_effector_pose['min_z'] = min(end_effector_pose['min_z'], ee_z - prev_ee_z if prev_ee_z is not None else 0)
+                        end_effector_pose['max_z'] = max(end_effector_pose['max_z'], ee_z - prev_ee_z if prev_ee_z is not None else 0)
+
+
+                        prev_body_x = body_x
+                        prev_body_y = body_y
+                        prev_body_z = body_z
+                        prev_body_yaw = body_yaw
+                        prev_ee_x = ee_x
+                        prev_ee_y = ee_y
+                        prev_ee_z = ee_z 
+
         
 
         #cache the saved max and min values if already computed to save time
@@ -187,7 +209,7 @@ class DatasetManager(object):
         
         return body_pose, body_orientation, end_effector_pose
 
-    def collate_batches(self, batch):
+    def collate_batches(self, batch, shuffle_batch = False):
         
         collated_batch = []
 
@@ -209,10 +231,11 @@ class DatasetManager(object):
             collated_batch.append(collated_output)
 
         #shuffling all the batched samples across the trajectories to get random order
-        permutation = torch.randperm(collated_batch[0].size(0))
-        
-        for i in range(len(collated_batch)):
-            collated_batch[i] = collated_batch[i][permutation]
+        if shuffle_batch:
+            permutation = torch.randperm(collated_batch[0].size(0))
+            
+            for i in range(len(collated_batch)):
+                collated_batch[i] = collated_batch[i][permutation]
 
         return collated_batch
                     
@@ -235,7 +258,7 @@ class RT1Dataset(Dataset):
         self.body_pose_lim = body_pose_lim
         self.body_orientation_lim = body_orientation_lim
         self.end_effector_pose_lim = end_effector_pose_lim
-        self.num_bins = 255
+        self.num_bins = 254
 
         self.hdf =  h5py.File(DATASET_PATH, 'r')
     
@@ -249,7 +272,9 @@ class RT1Dataset(Dataset):
         
             #body x, y, z coordinate
             dictionary['body_position'][0] = 1 + int( (dictionary['body_position'][0] - self.body_pose_lim['min_x'])/ (self.body_pose_lim['max_x'] - self.body_pose_lim['min_x'] ) * self.num_bins)
-            dictionary['body_position'][1] = 1 + int( (dictionary['body_position'][1] - self.body_pose_lim['min_y'])/ (self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] ) * self.num_bins)
+            
+            dictionary['body_position'][1] = 1 + int( (dictionary['body_position'][1] - self.body_pose_lim['min_y'])/ (self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] ) * self.num_bins) if self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] > 0 else 0
+            
             dictionary['body_position'][2] = 1 + int( (dictionary['body_position'][2] - self.body_pose_lim['min_z'])/ (self.body_pose_lim['max_z'] - self.body_pose_lim['min_z'] ) * self.num_bins)
 
             #body yaw and pitch
@@ -363,7 +388,7 @@ class RT1Dataset(Dataset):
             
             
             
-            
+            before_end_step_metadata = json.loads(traj_group[traj_steps[end-1]].attrs['metadata'])
             end_step_metadata = json.loads(traj_group[traj_steps[end]].attrs['metadata'])                
 
 
@@ -373,10 +398,10 @@ class RT1Dataset(Dataset):
                 'nl_command': nl_command, #DONE
                 'is_terminal': int(end_step_metadata['steps'][0]['action']=='stop'), #DONE
                 'pickup_release': self.get_pickup_release(end_step_metadata['steps'][0]['action']), #DONE
-                'body_position': end_step_metadata['steps'][0]['state_body'][:3], #DONE 
-                'body_yaw': end_step_metadata['steps'][0]['state_body'][3], #DONE
+                'body_position': np.array(end_step_metadata['steps'][0]['state_body'][:3])-np.array(before_end_step_metadata['steps'][0]['state_body'][:3]), #DONE 
+                'body_yaw': end_step_metadata['steps'][0]['state_body'][3] - before_end_step_metadata['steps'][0]['state_body'][3], #DONE
                 'body_pitch': self.get_head_pitch(end_step_metadata['steps'][0]['action']), #DONE
-                'arm_position': end_step_metadata['steps'][0]['state_ee'][:3], #DONE
+                'arm_position': np.array(end_step_metadata['steps'][0]['state_ee'][:3]) - np.array(before_end_step_metadata['steps'][0]['state_ee'][:3]), #DONE
                 'mode': self.get_mode(end_step_metadata['steps'][0]['action']) #DONE
             }
 
@@ -438,17 +463,29 @@ if __name__ == '__main__':
 
     #     #return list of dictionaries with attributes required for RT1
     #     data_sequence = []
+
+    '''
+    for i in range(0,5):
+        dataset_manager = DatasetManager(i, 0.7, 0.2, 0.1)
+
+        dataloader = DataLoader(dataset_manager.train_dataset, batch_size=3, shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches)
+        
+        for batch, sample_batch in enumerate(dataloader):
+            print('BATCH {}:'.format(batch))
+            print('Num Steps: {}'.format(sample_batch[0].shape[0]))
+
+    '''
     
     dataset_manager = DatasetManager(1, 0.7, 0.2, 0.1)
 
-    dataloader = DataLoader(dataset_manager.train_dataset, batch_size=2,
+    dataloader = DataLoader(dataset_manager.train_dataset, batch_size=3,
                         shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches)
 
     pdb.set_trace()
     for batch, sample_batch in enumerate(dataloader):
         
         print('BATCH {}:'.format(batch))
-        print(sample_batch)
+        print('Num Steps: {}'.format(sample_batch[0].shape[0]))
 
     
 
