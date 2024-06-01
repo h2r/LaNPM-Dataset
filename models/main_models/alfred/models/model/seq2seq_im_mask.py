@@ -331,7 +331,7 @@ class Module(Base):
                 word_action = "RotateAgent"
                 num_action = alow[0][2]
             elif alow[0][0] == 3: #arm
-                word_action = 'MoveArm' #made up by me
+                word_action = 'MoveArm'
                 num_action = alow[0][3:6]
             elif alow[0][0] == 4: #ee
                 if alow[0][6] == 0:

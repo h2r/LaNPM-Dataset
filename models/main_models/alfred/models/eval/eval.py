@@ -20,7 +20,7 @@ class Eval(object):
         self.args = args
         self.manager = manager
 
-        # load test split
+        # load splits
         with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             self.splits = json.load(f)
 
@@ -58,7 +58,6 @@ class Eval(object):
         create queue of trajectories to be evaluated
         '''
         task_queue = self.manager.Queue()
-        
         if self.args.eval_split == 'valid_unseen':
             files = self.splits['val']
         elif self.args.eval_split == 'valid_seen':
@@ -98,7 +97,7 @@ class Eval(object):
         #     t.join()
 
         # save
-        self.save_results()
+        # self.save_results()
 
     @classmethod
     def setup_scene(cls, env, traj_data, args):

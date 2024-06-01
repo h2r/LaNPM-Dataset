@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', type=str, default="model.pth")
     parser.add_argument('--model', type=str, default='models.model.seq2seq_im_mask')
     parser.add_argument('--shuffle', dest='shuffle', action='store_true')
+    parser.add_argument('--rand_agent', dest='rand_agent', action='store_true')
     parser.add_argument('--gpu', dest='gpu', action='store_true')
     parser.add_argument('--num_threads', type=int, default=1)
 

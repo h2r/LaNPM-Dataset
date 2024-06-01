@@ -86,14 +86,17 @@ class EvalTask(Eval):
             if args.debug:
                 print(action)
 
-            t_success = env.take_action(word_action, num_action)
-
             #  use predicted action to interact with the env
-            if not t_success:
-                fails += 1
-                if fails >= args.max_fails:
-                    print("Interact API failed %d times" % fails)
-                    break
+            t_success, error = env.take_action(word_action, num_action, args.rand_agent) # t_success: True, False, or None, or "stop"
+            if t_success == "stop": # only for random agent
+                print("\tpredicted STOP")
+                break
+            # optional
+            # if t_success == False:
+            #     fails += 1
+            #     if fails >= args.max_fails:
+            #         print("Interact API failed %d times" % fails)
+            #         break
             t += 1
 
         # # check if goal was satisfied
@@ -206,4 +209,3 @@ class EvalTask(Eval):
         save_path = os.path.join(save_path, 'task_results_' + self.args.eval_split + '_' + datetime.now().strftime("%Y%m%d_%H%M%S_%f") + '.json')
         with open(save_path, 'w') as r:
             json.dump(results, r, indent=4, sort_keys=True)
-
