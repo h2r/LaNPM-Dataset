@@ -5,6 +5,7 @@ from PIL import Image
 from datetime import datetime
 from eval import Eval
 from env.thor_env import ThorEnv
+import h5py
 
 class EvalTask(Eval):
     '''
@@ -43,7 +44,6 @@ class EvalTask(Eval):
     def evaluate(cls, env, model, resnet, traj_data, args, lock, successes, failures, results):
         # reset model
         model.reset()
-        
         # setup scene
         cls.setup_scene(env, traj_data, args)
 
@@ -61,6 +61,7 @@ class EvalTask(Eval):
 
             # break if max_steps reached
             if t >= args.max_steps:
+            # if t >= 3:
                 break
 
             # extract visual features
@@ -87,7 +88,7 @@ class EvalTask(Eval):
                 print(action)
 
             #  use predicted action to interact with the env
-            t_success, error = env.take_action(word_action, num_action, args.rand_agent) # t_success: True, False, or None, or "stop"
+            t_success, error, end_inf_state = env.take_action(word_action, num_action, args.rand_agent) # t_success: True, False, or None, or "stop"
             if t_success == "stop": # only for random agent
                 print("\tpredicted STOP")
                 break
@@ -99,99 +100,66 @@ class EvalTask(Eval):
             #         break
             t += 1
 
-        # # check if goal was satisfied
-        # goal_satisfied = env.get_goal_satisfied() #change this method
-        # if goal_satisfied:
-        #     print("Goal Reached")
-        #     success = True
-
-
-        # # goal_conditions
-        # pcs = env.get_goal_conditions_met()
-        # goal_condition_success_rate = pcs[0] / float(pcs[1])
-
-        # # SPL
-        # path_len_weight = len(traj_data['plan']['low_actions'])
-        # s_spl = (1 if goal_satisfied else 0) * min(1., path_len_weight / float(t))
-        # pc_spl = goal_condition_success_rate * min(1., path_len_weight / float(t))
-
-        # # path length weighted SPL
-        # plw_s_spl = s_spl * path_len_weight
-        # plw_pc_spl = pc_spl * path_len_weight
-
-        # # log success/fails
-        # lock.acquire()
-        # log_entry = {'trial': traj_data['task_id'],
-        #              'type': traj_data['task_type'],
-        #              'repeat_idx': int(r_idx),
-        #              'goal_instr': goal_instr,
-        #              'completed_goal_conditions': int(pcs[0]),
-        #              'total_goal_conditions': int(pcs[1]),
-        #              'goal_condition_success': float(goal_condition_success_rate),
-        #              'success_spl': float(s_spl),
-        #              'path_len_weighted_success_spl': float(plw_s_spl),
-        #              'goal_condition_spl': float(pc_spl),
-        #              'path_len_weighted_goal_condition_spl': float(plw_pc_spl),
-        #              'path_len_weight': int(path_len_weight),
-        #              'reward': float(reward)}
-        # if success:
-        #     successes.append(log_entry)
-        # else:
-        #     failures.append(log_entry)
-
-        # # overall results
-        # results['all'] = cls.get_metrics(successes, failures)
-
-        # print("-------------")
-        # print("SR: %d/%d = %.3f" % (results['all']['success']['num_successes'],
-        #                             results['all']['success']['num_evals'],
-        #                             results['all']['success']['success_rate']))
-        # print("GC: %d/%d = %.3f" % (results['all']['goal_condition_success']['completed_goal_conditions'],
-        #                             results['all']['goal_condition_success']['total_goal_conditions'],
-        #                             results['all']['goal_condition_success']['goal_condition_success_rate']))
-        # print("PLW SR: %.3f" % (results['all']['path_length_weighted_success_rate']))
-        # print("PLW GC: %.3f" % (results['all']['path_length_weighted_goal_condition_success_rate']))
-        # print("-------------")
+        gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
+        gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name)
+        results = cls.calc_metrics(gt_traj, end_inf_state, lang, scene)
 
         # lock.release()
 
+
     @classmethod
-    def get_metrics(cls, successes, failures):
-        '''
-        compute overall succcess and goal_condition success rates along with path-weighted metrics
-        '''
-        # stats
-        num_successes, num_failures = len(successes), len(failures)
-        num_evals = len(successes) + len(failures)
-        total_path_len_weight = sum([entry['path_len_weight'] for entry in successes]) + \
-                                sum([entry['path_len_weight'] for entry in failures])
-        completed_goal_conditions = sum([entry['completed_goal_conditions'] for entry in successes]) + \
-                                   sum([entry['completed_goal_conditions'] for entry in failures])
-        total_goal_conditions = sum([entry['total_goal_conditions'] for entry in successes]) + \
-                               sum([entry['total_goal_conditions'] for entry in failures])
+    def get_gt_traj(cls, gt_traj_name):
+        hdf5_file_path = '/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5' #TODO make relative later
+        # Trajectory to fetch actions from
+        trajectory_name = gt_traj_name
 
-        # metrics
-        sr = float(num_successes) / num_evals
-        pc = completed_goal_conditions / float(total_goal_conditions)
-        plw_sr = (float(sum([entry['path_len_weighted_success_spl'] for entry in successes]) +
-                        sum([entry['path_len_weighted_success_spl'] for entry in failures])) /
-                  total_path_len_weight)
-        plw_pc = (float(sum([entry['path_len_weighted_goal_condition_spl'] for entry in successes]) +
-                        sum([entry['path_len_weighted_goal_condition_spl'] for entry in failures])) /
-                  total_path_len_weight)
+        traj_action_lst = []
+        nl_command = None
+        scene = None
+        with h5py.File(hdf5_file_path, 'r') as hdf_file:
+            if trajectory_name in hdf_file:
+                # Access the group corresponding to the trajectory
+                trajectory_group = hdf_file[trajectory_name]
+                # Loop through each timestep group within the trajectory group
+                for timestep_name, timestep_group in trajectory_group.items():
+                    if 'metadata' in timestep_group.attrs:
+                        json_data_serialized = timestep_group.attrs['metadata']
+                        # Deserialize the JSON string into a Python dictionary
+                        json_data = json.loads(json_data_serialized)
+                        # Access 'steps' from the dictionary
+                        steps = json_data['steps']
+                        nl_command = json_data['nl_command']
+                        scene = json_data['scene']
+                        action = steps[0]['action']
+                        state_body = steps[0]['state_body'][:3]
+                        body_yaw = steps[0]['state_body'][-1]
+                        state_ee = steps[0]['state_ee'][:3]
+                        
+                        state_dict = {'action': action, 'state_body': state_body, 'body_yaw': body_yaw, 'state_ee': state_ee}
+                        traj_action_lst.append(state_dict)
+        
+        return traj_action_lst, nl_command, scene
 
-        # result table
-        res = dict()
-        res['success'] = {'num_successes': num_successes,
-                          'num_evals': num_evals,
-                          'success_rate': sr}
-        res['goal_condition_success'] = {'completed_goal_conditions': completed_goal_conditions,
-                                        'total_goal_conditions': total_goal_conditions,
-                                        'goal_condition_success_rate': pc}
-        res['path_length_weighted_success_rate'] = plw_sr
-        res['path_length_weighted_goal_condition_success_rate'] = plw_pc
+    @classmethod
+    def calc_metrics(cls, gt_traj, end_inf_state, lang, scene):
+        """
+        
+        Temporary wrapper method that calls Yichen's method that gets all the metric results. 
+        Made it a wrapper so it's more isolated and easier for Yichen to look at. 
+        Later, I will remove the wrapper and call his method directly in my main inference code
+        gt_traj is a single ground truth trajectory. It is a list of dicts where each dict has the action, xyz of body, yaw of body, and xyz of ee for a timestep. xyz are global coords. yaw is degrees
+        end_inf_state is the end/last return from the controller from inference episode that has all robot and env info. If this is None, that means the robot didn't move at all and the episode ended, which either shouldn't happen or rarely happen so don't worry about it too much
+        lang is the NL command
+        scene is the name of the trajectory's scene
+        
+        """
 
-        return res
+        breakpoint()
+
+        #results_dict = yichen_mystery_method(gt_traj, last_inf_state)
+
+        pass
+
 
     def create_stats(self):
             '''

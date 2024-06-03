@@ -364,7 +364,7 @@ class ThorEnv():
         else:
             if word_action in ['NoOp']:
                 print(f"Word Action: NoOP", end="\r") # for debugging
-                return None, None
+                return None, None, self.last_event.metadata
             if word_action in ['PickupObject','ReleaseObject', 'LookUp', 'LookDown']:
                 a = dict(action = word_action)
             elif word_action in ['MoveArm', 'MoveArmBase']:
@@ -373,15 +373,15 @@ class ThorEnv():
                 x_del, y_del, z_del = self.bins["4"][num_action[0]], self.bins["5"][num_action[1]], self.bins["6"][num_action[2]]
                 if x_del == -1000 or y_del == -1000 or z_del == -1000: # if any of them are NoOp then skip all. Can do it another way where only skip the specific axis
                     print(f"Word Action: NoOP", end="\r") # for debugging
-                    return None, None
+                    return None, None, self.last_event.metadata
                 new_x, new_y, new_z = curr_x + x_del, curr_y + y_del, curr_z + z_del
-                a = dict(action='MoveArm',position=dict(x=new_x, y=new_y, z=new_z),coordinateSpace="world",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+                a = dict(action='MoveArm',position=dict(x=new_x, y=new_z, z=new_y),coordinateSpace="world",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
             elif word_action in ['RotateAgent']:
                 yaw_del = num_action.item()
                 new_yaw = self.bins["3"][yaw_del]
                 if new_yaw == -1000: #make it variable later
                     print(f"Word Action: NoOP", end="\r") # for debugging
-                    return None, None
+                    return None, None, self.last_event.metadata
                 a = dict(action=word_action, degrees=new_yaw,returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
             else: # move base
                 a = dict(action=word_action, moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
@@ -399,4 +399,4 @@ class ThorEnv():
             # print(f"Word Action: {word_action} ", end="\r")
             # print(f"Num Action: {num_action} ", end="\r")
 
-        return success, error
+        return success, error, self.last_event.metadata

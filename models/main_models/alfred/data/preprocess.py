@@ -7,7 +7,7 @@ import progressbar
 from vocab import Vocab
 from model.seq2seq import Module as model
 from gen.utils.py_util import remove_spaces_and_lower
-from models.utils.data_utils import split_data
+from models.utils.data_utils import split_data, env_folds
 import h5py
 import numpy as np
 
@@ -52,12 +52,15 @@ class Dataset(object):
         '''
         return vocab.word2index([w.strip().lower() for w in words], train=train)
 
-    def preprocess_splits(self, splits):
+    def preprocess_splits(self, splits, folds):
         '''
         saves preprocessed data as jsons in specified folder
         '''
-        train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
-        split_keys_dict = {'train':train_keys, 'val':val_keys, 'test':test_keys}
+        if self.args.splits_folds == 'splits':
+            train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'], "")
+        else:
+            train_keys, test_keys = env_folds(self.args.data, folds['train_envs'], folds['test_envs'])
+        split_keys_dict = {'train':train_keys, 'test':test_keys}
         #make this path relative later
         with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'w') as f:
             json.dump(split_keys_dict, f)

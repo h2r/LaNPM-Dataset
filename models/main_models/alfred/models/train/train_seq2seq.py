@@ -22,6 +22,8 @@ if __name__ == '__main__':
     parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats')
     parser.add_argument('--pp_folder', help='folder name for preprocessed data', default='pp')
     parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
+    parser.add_argument('--folds', help='json file containing train/test env folds', default='data/splits/env_folds.json')
+    parser.add_argument('--splits_folds', help='splits or folds', default='folds')
     parser.add_argument('--split_keys', help='json file containing split trajectories', default='data/splits/split_keys.json')
     parser.add_argument('--preprocess', help='store preprocessed data to json files', action='store_true')
     parser.add_argument('--save_every_epoch', help='save model after every epoch (warning: consumes a lot of space)', action='store_true')
@@ -89,12 +91,14 @@ if __name__ == '__main__':
     # load train/valid/tests splits
     with open(args.splits) as f:
         splits = json.load(f)
+    with open(args.folds) as f:
+        folds = json.load(f)
 
     # preprocess and save
     if args.preprocess:
         print("\nPreprocessing dataset and saving to %s folders ... This will take a while. Do this once as required." % args.pp_folder)
-        dataset = Dataset(args, None)
-        dataset.preprocess_splits(splits)
+        dataset = Dataset(args, None) 
+        dataset.preprocess_splits(splits, folds)
         vocab = torch.load(os.path.join(args.dout, "%s.vocab" % args.pp_folder))
     else:
         vocab = torch.load(os.path.join(args.pp_data, "%s.vocab" % args.pp_folder))

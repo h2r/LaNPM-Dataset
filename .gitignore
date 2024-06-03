@@ -13,3 +13,8 @@ __pycache__/
 /models/main_models/alfred/data/feats_discrete_relative/*
 /models/main_models/alfred/data/feats_discrete_relative_extra/*
 /models/main_models/alfred/data/feats_discrete_relative_normalize/*
+/models/main_models/alfred/data/feats_discrete_relative_fold1/*
+/models/main_models/alfred/data/feats_discrete_relative_fold2/*
+/models/main_models/alfred/data/feats_discrete_relative_fold3/*
+/models/main_models/alfred/data/feats_discrete_relative_fold4/*
+/models/main_models/alfred/data/feats_discrete_relative_fold5/*

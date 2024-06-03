@@ -64,10 +64,8 @@ class Module(nn.Module):
         with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             split_keys = json.load(f)
             train = split_keys['train']
-            valid_unseen = split_keys['val']
-            valid_seen = random.sample(train, len(valid_unseen))
-            # train = split_keys['train'] + split_keys['val']
-            # valid_unseen = split_keys['test']
+            test = split_keys['test']
+            # valid_unseen = split_keys['val']
             # valid_seen = random.sample(train, len(valid_unseen))
 
         # debugging: chose a small fraction of the dataset
@@ -98,8 +96,10 @@ class Module(nn.Module):
 
         # display dout
         print("Saving to: %s" % self.args.dout)
-        best_loss = {'train': 1e10, 'valid_seen': 1e10, 'valid_unseen': 1e10}
-        train_iter, valid_seen_iter, valid_unseen_iter = 0, 0, 0
+        # best_loss = {'train': 1e10, 'valid_seen': 1e10, 'valid_unseen': 1e10}
+        # train_iter, valid_seen_iter, valid_unseen_iter = 0, 0, 0
+        best_loss = {'train': 1e10, 'test': 1e10}
+        train_iter, test_iter = 0, 0,
         for epoch in trange(0, self.args.epoch, desc='epoch'):
             print(f'train_iter: {train_iter}\n')
             m_train = collections.defaultdict(list) #dict where values are lists
@@ -109,8 +109,8 @@ class Module(nn.Module):
             random.shuffle(train) # shuffle every epoch
             for batch, feat in self.iterate(train, self.args.batch):
                 out = self.forward(feat)
-                loss = self.compute_loss(out, batch, feat)
-                for k, v in loss.items():
+                loss = self.compute_loss(out, batch, feat) #loss for the whole batch
+                for k, v in loss.items(): #only 1 item, which is 'action_low" loss
                     ln = 'loss_' + k
                     m_train[ln].append(v.item())
                     self.summary_writer.add_scalar('train/' + ln, v.item(), train_iter)
@@ -118,6 +118,7 @@ class Module(nn.Module):
                 # optimizer backward pass
                 optimizer.zero_grad()
                 scalar_loss = next(iter(loss.values())) #extract tensor scalar from dict
+
                 scalar_loss.backward() # performs gradients
                 optimizer.step() # makes the change based on the gradients
 
@@ -135,25 +136,29 @@ class Module(nn.Module):
             # self.summary_writer.add_scalar('train/total_loss', m_train['total_loss'], train_iter)
 
             # compute metrics for valid_seen
-            valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=self.args, name='valid_seen', iter=valid_seen_iter)
+            # valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=self.args, name='valid_seen', iter=valid_seen_iter)
+            test_iter, total_test_loss, avg_test_loss, m_test = self.run_pred(test, args=self.args, name='test', iter=test_iter)
             # m_valid_seen.update(self.compute_metric(p_valid_seen, valid_seen))
-            m_valid_seen['total_loss'] = float(total_valid_seen_loss)
-            self.summary_writer.add_scalar('valid_seen/total_loss', m_valid_seen['total_loss'], valid_seen_iter)
+            m_test['avg_loss'] = float(avg_test_loss)
+            self.summary_writer.add_scalar('test/total_loss', m_test['avg_loss'], test_iter)
 
             # compute metrics for valid_unseen
-            valid_unseen_iter, total_valid_unseen_loss, m_valid_unseen = self.run_pred(valid_unseen, args=args, name='valid_unseen', iter=valid_unseen_iter)
-            # m_valid_unseen.update(self.compute_metric(p_valid_unseen, valid_unseen))
-            m_valid_unseen['total_loss'] = float(total_valid_unseen_loss)
-            self.summary_writer.add_scalar('valid_unseen/total_loss', m_valid_unseen['total_loss'], valid_unseen_iter)
+            # valid_unseen_iter, total_valid_unseen_loss, m_valid_unseen = self.run_pred(valid_unseen, args=args, name='valid_unseen', iter=valid_unseen_iter)
+            # # m_valid_unseen.update(self.compute_metric(p_valid_unseen, valid_unseen))
+            # m_valid_unseen['total_loss'] = float(total_valid_unseen_loss)
+            # self.summary_writer.add_scalar('valid_unseen/total_loss', m_valid_unseen['total_loss'], valid_unseen_iter)
 
-            stats = {'epoch': epoch,
-                     'valid_seen': m_valid_seen,
-                     'valid_unseen': m_valid_unseen}
+            stats = {'epoch': epoch, 'test': m_test}
 
-            # new best valid_seen loss
-            if total_valid_seen_loss < best_loss['valid_seen']:
-                print('\nFound new best valid_seen!! Saving...')
-                fsave = os.path.join(self.args.dout, 'best_seen.pth')
+            # new best test loss
+            if avg_test_loss < best_loss['test']:
+                print('\nFound new best test!! Saving...')
+                losses_path = os.path.join(self.args.dout, f'batch_losses_epoch{epoch}.json') 
+                loss_dict = {'train_batch_losses': total_train_loss, 'train_std': np.std(np.array(total_train_loss)), 'test_batch_losses': total_test_loss, 'test_std': np.std(np.array(total_test_loss))}                
+                with open(losses_path, "w") as file: 
+                    json.dump(loss_dict, file)
+
+                fsave = os.path.join(self.args.dout, 'best_test.pth')
                 torch.save({
                     'metric': stats,
                     'model': self.state_dict(),
@@ -161,35 +166,35 @@ class Module(nn.Module):
                     'args': self.args,
                     'vocab': self.vocab,
                 }, fsave)
-                fbest = os.path.join(args.dout, 'best_seen.json')
+                fbest = os.path.join(args.dout, 'best_test.json')
                 with open(fbest, 'wt') as f:
                     json.dump(stats, f, indent=2)
 
-                fpred = os.path.join(self.args.dout, 'valid_seen.debug.preds.json')
+                fpred = os.path.join(self.args.dout, 'test.debug.preds.json')
                 # with open(fpred, 'wt') as f:
                 #     json.dump(self.make_debug(p_valid_seen, valid_seen), f, indent=2)
-                best_loss['valid_seen'] = total_valid_seen_loss
+                best_loss['test'] = avg_test_loss
 
-            # new best valid_unseen loss
-            if total_valid_unseen_loss < best_loss['valid_unseen']:
-                print('Found new best valid_unseen!! Saving...')
-                fsave = os.path.join(self.args.dout, 'best_unseen.pth')
-                torch.save({
-                    'metric': stats,
-                    'model': self.state_dict(),
-                    'optim': optimizer.state_dict(),
-                    'args': self.args,
-                    'vocab': self.vocab,
-                }, fsave)
-                fbest = os.path.join(args.dout, 'best_unseen.json')
-                with open(fbest, 'wt') as f:
-                    json.dump(stats, f, indent=2)
+            # # new best valid_unseen loss
+            # if total_valid_unseen_loss < best_loss['valid_unseen']:
+            #     print('Found new best valid_unseen!! Saving...')
+            #     fsave = os.path.join(self.args.dout, 'best_unseen.pth')
+            #     torch.save({
+            #         'metric': stats,
+            #         'model': self.state_dict(),
+            #         'optim': optimizer.state_dict(),
+            #         'args': self.args,
+            #         'vocab': self.vocab,
+            #     }, fsave)
+            #     fbest = os.path.join(args.dout, 'best_unseen.json')
+            #     with open(fbest, 'wt') as f:
+            #         json.dump(stats, f, indent=2)
 
-                fpred = os.path.join(self.args.dout, 'valid_unseen.debug.preds.json')
-                # with open(fpred, 'wt') as f:
-                #     json.dump(self.make_debug(p_valid_unseen, valid_unseen), f, indent=2)
+            #     fpred = os.path.join(self.args.dout, 'valid_unseen.debug.preds.json')
+            #     # with open(fpred, 'wt') as f:
+            #     #     json.dump(self.make_debug(p_valid_unseen, valid_unseen), f, indent=2)
 
-                best_loss['valid_unseen'] = total_valid_unseen_loss
+            #     best_loss['valid_unseen'] = total_valid_unseen_loss
 
             # save the latest checkpoint
             if self.args.save_every_epoch:
@@ -230,7 +235,7 @@ class Module(nn.Module):
             out = self.forward(feat)
             # preds = self.extract_preds(out, batch, feat)
             # p_dev.update(preds)
-            loss = self.compute_loss(out, batch, feat)
+            loss = self.compute_loss(out, batch, feat) #loss for whole batch
             for k, v in loss.items():
                 ln = 'loss_' + k
                 m_dev[ln].append(v.item())
@@ -242,8 +247,8 @@ class Module(nn.Module):
             dev_iter += 1
 
         m_dev = {k: sum(v) / len(v) for k, v in m_dev.items()}
-        total_loss = sum(total_loss) / len(total_loss)
-        return dev_iter, total_loss, m_dev
+        avg_loss = sum(total_loss) / len(total_loss)
+        return dev_iter, total_loss, avg_loss, m_dev
 
     def featurize(self, batch):
         raise NotImplementedError()
