@@ -11,7 +11,7 @@ class TrajData:
     Data for a single trajectory, contain a sequence of images, body position, body yaw, and end effector position,
     each represented as a numpy array of size n x [...] where n is the length of the trajs.
     """
-    img: np.ndarray # nxwxhx3
+    img: np.ndarray # nxhxwx3
     xyz_body: np.ndarray # nx3, global position of the body
     yaw_body: np.ndarray # nx1
     xyz_ee: np.ndarray # nx3, global position of the end effector
