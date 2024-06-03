@@ -24,7 +24,8 @@ class Metric:
     def get_score(
             self, 
             scene_name: str, 
-            traj: TrajData, 
+            traj_model: TrajData, 
+            traj_gt: TrajData,
             final_state: Controller, 
             task_cmd: str
         ) -> float:
