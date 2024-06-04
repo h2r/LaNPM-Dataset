@@ -1,11 +1,15 @@
 import os
 import json
+from typing import List
 import numpy as np
 from PIL import Image
 from datetime import datetime
 from eval import Eval
 from env.thor_env import ThorEnv
 import h5py
+
+from metrics.task_succ import extract_task_succ, TaskSuccMetric
+from metrics.base_metric import CLIP_SemanticUnderstanding, RootMSE, AreaCoverage, Metric
 
 class EvalTask(Eval):
     '''
@@ -109,7 +113,7 @@ class EvalTask(Eval):
 
     @classmethod
     def get_gt_traj(cls, gt_traj_name):
-        hdf5_file_path = '/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5' #TODO make relative later
+        hdf5_file_path = os.environ['HOME'] + '/data/shared/lanmp/lanmp_dataset.hdf5' #TODO make relative later
         # Trajectory to fetch actions from
         trajectory_name = gt_traj_name
 
@@ -141,7 +145,7 @@ class EvalTask(Eval):
         return traj_action_lst, nl_command, scene
 
     @classmethod
-    def calc_metrics(cls, gt_traj, end_inf_state, lang, scene):
+    def calc_metrics(cls, exec_traj, gt_traj, end_inf_state, lang, scene):
         """
         
         Temporary wrapper method that calls Yichen's method that gets all the metric results. 
@@ -155,10 +159,19 @@ class EvalTask(Eval):
         """
 
         breakpoint()
+        extract_task_succ()
 
-        #results_dict = yichen_mystery_method(gt_traj, last_inf_state)
+        metrics: List[Metric] = [
+            AreaCoverage(),
+            CLIP_SemanticUnderstanding(),
+            RootMSE(),
+            TaskSuccMetric()
+        ]
 
-        pass
+        results_dict = {
+            metric.name: metric.get_score(scene, exec_traj, gt_traj, end_inf_state, lang) for metric in metrics
+        }
+        return results_dict
 
 
     def create_stats(self):

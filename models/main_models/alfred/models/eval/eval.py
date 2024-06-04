@@ -7,6 +7,7 @@ import torch.multiprocessing as mp
 from models.nn.resnet import Resnet
 from data.preprocess import Dataset
 from importlib import import_module
+import os
 
 class Eval(object):
 
@@ -21,7 +22,7 @@ class Eval(object):
         self.manager = manager
 
         # load splits
-        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
+        with open("/oscar/data/stellex/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             self.splits = json.load(f)
 
 

@@ -261,5 +261,3 @@ class CLIP_SemanticUnderstanding(Metric):
 
         scores = {'ema_clip_reward': ema_clip_reward, 'discounted_clip_reward': discounted_clip_reward, 'correct_task_clip_score': correct_task_clip_score}
         return scores
-            
-
