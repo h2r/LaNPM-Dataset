@@ -113,7 +113,7 @@ class AreaCoverage(Metric):
         traversed_area = polygon.area
 
         #compute area coverage per unit of trajectory
-        score = area / len(traj_model.xyz_body)
+        score = traversed_area / len(traj_model.xyz_body)
 
         return score
 

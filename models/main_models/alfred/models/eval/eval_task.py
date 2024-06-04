@@ -9,7 +9,7 @@ from env.thor_env import ThorEnv
 import h5py
 
 from metrics.task_succ import extract_task_succ, TaskSuccMetric
-from metrics.base_metric import CLIP_SemanticUnderstanding, RootMSE, AreaCoverage, Metric
+from metrics.base_metric import CLIP_SemanticUnderstanding, RootMSE, AreaCoverage, Metric, TrajData
 
 class EvalTask(Eval):
     '''
@@ -104,15 +104,16 @@ class EvalTask(Eval):
             #         break
             t += 1
 
+        exec_traj = None # TODO fill in
         gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
         gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name)
-        results = cls.calc_metrics(gt_traj, end_inf_state, lang, scene)
+        results = cls.calc_metrics(exec_traj, gt_traj, end_inf_state, lang, scene)
 
         # lock.release()
 
 
     @classmethod
-    def get_gt_traj(cls, gt_traj_name):
+    def get_gt_traj(cls, gt_traj_name, desired_step_len=0):
         hdf5_file_path = os.environ['HOME'] + '/data/shared/lanmp/lanmp_dataset.hdf5' #TODO make relative later
         # Trajectory to fetch actions from
         trajectory_name = gt_traj_name
@@ -125,6 +126,13 @@ class EvalTask(Eval):
                 # Access the group corresponding to the trajectory
                 trajectory_group = hdf_file[trajectory_name]
                 # Loop through each timestep group within the trajectory group
+
+                img_history = []
+                xyz_body_history = []
+                xyz_ee_history = []
+                yaw_body_history = []
+                steps = 0
+
                 for timestep_name, timestep_group in trajectory_group.items():
                     if 'metadata' in timestep_group.attrs:
                         json_data_serialized = timestep_group.attrs['metadata']
@@ -135,17 +143,32 @@ class EvalTask(Eval):
                         nl_command = json_data['nl_command']
                         scene = json_data['scene']
                         action = steps[0]['action']
+
+                        img_key = [key for key in timestep_group.keys() if key.startswith("rgb_")]
+                        img: np.ndarray = timestep_group[img_key[0]][()] # 720x1080x3
                         state_body = steps[0]['state_body'][:3]
                         body_yaw = steps[0]['state_body'][-1]
                         state_ee = steps[0]['state_ee'][:3]
                         
-                        state_dict = {'action': action, 'state_body': state_body, 'body_yaw': body_yaw, 'state_ee': state_ee}
-                        traj_action_lst.append(state_dict)
+                        xyz_body_history.append(state_body)
+                        yaw_body_history.append(body_yaw)
+                        xyz_ee_history.append(state_ee)
+                        img_history.append(img)
+                        
+                        steps += 1
+                while steps < desired_step_len:
+                    xyz_body_history.append(state_body)
+                    yaw_body_history.append(body_yaw)
+                    xyz_ee_history.append(state_ee)
+                    img_history.append(img)
         
-        return traj_action_lst, nl_command, scene
+        return TrajData(
+            img=np.array(img_history), xyz_body=np.array(xyz_body_history), yaw_body=np.array(yaw_body_history),
+            xyz_ee=np.array(xyz_ee_history), steps=steps
+        ), nl_command, scene
 
     @classmethod
-    def calc_metrics(cls, exec_traj, gt_traj, end_inf_state, lang, scene):
+    def calc_metrics(cls, exec_traj: TrajData, gt_traj: TrajData, end_inf_state: dict, lang: str, scene: str):
         """
         
         Temporary wrapper method that calls Yichen's method that gets all the metric results. 
@@ -157,8 +180,6 @@ class EvalTask(Eval):
         scene is the name of the trajectory's scene
         
         """
-
-        breakpoint()
         extract_task_succ()
 
         metrics: List[Metric] = [
@@ -171,6 +192,8 @@ class EvalTask(Eval):
         results_dict = {
             metric.name: metric.get_score(scene, exec_traj, gt_traj, end_inf_state, lang) for metric in metrics
         }
+        results_dict['length'] = exec_traj.steps
+        breakpoint()
         return results_dict
 
 
