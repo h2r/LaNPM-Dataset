@@ -24,8 +24,8 @@ class TrajData:
     xyz_ee: np.ndarray # nx3, global position of the end effector
     errors: List[Union[None, str]] # list of error messages (str), indexed by the time step they're happening.
     action: List[str] # list of str actions
-    last_event: Optional[dict] = None # last event of the trajectory
     steps: np.int32 #integer, total unpadded number of steps in the trajectory
+    last_event: Optional[dict] = None # last event of the trajectory
 
 
 class Metric:
