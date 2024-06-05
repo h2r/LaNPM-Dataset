@@ -42,6 +42,30 @@ class Metric:
         raise NotImplementedError("Subclasses should implement this!")
 
 
+class DeltaDist(Metric):
+    def __init__(self, name="delta_loc"):
+        self.name = name
+    
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
+        diff_xyz_body = traj_model.xyz_body[1:] - traj_model.xyz_body[:-1]
+        diff_yaw_body = traj_model.yaw_body[1:] - traj_model.yaw_body[:-1]
+        diff_xyz_ee = traj_model.xyz_ee[1:] - traj_model.xyz_ee[:-1]
+
+        euclidean_xyz_body = np.sqrt(np.sum(diff_xyz_body ** 2, axis=1))
+        euclidean_yaw_body = np.abs(diff_yaw_body)
+        euclidean_xyz_ee = np.sqrt(np.sum(diff_xyz_ee ** 2, axis=1))
+
+        return {
+            "xyz_body/mean": euclidean_xyz_body.mean(),
+            "xyz_body/std": euclidean_xyz_body.std(),
+            "yaw_body/mean": euclidean_yaw_body.mean(),
+            "yaw_body/std": euclidean_yaw_body.std(),
+            "xyz_ee/mean": euclidean_xyz_ee.mean(),
+            "xyz_ee/std": euclidean_xyz_ee.std()
+        }
+
+
+
 class RootMSE(Metric):
     def __init__(self, name = 'rmse', weightage = [0.33, 0.33, 0.34]):
         self.name = name

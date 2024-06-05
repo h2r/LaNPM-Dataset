@@ -12,7 +12,9 @@ import pandas as pd
 from ai2thor.server import MultiAgentEvent
 
 
-from metrics.base_metric import AreaCoverage, CLIP_SemanticUnderstanding, Metric, RootMSE, TrajData, Length, GraspSuccRate, EndDistanceDiff
+from metrics.base_metric import \
+    AreaCoverage, CLIP_SemanticUnderstanding, Metric, \
+    RootMSE, TrajData, Length, GraspSuccRate, EndDistanceDiff, DeltaDist
 from metrics.task_succ import TaskSuccMetric
 
 ap = ArgumentParser()
@@ -36,10 +38,10 @@ class Evaluator():
             # AreaCoverage(),
             CLIP_SemanticUnderstanding(scene_to_cmds=self.scene_to_cmd),
             RootMSE(),
+            DeltaDist(),
             # TaskSuccMetric(),
             GraspSuccRate(),
             Length(),
-            EndDistanceDiff()
         ]
     
     def build_traj_index(self):
