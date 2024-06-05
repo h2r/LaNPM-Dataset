@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from datetime import datetime
 from eval import Eval
-from env.thor_env import ThorEnv
+from env.thor_env import ThorEnv, Controller
 import h5py
 
 from metrics.task_succ import extract_task_succ, TaskSuccMetric
@@ -42,11 +42,11 @@ class EvalTask(Eval):
 
         # stop THOR
         env.stop()
-
+    
 
     @classmethod
-    def evaluate(cls, env, model, resnet, traj_data, args, lock, successes, failures, results):
-        # reset model
+    def rollout(cls, env: Controller, model, resnet, traj_data, args):
+         # reset model
         model.reset()
         # setup scene
         cls.setup_scene(env, traj_data, args)
@@ -60,6 +60,14 @@ class EvalTask(Eval):
         done, success = False, False
         fails = 0
         t = 0
+
+        img_history = []
+        xyz_body_history = []
+        xyz_ee_history = []
+        yaw_body_history = []
+        steps = 0
+
+
         while not done:
             print(f"Step: {t} ", end="\r")
 
@@ -69,6 +77,12 @@ class EvalTask(Eval):
                 break
 
             # extract visual features
+            event = env.last_event
+            img_history.append(np.array(event.frame))
+            xyz_body_history.append(...) # TODO
+            xyz_ee_history.append(...) # TODO
+            yaw_body_history.append(...) # TODO
+
             curr_image = Image.fromarray(np.uint8(env.last_event.frame))
             feat['frames'] = resnet.featurize([curr_image], batch=1).unsqueeze(0)
 
@@ -103,13 +117,24 @@ class EvalTask(Eval):
             #         print("Interact API failed %d times" % fails)
             #         break
             t += 1
+        
+        return TrajData(
+            img=np.array(img_history), xyz_body=np.array(xyz_body_history), yaw_body=np.array(yaw_body_history),
+            xyz_ee=np.array(xyz_ee_history), steps=steps
+        ), end_inf_state
 
-        exec_traj = None # TODO fill in
+
+    @classmethod
+    def evaluate(cls, env, model, resnet, traj_data, args, lock, successes, failures, results):
+        """
+        generates result for one single rollout
+        """
+        exec_traj, end_inf_state = cls.rollout(env, model, resnet, traj_data, args, lock, successes, failures, results)
         gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
         gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name)
         results = cls.calc_metrics(exec_traj, gt_traj, end_inf_state, lang, scene)
 
-        # lock.release()
+        return results
 
 
     @classmethod
