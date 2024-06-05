@@ -118,6 +118,14 @@ class EvalTask(Eval):
             #         break
             t += 1
         
+        # finally, append last step obs
+        event = env.last_event
+        img_history.append(np.array(event.frame))
+        xyz_body_history.append(...) # TODO
+        xyz_ee_history.append(...) # TODO
+        yaw_body_history.append(...) # TODO
+
+
         return TrajData(
             img=np.array(img_history), xyz_body=np.array(xyz_body_history), yaw_body=np.array(yaw_body_history),
             xyz_ee=np.array(xyz_ee_history), steps=steps
