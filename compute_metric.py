@@ -111,7 +111,7 @@ class Evaluator():
                 for key, val in score.items():
                     results_dict[f"{metric.name}/{key}"] = val
             else:
-                results_dict[metric.name] = val
+                results_dict[metric.name] = score
         return results_dict
 
     def __del__(self):
