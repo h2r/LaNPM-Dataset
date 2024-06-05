@@ -79,13 +79,62 @@ class RootMSE(Metric):
 
         weighted_score = 0
 
-        for weight, key in zip(weightage, score.keys()):
+        for weight, key in zip(self.property_weights, score.keys()):
 
             weighted_score += weight * score[key]
         
         score['overall_weighted'] = weighted_score
     
         return score
+
+
+class EndDistanceDiff(Metric):
+    """
+    Computes the distance between the gt last epi and the true last epi xyz
+    """
+    def __init__(self, name="distance_diff", diff_type="body"):
+        assert diff_type in ["body", "ee"], diff_type + " distance type not implemented. implemented options are: body, ee"
+        self.diff_type = diff_type
+        self.name = name
+    
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str) -> float:
+        if self.diff_type == "body":
+            abs_diff = traj_model.xyz_body[-1] - traj_gt.xyz_body[-1]
+        elif self.diff_type == "ee":
+            abs_diff = traj_model.xyz_ee[-1] - traj_gt.xyz_ee[-1]
+        return np.sqrt(np.mean(abs_diff ** 2))
+
+
+class GraspSuccRate(Metric):
+    '''
+    Computes the success rate of grasping
+    '''
+    def __init__(self, name = 'grasp_succ_rate'):
+        self.name = name
+
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
+        # TODO check if error will be thrown if nothing to pickup
+        total_mani_count = 0
+        total_mani_errors = 0
+        for action, error_msg in zip(traj_model.action, traj_model.errors):
+            if action in ["PickupObject", "PutObject"]:
+                total_mani_count += 1
+                if error_msg is not None:
+                    total_mani_errors += 1
+        return 1 - total_mani_errors / total_mani_count if total_mani_count > 0 else np.nan
+
+
+class Length(Metric):
+    '''
+    Computes the length of the episode
+    '''
+    def __init__(self, name = 'length'):
+
+        self.name = name
+    
+
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
+        return traj_model.steps
 
 
 class AreaCoverage(Metric):

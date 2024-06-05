@@ -4,26 +4,32 @@ import h5py
 import os
 import json
 import numpy as np
+from tqdm import tqdm
+
 from ai2thor.server import MultiAgentEvent
 
-from metrics.base_metric import AreaCoverage, CLIP_SemanticUnderstanding, Metric, RootMSE, TrajData
+from metrics.base_metric import AreaCoverage, CLIP_SemanticUnderstanding, Metric, RootMSE, TrajData, Length, GraspSuccRate, EndDistanceDiff
 from metrics.task_succ import TaskSuccMetric
 
 ap = ArgumentParser()
 ap.add_argument("--gt_traj_path", type=str, default=os.environ['HOME'] + '/data/shared/lanmp/lanmp_dataset.hdf5')
 ap.add_argument("--eval_traj_path", type=str, default="")
 ap.add_argument("--use_gt_for_eval", action='store_true')
+ap.add_argument("--print_every_step", action='store_true')
 
 
 
 class Evaluator():
-    def __init__(self, gt_dataset_path):
+    def __init__(self, gt_dataset_path: str):
         self.gt_file = h5py.File(gt_dataset_path, 'r')
         self.metrics: List[Metric] = [
-            AreaCoverage(),
-            CLIP_SemanticUnderstanding(dataset_path=gt_dataset_path),
-            RootMSE(),
-            TaskSuccMetric()
+            # AreaCoverage(),
+            # CLIP_SemanticUnderstanding(dataset_path=gt_dataset_path),
+            # RootMSE(),
+            # TaskSuccMetric(),
+            GraspSuccRate(),
+            Length(),
+            EndDistanceDiff()
         ]
         self.cmd_to_traj_name: Mapping[str, str] = {}
         self.build_traj_index()
@@ -36,7 +42,7 @@ class Evaluator():
             nl_cmd = json_data_step0['nl_command']
             self.cmd_to_traj_name[nl_cmd] = traj_name
     
-    def convert_gt_hdf5_entry(self, traj_hdf_group, desired_len):
+    def convert_gt_hdf5_entry(self, traj_hdf_group: h5py.Group, desired_len: int) -> TrajData:
         img_history = []
         xyz_body_history = []
         xyz_ee_history = []
@@ -86,10 +92,10 @@ class Evaluator():
         ), nl_command, scene
 
     
-    def evaluate_one_traj(self, scene: str, cmd: str, exec_traj: TrajData, end_inf_state: MultiAgentEvent):
+    def evaluate_one_traj(self, scene: str, cmd: str, exec_traj: TrajData, end_inf_state: MultiAgentEvent) -> Mapping[str, float]:
         gt_traj_name = self.cmd_to_traj_name[cmd]
-        gt_traj = self.gt_file[gt_traj_name]
-        exec_traj, cmd2, scene2 = self.convert_gt_hdf5_entry(gt_traj, len(exec_traj.errors))
+        gt_traj_h5 = self.gt_file[gt_traj_name]
+        gt_traj, cmd2, scene2 = self.convert_gt_hdf5_entry(gt_traj_h5, len(exec_traj.errors))
         
         assert cmd2 == cmd, "Command mismatch for eval."
         assert scene2 == scene, "Scene name mismatch for eval."
@@ -107,16 +113,18 @@ def main():
     args = ap.parse_args()
     evaluator = Evaluator(args.gt_traj_path)
     if args.use_gt_for_eval:
-        eval_gt(evaluator, args.gt_traj_path)
+        eval_gt(evaluator, args.gt_traj_path, print_every_step=True)
 
 
-def eval_gt(evaluator: Evaluator, gt_path):
+def eval_gt(evaluator: Evaluator, gt_path: str, print_every_step: bool=False):
     result_list = []
     with h5py.File(gt_path, 'r') as hdf_file:
-        for traj_name, traj_content in hdf_file.items():
+        for traj_name, traj_content in tqdm(hdf_file.items()):
             converted_traj, cmd, scene = evaluator.convert_gt_hdf5_entry(traj_content, len(traj_content.keys()))
             result = evaluator.evaluate_one_traj(scene, cmd, converted_traj, None)
             result_list.append(result)
+            if print_every_step:
+                print(result)
     print(result_list)
 
 
