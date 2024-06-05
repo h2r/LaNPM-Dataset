@@ -34,7 +34,7 @@ class Evaluator():
         # initialize the metrics with pre-computed info
         self.metrics: List[Metric] = [
             # AreaCoverage(),
-            CLIP_SemanticUnderstanding(scene_to_cmd=self.scene_to_cmd),
+            CLIP_SemanticUnderstanding(scene_to_cmds=self.scene_to_cmd),
             RootMSE(),
             # TaskSuccMetric(),
             GraspSuccRate(),
