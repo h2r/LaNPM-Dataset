@@ -386,13 +386,13 @@ class ThorEnv():
             else: # move base
                 a = dict(action=word_action, moveMagnitude=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
         
-        sleep(0.5) #for debugging/movement analysis
+        # sleep(0.5) #for debugging/movement analysis
         event = self.controller.step(a)
         success = event.metadata['lastActionSuccess']
         error = event.metadata['errorMessage']
         self.last_event = event
         #for debugging/movement analysis
-        sleep(0.5)
+        # sleep(0.5)
         if rand_agent:
             print(f"Random Word Action: {rand_word_action} ", end="\r")
         # else:

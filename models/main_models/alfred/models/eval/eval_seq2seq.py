@@ -44,6 +44,7 @@ if __name__ == '__main__':
     # debug
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--fast_epoch', dest='fast_epoch', action='store_true')
+    parser.add_argument('--human_traj', action='store_true')
 
     # parse arguments
     args = parser.parse_args()

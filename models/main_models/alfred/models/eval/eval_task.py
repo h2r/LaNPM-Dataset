@@ -1,11 +1,13 @@
 import os
 import json
 import pickle
+from typing import List, Tuple
 import numpy as np
 from PIL import Image
 from datetime import datetime
 from eval import Eval
 from env.thor_env import ThorEnv
+from ai2thor.server import MultiAgentEvent
 from copy import deepcopy
 import h5py
 
@@ -48,7 +50,7 @@ class EvalTask(Eval):
 
 
     @classmethod
-    def evaluate(cls, env, model, resnet, traj_data, args, lock, successes, failures, results):
+    def evaluate(cls, env: ThorEnv, model, resnet, traj_data, args, lock, successes, failures, results):
         # reset model
         model.reset()
         # setup scene
@@ -71,8 +73,8 @@ class EvalTask(Eval):
         fails = 0
         t = 0
         
-        end_inf_state = env.get_first_event()
-        end_inf_state_lst = [end_inf_state]
+        end_inf_state = env.last_event.metadata
+        end_inf_state_lst = [(env.last_event.frame, env.last_event.metadata)]
         if not args.human_traj:
             while not done:
                 # break if max_steps reached
@@ -101,13 +103,13 @@ class EvalTask(Eval):
 
                 # print action
                 if args.debug:
-                    print(action)
+                    print(word_action, num_action)
 
                 #  use predicted action to interact with the env
                 print(f"Step: {t} ", end="\r")
                 print('word_action: ', word_action)
                 t_success, error, end_inf_state = env.take_action(word_action, num_action, args.rand_agent) # t_success: True, False, or None, or "stop"
-                end_inf_state_lst.append(end_inf_state)
+                end_inf_state_lst.append((env.last_event.frame, env.last_event.metadata))
                 if t_success == "stop": # only for random agent
                     print("\tpredicted STOP")
                     break
@@ -144,7 +146,7 @@ class EvalTask(Eval):
         
         # gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
         # gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
-        results = cls.calc_metrics(end_inf_state_lst)
+        results = cls.calc_metrics(goal_instr, traj_data['scene'], args.eval_split, end_inf_state_lst)
 
     @classmethod
     def get_gt_word_num_actions(cls, action_dict):
@@ -229,7 +231,7 @@ class EvalTask(Eval):
         return traj_action_lst, nl_command, scene
 
     @classmethod
-    def calc_metrics(cls, task_name, scene_name, split_name, end_inf_state_lst):
+    def calc_metrics(cls, task_name, scene_name, split_name, end_inf_state_lst: List[Tuple[np.ndarray, dict]]):
         """
         
         Temporary wrapper method that calls Yichen's method that gets all the metric results. 
@@ -241,33 +243,39 @@ class EvalTask(Eval):
 
         
         results = []
-        for end_inf_state in end_inf_state_lst[:-1]:
+        for img, metadata in end_inf_state_lst:
+            action = metadata['lastAction']
             results.append({
                 'task': task_name,
                 'scene': scene_name,
-                'img': ,
-                'xyz_body': ,
-                'xyz_body_delta': ,
-                'yaw_body': ,
-                'yaw_body_delta': ,
-                'pitch_body': ,
-                'xyz_ee': ,
-                'xyz_ee_delta': ,
-                'pickup_dropoff': ,
-                'holding_obj': ,
-                'control_mode': ,
-                'action': ,
-                'terminate':,
-                'step': ,
-                'timeout': ,
-                'error': 
+                'img': img,
+                'xyz_body': metadata['agent']['position'],
+                'xyz_body_delta': None,
+                'yaw_body': metadata['agent']['rotation']['y'],
+                'yaw_body_delta': None,
+                'pitch_body': None,
+                'xyz_ee': metadata['arm']['joints'][3]['position'],
+                'xyz_ee_delta': metadata['arm']['joints'][3]['position'],
+                'pickup_dropoff': action in ['PickupObject', 'ReleaseObject'],
+                'holding_obj': metadata['arm']['heldObjects'],
+                'control_mode': None,
+                'action': action,
+                'terminate': None,
+                'step': None,
+                'timeout': None,
+                'error': metadata['errorMessage']
             })
 
-        final_state = []
-        breakpoint()
+        final_state = end_inf_state_lst[-1]
 
-        with open("results/split_{}/traj_{}.pkl".format(), "wb") as f:
-            pickle.dump(results, f)
+        time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = "results/split_{}/traj_{}.pkl"
+        os.makedirs("results/split_{}".format(split_name), exist_ok=True)
+        with open(filename.format(split_name, time), "wb") as f:
+            pickle.dump({
+                "trajectory_data": results,
+                "final_state": final_state
+            }, f)
 
         #results_dict = yichen_mystery_method(gt_traj, last_inf_state)
 
