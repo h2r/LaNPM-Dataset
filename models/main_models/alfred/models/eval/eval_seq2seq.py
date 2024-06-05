@@ -3,6 +3,8 @@ import sys
 sys.path.append(os.path.join(os.environ['ALFRED_ROOT']))
 sys.path.append(os.path.join(os.environ['ALFRED_ROOT'], 'gen'))
 sys.path.append(os.path.join(os.environ['ALFRED_ROOT'], 'models'))
+sys.path.append(os.path.join(os.environ['ALFRED_ROOT'], "..", "..", ".."))
+
 
 import argparse
 import torch.multiprocessing as mp
