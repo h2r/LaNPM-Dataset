@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 import pandas as pd
+import psutil
 
 from ai2thor.server import MultiAgentEvent
 
@@ -35,7 +36,7 @@ class Evaluator():
 
         # initialize the metrics with pre-computed info
         self.metrics: List[Metric] = [
-            # AreaCoverage(),
+            AreaCoverage(),
             CLIP_SemanticUnderstanding(scene_to_cmds=self.scene_to_cmd),
             RootMSE(),
             DeltaDist(),
@@ -152,7 +153,9 @@ def eval_gt(evaluator: Evaluator, gt_path: str, save_csv_file: str, print_every_
             result['scene'] = scene
             result['model_name'] = "gt"
             result_list.append(result)
-            if print_every_step: print(result)
+            if print_every_step: 
+                print(result)
+                print("Memory Use:", psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
 
     df = pd.DataFrame(result_list)
     ensure_path_exists(save_csv_file)
