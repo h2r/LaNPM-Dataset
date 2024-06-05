@@ -5,8 +5,11 @@ import os
 import json
 import numpy as np
 from tqdm import tqdm
+from datetime import datetime
+import pandas as pd
 
 from ai2thor.server import MultiAgentEvent
+
 
 from metrics.base_metric import AreaCoverage, CLIP_SemanticUnderstanding, Metric, RootMSE, TrajData, Length, GraspSuccRate, EndDistanceDiff
 from metrics.task_succ import TaskSuccMetric
@@ -15,6 +18,7 @@ ap = ArgumentParser()
 ap.add_argument("--gt_traj_path", type=str, default=os.environ['HOME'] + '/data/shared/lanmp/lanmp_dataset.hdf5')
 ap.add_argument("--eval_traj_path", type=str, default="")
 ap.add_argument("--use_gt_for_eval", action='store_true')
+ap.add_argument("--save_csv_file", type=str, default=f"results/eval_{datetime.now().strftime('%m%d%Y_%H%M%S')}.csv")
 ap.add_argument("--print_every_step", action='store_true')
 
 
@@ -25,7 +29,7 @@ class Evaluator():
         self.metrics: List[Metric] = [
             # AreaCoverage(),
             # CLIP_SemanticUnderstanding(dataset_path=gt_dataset_path),
-            # RootMSE(),
+            RootMSE(),
             # TaskSuccMetric(),
             GraspSuccRate(),
             Length(),
@@ -100,9 +104,14 @@ class Evaluator():
         assert cmd2 == cmd, "Command mismatch for eval."
         assert scene2 == scene, "Scene name mismatch for eval."
 
-        results_dict = {
-            metric.name: metric.get_score(scene, exec_traj, gt_traj, end_inf_state, cmd) for metric in self.metrics
-        }
+        results_dict = {}
+        for metric in self.metrics:
+            score = metric.get_score(scene, exec_traj, gt_traj, end_inf_state, cmd)
+            if type(score) == dict:
+                for key, val in score.items():
+                    results_dict[f"{metric.name}/{key}"] = val
+            else:
+                results_dict[metric.name] = val
         return results_dict
 
     def __del__(self):
@@ -113,20 +122,33 @@ def main():
     args = ap.parse_args()
     evaluator = Evaluator(args.gt_traj_path)
     if args.use_gt_for_eval:
-        eval_gt(evaluator, args.gt_traj_path, print_every_step=True)
+        eval_gt(evaluator, args.gt_traj_path, args.save_csv_file, print_every_step=args.print_every_step)
 
 
-def eval_gt(evaluator: Evaluator, gt_path: str, print_every_step: bool=False):
+def ensure_path_exists(filename: str):
+    # src: https://stackoverflow.com/questions/12517451
+    if not os.path.exists(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
+
+def eval_gt(evaluator: Evaluator, gt_path: str, save_csv_file: str, print_every_step: bool=False):
+    """
+    Run evaluation on ground truth dataset.
+    """
     result_list = []
     with h5py.File(gt_path, 'r') as hdf_file:
         for traj_name, traj_content in tqdm(hdf_file.items()):
             converted_traj, cmd, scene = evaluator.convert_gt_hdf5_entry(traj_content, len(traj_content.keys()))
             result = evaluator.evaluate_one_traj(scene, cmd, converted_traj, None)
+            result['cmd'] = cmd
+            result['scene'] = scene
+            result['model_name'] = "gt"
             result_list.append(result)
-            if print_every_step:
-                print(result)
-    print(result_list)
+            if print_every_step: print(result)
 
+    df = pd.DataFrame(result_list)
+    ensure_path_exists(save_csv_file)
+    df.to_csv(save_csv_file, index=False)
+    print("Results written to", save_csv_file)
 
 
 if __name__ == "__main__":

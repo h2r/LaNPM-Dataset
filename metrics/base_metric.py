@@ -38,7 +38,7 @@ class Metric:
             traj_gt: TrajData,
             final_state: Controller, 
             task_cmd: str
-        ) -> float:
+        ) -> Union[float, Mapping[str, float]]:
         raise NotImplementedError("Subclasses should implement this!")
 
 
@@ -69,7 +69,7 @@ class RootMSE(Metric):
 
             mse = np.square(model_data - gt_data)
 
-            if mse.shape[1] > 1:
+            if len(mse.shape) > 1 and mse.shape[1] > 1:
                 mse = np.sum(mse, axis=1)
             mse = np.mean(mse, axis=0)
             rmse = np.sqrt(mse)
@@ -97,7 +97,7 @@ class EndDistanceDiff(Metric):
         self.diff_type = diff_type
         self.name = name
     
-    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str) -> float:
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
         if self.diff_type == "body":
             abs_diff = traj_model.xyz_body[-1] - traj_gt.xyz_body[-1]
         elif self.diff_type == "ee":
@@ -185,7 +185,7 @@ class CLIP_SemanticUnderstanding(Metric):
         2. Exponential moving average
         3. Task v.s. other task prediction
         '''
-
+        self.name = name
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.clip_model, clip_preprocess = clip.load("ViT-L/14@336px", device=self.device)
