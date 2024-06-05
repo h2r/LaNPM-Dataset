@@ -239,7 +239,7 @@ class CLIP_SemanticUnderstanding(Metric):
         ema_clip_reward = 0.0
 
 
-        for i in range(len(traj_model.img.shape[0])):
+        for i in range(traj_model.img.shape[0]):
 
             preprocessed_image = self.clip_preprocess(Image.fromarray(traj_model.img[i])).unsqueeze(0).to(self.device)
 
