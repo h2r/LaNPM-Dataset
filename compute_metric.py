@@ -98,6 +98,7 @@ class Evaluator():
             yaw_body_history.append(body_yaw)
             xyz_ee_history.append(state_ee)
             img_history.append(img)
+            num_steps += 1
         
         return TrajData(
             img=np.array(img_history), xyz_body=np.array(xyz_body_history), yaw_body=np.array(yaw_body_history),
@@ -146,7 +147,10 @@ def eval_gt(evaluator: Evaluator, gt_path: str, save_csv_file: str, print_every_
     """
     result_list = []
     with h5py.File(gt_path, 'r') as hdf_file:
+        # count = -1 # skip ahead
         for traj_name, traj_content in tqdm(hdf_file.items()):
+            # count += 1 # skip ahead
+            # if count < 25: continue # skip ahead
             converted_traj, cmd, scene = evaluator.convert_gt_hdf5_entry(traj_content, len(traj_content.keys()))
             result = evaluator.evaluate_one_traj(scene, cmd, converted_traj, None)
             result['cmd'] = cmd
