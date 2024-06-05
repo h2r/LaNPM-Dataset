@@ -1,4 +1,4 @@
-from typing import List, Mapping
+from typing import List, Mapping, Union
 from dataclasses import dataclass
 import numpy as np
 
@@ -21,6 +21,8 @@ class TrajData:
     xyz_body: np.ndarray # nx3, global position of the body
     yaw_body: np.ndarray # nx1
     xyz_ee: np.ndarray # nx3, global position of the end effector
+    errors: List[Union[None, str]] # list of error messages (str), indexed by the time step they're happening.
+    action: List[str] # list of str actions
     steps: np.int32 #integer, total unpadded number of steps in the trajectory
 
 

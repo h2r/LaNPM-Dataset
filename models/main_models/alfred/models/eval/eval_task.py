@@ -137,7 +137,7 @@ class EvalTask(Eval):
         """
         generates result for one single rollout
         """
-        exec_traj, end_inf_state = cls.rollout(env, model, resnet, traj_data, args, lock, successes, failures, results)
+        exec_traj, end_inf_state = cls.rollout(env, model, resnet, traj_data, args)
         gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
         gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name)
         results = cls.calc_metrics(exec_traj, gt_traj, end_inf_state, lang, scene)
