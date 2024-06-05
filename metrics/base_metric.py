@@ -165,7 +165,7 @@ class CLIP_SemanticUnderstanding(Metric):
             name='clip_semantic_understanding', 
             bellman_lambda=0.99, 
             ema_interval=10,
-            dataset_path=None
+            scene_to_cmds={},
         ):
 
         '''
@@ -184,32 +184,7 @@ class CLIP_SemanticUnderstanding(Metric):
         self.ema_interval = ema_interval
 
         #list of all tasks to be performed in the current scene
-        self.scene_to_keys = self.split_by_scene(dataset_path)
-        self.hdf =  h5py.File(dataset_path, 'r')
-
-
-    def split_by_scene(self, hdf5_path):
-        #mapping which keys are relevant to specific scenes
-        scene_to_keys = {}
-
-        with h5py.File(hdf5_path, 'r') as hdf_file:
-            keys = list(hdf_file.keys())
-
-            for k in keys:
-                traj_json_dict = json.loads(hdf_file[k]['folder_0'].attrs['metadata'])
-
-                if traj_json_dict['scene'] not in scene_to_keys:
-                    scene_to_keys[traj_json_dict['scene']] = []
-                
-                scene_to_keys[traj_json_dict['scene']].append(k)
-        
-        for k in scene_to_keys.keys():
-            scene_to_keys[k] = list(sorted(scene_to_keys[k]))
-        
-        with open('./lanmp_dataloader_scene_to_keys.json', 'w') as f:
-            json.dump(scene_to_keys, f)
-
-        return scene_to_keys
+        self.sceme_to_cmds = scene_to_cmds
 
 
     def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
@@ -239,21 +214,7 @@ class CLIP_SemanticUnderstanding(Metric):
             else:
                 ema_clip_reward = self.ema_alpha*clip_similarity_score + (1-self.ema_alpha)*ema_clip_reward
 
-
-        scene_keys = self.scene_to_keys[scene_name]
-        all_tasks_for_scene = set([])
-
-        for task in scene_keys:
-            traj_group = self.hdf[task]
-            traj_steps = list(traj_group.keys())
-
-            json_str = traj_group[traj_steps[0]].attrs['metadata']
-            traj_json_dict = json.loads(json_str)
-            nl_command = traj_json_dict['nl_command']
-
-            all_tasks_for_scene.add(nl_command)
-
-        all_tasks_for_scene = list(all_tasks_for_scene)
+        all_tasks_for_scene = self.sceme_to_cmds[scene_name]
         success_index = all_tasks_for_scene.index(task_cmd)
 
         correct_task_clip_score = 0

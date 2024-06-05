@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from collections import defaultdict
 from typing import List, Mapping
 import h5py
 import os
@@ -26,17 +27,20 @@ ap.add_argument("--print_every_step", action='store_true')
 class Evaluator():
     def __init__(self, gt_dataset_path: str):
         self.gt_file = h5py.File(gt_dataset_path, 'r')
+        self.cmd_to_traj_name: Mapping[str, str] = {}
+        self.scene_to_cmd: Mapping[str, List[str]] = defaultdict(list)
+        self.build_traj_index()
+
+        # initialize the metrics with pre-computed info
         self.metrics: List[Metric] = [
             # AreaCoverage(),
-            CLIP_SemanticUnderstanding(dataset_path=gt_dataset_path),
+            CLIP_SemanticUnderstanding(scene_to_cmd=self.scene_to_cmd),
             RootMSE(),
             # TaskSuccMetric(),
             GraspSuccRate(),
             Length(),
             EndDistanceDiff()
         ]
-        self.cmd_to_traj_name: Mapping[str, str] = {}
-        self.build_traj_index()
     
     def build_traj_index(self):
         self.cmd_to_traj_name = {}
@@ -44,7 +48,10 @@ class Evaluator():
             # breakpoint()
             json_data_step0 = json.loads(traj_data['folder_0'].attrs['metadata'])
             nl_cmd = json_data_step0['nl_command']
+            scene = json_data_step0['scene']
             self.cmd_to_traj_name[nl_cmd] = traj_name
+            self.scene_to_cmd[scene].append(nl_cmd)
+            
     
     def convert_gt_hdf5_entry(self, traj_hdf_group: h5py.Group, desired_len: int) -> TrajData:
         img_history = []
