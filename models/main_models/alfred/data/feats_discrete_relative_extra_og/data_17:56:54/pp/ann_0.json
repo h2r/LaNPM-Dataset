@@ -1,0 +1,1590 @@
+{
+    "ann": {
+        "goal": [
+            " grab ",
+            " the ",
+            " remote ",
+            " and ",
+            " take ",
+            " it ",
+            " to ",
+            " the ",
+            " chair ",
+            " sitting ",
+            " in ",
+            " front ",
+            " of ",
+            " the ",
+            " tv ",
+            ". ",
+            "<<goal>>"
+        ],
+        "task_desc": "Grab the remote and take it to the chair sitting in front of the TV."
+    },
+    "num": {
+        "action_low": [
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 5,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 2
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    104,
+                    127,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 2,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    11,
+                    100,
+                    84
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 2,
+                "mode": 4,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 2,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 2,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 1,
+                "mode": 4,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    117,
+                    121,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    117,
+                    121,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    117,
+                    121,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    117,
+                    121,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    117,
+                    121,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    103,
+                    146,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    117,
+                    121,
+                    146
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    7
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    131
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    133
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    121
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    121
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 3,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 3,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    121
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 4,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 2,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 3,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 3,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 3,
+                "state_ee": [
+                    18,
+                    95,
+                    80
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 3,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 1,
+                "grasp_drop": 0,
+                "mode": 1,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": 0,
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    136
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 2,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    130
+                ],
+                "up_down": 0
+            },
+            {
+                "base_action": 0,
+                "grasp_drop": 0,
+                "mode": 0,
+                "state_ee": [
+                    0,
+                    0,
+                    0
+                ],
+                "state_rot": [
+                    0
+                ],
+                "up_down": 0
+            }
+        ],
+        "lang_goal": [
+            4,
+            5,
+            40,
+            12,
+            45,
+            14,
+            34,
+            5,
+            26,
+            122,
+            75,
+            112,
+            29,
+            5,
+            98,
+            19,
+            2
+        ]
+    },
+    "root": "data/feats_discrete_relative_extra/data_17:56:54",
+    "scene": "FloorPlan_Train8_1",
+    "split": "train"
+}

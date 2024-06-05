@@ -25,6 +25,11 @@ class EvalTask(Eval):
                 break
 
             task = task_queue.get()
+            # task = task_queue.get()
+            # task = task_queue.get()
+            # task = task_queue.get()
+            # task = task_queue.get()
+
 
             try:
                 traj = model.load_task_json(task)
@@ -52,64 +57,145 @@ class EvalTask(Eval):
 
         # goal instr
         goal_instr = traj_data['ann']['task_desc']
+        print('lang: ', goal_instr)
+
+        gt_traj_tknzd = traj_data['num']['action_low']
+        # print("lang: ", traj_data['ann'][1])
+        print("root: ", traj_data['root'])
+        print('scene: ', traj_data['scene'])
+        # breakpoint()
 
         done, success = False, False
         fails = 0
         t = 0
-        while not done:
-            print(f"Step: {t} ", end="\r")
+        
+        end_inf_state = env.get_first_event()
+        end_inf_state_lst = [end_inf_state]
+        if not args.human_traj:
+            while not done:
+                # break if max_steps reached
+                if t >= args.max_steps:
+                # if t >= 3:
+                    break
 
-            # break if max_steps reached
-            if t >= args.max_steps:
-            # if t >= 3:
-                break
+                # extract visual features
+                curr_image = Image.fromarray(np.uint8(env.last_event.frame))
+                feat['frames'] = resnet.featurize([curr_image], batch=1).unsqueeze(0)
 
-            # extract visual features
-            curr_image = Image.fromarray(np.uint8(env.last_event.frame))
-            feat['frames'] = resnet.featurize([curr_image], batch=1).unsqueeze(0)
-
-            # forward model
-            m_out = model.step(feat, t)
-            m_pred = model.extract_preds(m_out, [traj_data], feat, clean_special_tokens=False)
-            m_pred = list(m_pred.values())[0]
+                # forward model
+                m_out = model.step(feat, t)
+                m_pred = model.extract_preds(m_out, [traj_data], feat, clean_special_tokens=False)
+                m_pred = list(m_pred.values())[0]
 
 
-            # # check if <<stop>> was predicted
-            if m_pred['action_low_word'] == "stop":
-                print("\tpredicted STOP")
-                break
+                # # check if <<stop>> was predicted
+                if m_pred['action_low_word'] == "stop":
+                    print("\tpredicted STOP")
+                    break
 
-            # get action
-            word_action = m_pred['action_low_word']
-            num_action = m_pred['action_low_num']
+                # get action
+                word_action = m_pred['action_low_word']
+                num_action = m_pred['action_low_num']
 
-            # print action
-            if args.debug:
-                print(action)
+                # print action
+                if args.debug:
+                    print(action)
 
-            #  use predicted action to interact with the env
-            t_success, error, end_inf_state = env.take_action(word_action, num_action, args.rand_agent) # t_success: True, False, or None, or "stop"
-            if t_success == "stop": # only for random agent
-                print("\tpredicted STOP")
-                break
-            # optional
-            # if t_success == False:
-            #     fails += 1
-            #     if fails >= args.max_fails:
-            #         print("Interact API failed %d times" % fails)
-            #         break
-            t += 1
+                #  use predicted action to interact with the env
+                print(f"Step: {t} ", end="\r")
+                print('word_action: ', word_action)
+                t_success, error, end_inf_state = env.take_action(word_action, num_action, args.rand_agent) # t_success: True, False, or None, or "stop"
+                end_inf_state_lst.append(end_inf_state)
+                if t_success == "stop": # only for random agent
+                    print("\tpredicted STOP")
+                    break
+                # optional
+                # if t_success == False:
+                #     fails += 1
+                #     if fails >= args.max_fails:
+                #         print("Interact API failed %d times" % fails)
+                #         break
+                t += 1
+        else: #human traj
+            gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
+            gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
+            # breakpoint()
+            # for step_action, gt_action in zip(gt_traj_tknzd[:-1], gt_traj): #skip the stop action at the end
+            for gt_action in gt_traj[1:]:
+                # breakpoint()
+                # word_action, num_action = cls.get_gt_word_num_actions(step_action)
+                # print(f'word_action: {word_action}')
+                # print(f'step num: {i}')
+                t_success, error, end_inf_state = env.take_human_action(gt_action)
 
-        gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
-        gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name)
-        results = cls.calc_metrics(gt_traj, end_inf_state, lang, scene)
+                arm_data = end_inf_state["arm"]["joints"][3]['position']
+                global_coord_agent = end_inf_state['agent']['position']
+                yaw_agent =  end_inf_state['agent']['rotation']['y']
+                body_data = [global_coord_agent['x'], global_coord_agent['y'], global_coord_agent['z'], yaw_agent]
+                # print(f"arm: {arm_data}")
+                # print(f'body: {body_data}')
+                # print(f'error: {error}')
 
-        # lock.release()
+                end_inf_state_lst.append(end_inf_state)
 
+        env.i = 0
+        
+        # gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
+        # gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
+        results = cls.calc_metrics(end_inf_state_lst)
+
+    @classmethod
+    def get_gt_word_num_actions(cls, action_dict):
+        alow = action_dict
+        word_action = None
+        num_action = None
+        if alow['mode'] == 0:
+            word_action = 'stop'
+            num_action = [0]
+        elif alow['mode'] == 1: #base
+            if alow['base_action'] == 0:
+                word_action = 'NoOp' #made by me
+            if alow['base_action'] == 1:
+                word_action = 'MoveAhead'
+            elif alow['base_action'] == 2:
+                word_action = 'MoveBack'
+            elif alow['base_action'] == 3:
+                word_action = 'MoveRight'
+            elif alow['base_action'] == 4:
+                word_action = 'MoveLeft'
+            num_action = alow['base_action'] #index, not actual val like others, not used down the line
+        elif alow['mode'] == 2: #rotate
+            word_action = "RotateAgent"
+            num_action = alow['state_rot'][0]
+        # self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm_base':3, 'arm': 3, 'ee': 4, 'look': 6} #different action modes
+        elif alow['mode'] == 3:
+            word_action = 'MoveArmBase'
+            num_action = alow['state_ee']
+        elif alow['mode'] == 4: #end-effector
+            word_action = 'MoveArm'
+            num_action = alow['state_ee']
+        elif alow['mode'] == 5: #grasp/drop
+            if alow['grasp_drop'] == 0:
+                word_action = 'NoOp' #made by me
+            elif alow['grasp_drop'] == 1:
+                word_action = 'PickupObject'
+            elif alow['grasp_drop'] == 2:
+                word_action = 'ReleaseObject'
+            num_action = alow['grasp_drop']  #index, not actual val like others, not used down the line
+        elif alow['mode'] == 6: #look
+            if alow['up_down'] == 0:
+                word_action = 'NoOp'
+            if alow['up_down'] == 1:
+                word_action = 'LookUp'
+            elif alow['up_down'] == 2:
+                word_action = 'LookDown'
+            num_action = alow['up_down']  #index, not actual val like others, not used down the line
+
+        return word_action, num_action
 
     @classmethod
     def get_gt_traj(cls, gt_traj_name):
-        hdf5_file_path = '/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5' #TODO make relative later
+        hdf5_file_path = '/oscar/data/stellex/data/shared/lanmp/lanmp_dataset.hdf5'
         # Trajectory to fetch actions from
         trajectory_name = gt_traj_name
 
@@ -141,16 +227,13 @@ class EvalTask(Eval):
         return traj_action_lst, nl_command, scene
 
     @classmethod
-    def calc_metrics(cls, gt_traj, end_inf_state, lang, scene):
+    def calc_metrics(cls, end_inf_state_lst):
         """
         
         Temporary wrapper method that calls Yichen's method that gets all the metric results. 
         Made it a wrapper so it's more isolated and easier for Yichen to look at. 
-        Later, I will remove the wrapper and call his method directly in my main inference code
-        gt_traj is a single ground truth trajectory. It is a list of dicts where each dict has the action, xyz of body, yaw of body, and xyz of ee for a timestep. xyz are global coords. yaw is degrees
-        end_inf_state is the end/last return from the controller from inference episode that has all robot and env info. If this is None, that means the robot didn't move at all and the episode ended, which either shouldn't happen or rarely happen so don't worry about it too much
-        lang is the NL command
-        scene is the name of the trajectory's scene
+        Later, I might remove this wrapper and call his method directly in my main inference code
+        end_inf_state a list/rollout the end/last return of each step from the controller from inference episode that has all robot and env info.
         
         """
 

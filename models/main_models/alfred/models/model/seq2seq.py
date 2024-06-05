@@ -24,7 +24,7 @@ class Module(nn.Module):
             self.grasp_drop_class_num = 3
             self.up_down_class_num = 3
             self.base_class_num = 5
-            self.mode_class_num = 6
+            self.mode_class_num = 7
             self.bin_add = 1
         else:
             self.action_pad = -2.0 #regression
@@ -61,7 +61,7 @@ class Module(nn.Module):
         args = args or self.args
 
         # splits
-        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
+        with open(os.environ['HOME'] + "/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             split_keys = json.load(f)
             train = split_keys['train']
             test = split_keys['test']
@@ -78,10 +78,9 @@ class Module(nn.Module):
             valid_unseen = valid_unseen[:index_to_keep]
 
         # debugging: use to check if training loop works without waiting for full epoch
-        # if self.args.fast_epoch:
-        #     train = train[:16]
-        #     valid_seen = valid_seen[:16]
-        #     valid_unseen = valid_unseen[:16]
+        if self.args.fast_epoch:
+            train = train[:16]
+            test = test[:16]
 
         # initialize summary writer for tensorboardX
         self.summary_writer = SummaryWriter(log_dir=args.dout)
@@ -100,33 +99,39 @@ class Module(nn.Module):
         # train_iter, valid_seen_iter, valid_unseen_iter = 0, 0, 0
         best_loss = {'train': 1e10, 'test': 1e10}
         train_iter, test_iter = 0, 0,
+        total_train_results = list()
+        total_test_results = list()
         for epoch in trange(0, self.args.epoch, desc='epoch'):
             print(f'train_iter: {train_iter}\n')
             m_train = collections.defaultdict(list) #dict where values are lists
             self.train() #puts model in training mode
             self.adjust_lr(optimizer, self.args.lr, epoch, decay_epoch=self.args.decay_epoch)
-            total_train_loss = list()
             random.shuffle(train) # shuffle every epoch
+            epoch_losses = []
             for batch, feat in self.iterate(train, self.args.batch):
                 out = self.forward(feat)
                 loss = self.compute_loss(out, batch, feat) #loss for the whole batch
-                for k, v in loss.items(): #only 1 item, which is 'action_low" loss
-                    ln = 'loss_' + k
-                    m_train[ln].append(v.item())
-                    self.summary_writer.add_scalar('train/' + ln, v.item(), train_iter)
+                # for k, v in loss.items(): #only 1 item, which is 'action_low" loss
+                #     ln = 'loss_' + k
+                #     m_train[ln].append(v.item())
+                #     self.summary_writer.add_scalar('train/' + ln, v.item(), train_iter)
 
                 # optimizer backward pass
                 optimizer.zero_grad()
-                scalar_loss = next(iter(loss.values())) #extract tensor scalar from dict
+                # scalar_loss = next(iter(loss.values())) #extract tensor scalar from dict
+                scalar_loss = loss['action_low']
+                std = loss['action_low_std']
 
                 scalar_loss.backward() # performs gradients
                 optimizer.step() # makes the change based on the gradients
 
                 self.summary_writer.add_scalar('train/loss', scalar_loss, train_iter)
                 scalar_loss = scalar_loss.detach().cpu()
-                total_train_loss.append(float(scalar_loss))
+                std = std.detach().cpu()
+                epoch_losses.append({"mean_batch_loss_train": float(scalar_loss), "std_batch_loss_train": float(std)})
                 # train_iter += self.args.batch
                 train_iter += 1
+            total_train_results.append(epoch_losses)
 
 
             ## compute metrics for train (too memory heavy!)
@@ -137,10 +142,12 @@ class Module(nn.Module):
 
             # compute metrics for valid_seen
             # valid_seen_iter, total_valid_seen_loss, m_valid_seen = self.run_pred(valid_seen, args=self.args, name='valid_seen', iter=valid_seen_iter)
-            test_iter, total_test_loss, avg_test_loss, m_test = self.run_pred(test, args=self.args, name='test', iter=test_iter)
+            # test_iter, total_test_loss, avg_test_loss, m_test = self.run_pred(test, args=self.args, name='test', iter=test_iter)
+            avg_test_loss, avg_test_std = self.run_pred(test, args=self.args, name='test', iter=test_iter)
+            total_test_results.append({"mean_loss_test": avg_test_loss, "std_loss_test": avg_test_std})
             # m_valid_seen.update(self.compute_metric(p_valid_seen, valid_seen))
-            m_test['avg_loss'] = float(avg_test_loss)
-            self.summary_writer.add_scalar('test/total_loss', m_test['avg_loss'], test_iter)
+            # m_test['avg_loss'] = float(avg_test_loss)
+            # self.summary_writer.add_scalar('test/total_loss', m_test['avg_loss'], test_iter)
 
             # compute metrics for valid_unseen
             # valid_unseen_iter, total_valid_unseen_loss, m_valid_unseen = self.run_pred(valid_unseen, args=args, name='valid_unseen', iter=valid_unseen_iter)
@@ -148,15 +155,11 @@ class Module(nn.Module):
             # m_valid_unseen['total_loss'] = float(total_valid_unseen_loss)
             # self.summary_writer.add_scalar('valid_unseen/total_loss', m_valid_unseen['total_loss'], valid_unseen_iter)
 
-            stats = {'epoch': epoch, 'test': m_test}
+            stats = {'epoch': epoch, 'test': avg_test_loss}
 
             # new best test loss
             if avg_test_loss < best_loss['test']:
                 print('\nFound new best test!! Saving...')
-                losses_path = os.path.join(self.args.dout, f'batch_losses_epoch{epoch}.json') 
-                loss_dict = {'train_batch_losses': total_train_loss, 'train_std': np.std(np.array(total_train_loss)), 'test_batch_losses': total_test_loss, 'test_std': np.std(np.array(total_test_loss))}                
-                with open(losses_path, "w") as file: 
-                    json.dump(loss_dict, file)
 
                 fsave = os.path.join(self.args.dout, 'best_test.pth')
                 torch.save({
@@ -220,10 +223,16 @@ class Module(nn.Module):
                     for k, v in stats[split].items():
                         self.summary_writer.add_scalar(split + '/' + k, v, train_iter)
             pprint.pprint(stats)
+            
+            loss_stds_dict = {"train_results": total_train_results, "test_results": total_test_results}
+            losses_stds_path = os.path.join(self.args.dout, f'losses_stds.json') 
+            with open(losses_stds_path, "w") as file: 
+                json.dump(loss_stds_dict, file)
+
 
     def run_pred(self, dev, args=None, name='dev', iter=0):
         '''
-        validation loop
+        test loop
         '''
         args = args or self.args
         m_dev = collections.defaultdict(list)
@@ -231,24 +240,38 @@ class Module(nn.Module):
         self.eval()
         total_loss = list()
         dev_iter = iter
+        sum_batch_losses = 0
+        sum_batch_stds = 0
+        sum_feats = 0
         for batch, feat in self.iterate(dev, self.args.batch):
             out = self.forward(feat)
             # preds = self.extract_preds(out, batch, feat)
             # p_dev.update(preds)
-            loss = self.compute_loss(out, batch, feat) #loss for whole batch
-            for k, v in loss.items():
-                ln = 'loss_' + k
-                m_dev[ln].append(v.item())
-                self.summary_writer.add_scalar("%s/%s" % (name, ln), v.item(), dev_iter)
-            sum_loss = sum(loss.values())
+            loss = self.compute_loss(out, batch, feat) #avg loss for whole batch
+            # for k, v in loss.items():
+            #     ln = 'loss_' + k
+            #     m_dev[ln].append(v.item())
+            #     self.summary_writer.add_scalar("%s/%s" % (name, ln), v.item(), dev_iter)
+
+            sum_loss = float(loss['action_low'].detach().cpu()) * len(feat) # get back the loss sum from the avg
+            sum_batch_losses += sum_loss
+            sum_feats += len(feat)
+
+            sum_std = np.square(float(loss['action_low_std'].detach().cpu()))*len(feat)
+            sum_batch_stds += sum_std
+
+
             self.summary_writer.add_scalar("%s/loss" % (name), sum_loss, dev_iter)
-            total_loss.append(float(sum_loss.detach().cpu()))
+            # total_loss.append(float(sum_loss.detach().cpu()))
             # dev_iter += len(batch)
             dev_iter += 1
 
-        m_dev = {k: sum(v) / len(v) for k, v in m_dev.items()}
-        avg_loss = sum(total_loss) / len(total_loss)
-        return dev_iter, total_loss, avg_loss, m_dev
+        # m_dev = {k: sum(v) / len(v) for k, v in m_dev.items()}
+        # avg_loss = sum(total_loss) / len(total_loss)
+        # return dev_iter, total_loss, avg_loss, m_dev
+        avg_loss = sum_batch_losses/sum_feats
+        avg_std = np.sqrt(sum_batch_stds/sum_feats)
+        return avg_loss, avg_std
 
     def featurize(self, batch):
         raise NotImplementedError()
