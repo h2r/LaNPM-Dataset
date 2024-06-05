@@ -104,21 +104,18 @@ class RootMSE(Metric):
         return score
 
 
-class EndDistanceDiff(Metric):
+class GoalDistanceDiff(Metric):
     """
     Computes the distance between the gt last epi and the true last epi xyz
     """
-    def __init__(self, name="distance_diff", diff_type="body"):
-        assert diff_type in ["body", "ee"], diff_type + " distance type not implemented. implemented options are: body, ee"
-        self.diff_type = diff_type
+    def __init__(self, name="goal_diff"):
         self.name = name
     
     def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
-        if self.diff_type == "body":
-            abs_diff = traj_model.xyz_body[-1] - traj_gt.xyz_body[-1]
-        elif self.diff_type == "ee":
-            abs_diff = traj_model.xyz_ee[-1] - traj_gt.xyz_ee[-1]
-        return np.sqrt(np.mean(abs_diff ** 2))
+        return {
+            "body": np.sum((traj_model.xyz_body[-1] - traj_gt.xyz_body[-1]) ** 2),
+            "ee": np.sum((traj_model.xyz_ee[-1] - traj_gt.xyz_ee[-1]) ** 2)
+        }
 
 
 class GraspSuccRate(Metric):

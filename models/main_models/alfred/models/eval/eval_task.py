@@ -1,10 +1,12 @@
 import os
 import json
+import pickle
 import numpy as np
 from PIL import Image
 from datetime import datetime
 from eval import Eval
 from env.thor_env import ThorEnv
+from copy import deepcopy
 import h5py
 
 class EvalTask(Eval):
@@ -222,12 +224,12 @@ class EvalTask(Eval):
                         state_ee = steps[0]['state_ee'][:3]
                         
                         state_dict = {'action': action, 'state_body': state_body, 'body_yaw': body_yaw, 'state_ee': state_ee}
-                        traj_action_lst.append(state_dict)
+                        traj_action_lst.append(deepcopy(state_dict))
         
         return traj_action_lst, nl_command, scene
 
     @classmethod
-    def calc_metrics(cls, end_inf_state_lst):
+    def calc_metrics(cls, task_name, scene_name, split_name, end_inf_state_lst):
         """
         
         Temporary wrapper method that calls Yichen's method that gets all the metric results. 
@@ -237,11 +239,37 @@ class EvalTask(Eval):
         
         """
 
+        
+        results = []
+        for end_inf_state in end_inf_state_lst[:-1]:
+            results.append({
+                'task': task_name,
+                'scene': scene_name,
+                'img': ,
+                'xyz_body': ,
+                'xyz_body_delta': ,
+                'yaw_body': ,
+                'yaw_body_delta': ,
+                'pitch_body': ,
+                'xyz_ee': ,
+                'xyz_ee_delta': ,
+                'pickup_dropoff': ,
+                'holding_obj': ,
+                'control_mode': ,
+                'action': ,
+                'terminate':,
+                'step': ,
+                'timeout': ,
+                'error': 
+            })
+
+        final_state = []
         breakpoint()
 
-        #results_dict = yichen_mystery_method(gt_traj, last_inf_state)
+        with open("results/split_{}/traj_{}.pkl".format(), "wb") as f:
+            pickle.dump(results, f)
 
-        pass
+        #results_dict = yichen_mystery_method(gt_traj, last_inf_state)
 
 
     def create_stats(self):

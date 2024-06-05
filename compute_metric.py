@@ -14,8 +14,8 @@ from ai2thor.server import MultiAgentEvent
 
 
 from metrics.base_metric import \
-    AreaCoverage, CLIP_SemanticUnderstanding, Metric, \
-    RootMSE, TrajData, Length, GraspSuccRate, EndDistanceDiff, DeltaDist
+    AreaCoverage, CLIP_SemanticUnderstanding, GoalDistanceDiff, Metric, \
+    RootMSE, TrajData, Length, GraspSuccRate, DeltaDist
 from metrics.task_succ import TaskSuccMetric
 
 ap = ArgumentParser()
@@ -40,6 +40,7 @@ class Evaluator():
             CLIP_SemanticUnderstanding(scene_to_cmds=self.scene_to_cmd),
             RootMSE(),
             DeltaDist(),
+            GoalDistanceDiff(),
             # TaskSuccMetric(),
             GraspSuccRate(),
             Length(),
