@@ -199,7 +199,7 @@ class CLIP_SemanticUnderstanding(Metric):
     def __init__(
             self, 
             name='clip_semantic_understanding', 
-            bellman_lambda=0.99, 
+            bellman_lambda=0.9, 
             ema_interval=10,
             scene_to_cmds={},
         ):
@@ -243,7 +243,7 @@ class CLIP_SemanticUnderstanding(Metric):
 
                 clip_similarity_score = image_features @ text_features.T
             
-            discounted_clip_reward += self.bellman_lambda*clip_similarity_score if i < traj_model.img.shape[0] - 1 else clip_similarity_score
+            discounted_clip_reward = self.bellman_lambda*discounted_clip_reward + clip_similarity_score if i < traj_model.img.shape[0] - 1 else clip_similarity_score
 
             if (i+1) <= self.ema_interval:
                 ema_clip_reward += clip_similarity_score / self.ema_interval
