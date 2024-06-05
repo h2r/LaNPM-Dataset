@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from collections import defaultdict
-from typing import List, Mapping
+from typing import List, Mapping, Tuple
 import h5py
 import os
 import json
@@ -32,7 +32,7 @@ class Evaluator():
         self.gt_file = h5py.File(gt_dataset_path, 'r')
         self.cmd_to_traj_name: Mapping[str, str] = {}
         self.scene_to_cmd: Mapping[str, List[str]] = defaultdict(list)
-        self.build_traj_index()
+        self._build_traj_index()
 
         # initialize the metrics with pre-computed info
         self.metrics: List[Metric] = [
@@ -45,7 +45,7 @@ class Evaluator():
             Length(),
         ]
     
-    def build_traj_index(self):
+    def _build_traj_index(self):
         self.cmd_to_traj_name = {}
         for traj_name, traj_data in self.gt_file.items():
             # breakpoint()
@@ -56,7 +56,7 @@ class Evaluator():
             self.scene_to_cmd[scene].append(nl_cmd)
             
     
-    def convert_gt_hdf5_entry(self, traj_hdf_group: h5py.Group, desired_len: int) -> TrajData:
+    def convert_gt_hdf5_entry(self, traj_hdf_group: h5py.Group, desired_len: int) -> Tuple[TrajData, str, str]:
         img_history = []
         xyz_body_history = []
         xyz_ee_history = []
@@ -93,28 +93,72 @@ class Evaluator():
                 error_history.append(None)
                 
                 num_steps += 1
+        original_num_steps = num_steps
         while num_steps < desired_len:
             xyz_body_history.append(state_body)
             yaw_body_history.append(body_yaw)
             xyz_ee_history.append(state_ee)
             img_history.append(img)
+            action_history.append(action)
+            error_history.append(None)
             num_steps += 1
         
         return TrajData(
             img=np.array(img_history), xyz_body=np.array(xyz_body_history), yaw_body=np.array(yaw_body_history),
-            xyz_ee=np.array(xyz_ee_history), steps=num_steps,
+            xyz_ee=np.array(xyz_ee_history), steps=original_num_steps,
             errors=error_history, action=action_history
         ), nl_command, scene
 
+
+    def _pad_eval_traj(self, eval_traj: TrajData, desired_length: int):
+        img_history = list(eval_traj.img)
+        xyz_body_history = list(eval_traj.xyz_body)
+        yaw_body_history = list(eval_traj.yaw_body)
+        xyz_ee_history = list(eval_traj.xyz_ee)
+        action_history = eval_traj.action
+        error_history = eval_traj.errors
+        num_steps = eval_traj.steps
+
+        while num_steps < desired_length:
+            xyz_body_history.append(xyz_body_history[-1])
+            yaw_body_history.append(yaw_body_history[-1])
+            xyz_ee_history.append(xyz_ee_history[-1])
+            img_history.append(img_history[-1])
+            action_history.append(action_history[-1])
+            error_history.append(None)
+            num_steps += 1
+        return TrajData(
+            img=np.array(img_history), xyz_body=np.array(xyz_body_history), yaw_body=np.array(yaw_body_history),
+            xyz_ee=np.array(xyz_ee_history), steps=num_steps,
+            errors=error_history, action=action_history
+        )
+
     
-    def evaluate_one_traj(self, scene: str, cmd: str, exec_traj: TrajData, end_inf_state: MultiAgentEvent) -> Mapping[str, float]:
+    def evaluate_one_traj(self, scene: str, cmd: str, exec_traj: TrajData, end_inf_state: MultiAgentEvent, pad_eval=True) -> Mapping[str, float]:
+        # load gt traj
         gt_traj_name = self.cmd_to_traj_name[cmd]
         gt_traj_h5 = self.gt_file[gt_traj_name]
-        gt_traj, cmd2, scene2 = self.convert_gt_hdf5_entry(gt_traj_h5, len(exec_traj.errors))
-        
+        gt_desired_len = len(exec_traj.errors)
+
+        # convert hdf5 to data. 
+        # padded gt length
+        gt_traj, cmd2, scene2 = self.convert_gt_hdf5_entry(gt_traj_h5, gt_desired_len)
+
         assert cmd2 == cmd, "Command mismatch for eval."
         assert scene2 == scene, "Scene name mismatch for eval."
 
+        # padded eval length if needed. otherwise cut down gt traj
+        if pad_eval:
+            # pad exec traj with the last time step
+            if len(exec_traj.errors) < len(gt_traj.errors):
+                exec_traj = self._pad_eval_traj(exec_traj, len(gt_traj.errors))
+        else:
+            # cut gt traj to match exec traj len. TODO test
+            for key in gt_traj.__dict__.keys():
+                if type(getattr(gt_traj, key)) in [list, np.ndarray]:
+                    gt_traj_h5[key] = gt_traj[key][:len(exec_traj.errors)]
+
+        # get results
         results_dict = {}
         for metric in self.metrics:
             score = metric.get_score(scene, exec_traj, gt_traj, end_inf_state, cmd)
@@ -150,7 +194,7 @@ def eval_gt(evaluator: Evaluator, gt_path: str, save_csv_file: str, print_every_
         # count = -1 # skip ahead
         for traj_name, traj_content in tqdm(hdf_file.items()):
             # count += 1 # skip ahead
-            # if count < 25: continue # skip ahead
+            # if count < 23: continue # skip ahead
             converted_traj, cmd, scene = evaluator.convert_gt_hdf5_entry(traj_content, len(traj_content.keys()))
             result = evaluator.evaluate_one_traj(scene, cmd, converted_traj, None)
             result['cmd'] = cmd
