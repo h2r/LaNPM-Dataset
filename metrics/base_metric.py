@@ -42,16 +42,12 @@ class Metric:
         raise NotImplementedError("Subclasses should implement this!")
 
 
-
-
 class RootMSE(Metric):
-
     def __init__(self, name = 'rmse', weightage = [0.33, 0.33, 0.34]):
         self.name = name
         self.property_weights = weightage
 
     def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
-        
         score = {}
 
         # assert(len(traj_model[traj_model.keys()[0]]) == len(traj_gt[traj_gt.keys()[0]]), "Error: GT and model traj don't have the same length")
@@ -65,8 +61,6 @@ class RootMSE(Metric):
             model_data = np.array(traj_model_data[key])
             gt_data = np.array(traj_gt_data[key])
 
-
-
             mse = np.square(model_data - gt_data)
 
             if len(mse.shape) > 1 and mse.shape[1] > 1:
@@ -75,16 +69,13 @@ class RootMSE(Metric):
             rmse = np.sqrt(mse)
 
             score[key] = rmse
-        
 
         weighted_score = 0
 
         for weight, key in zip(self.property_weights, score.keys()):
-
             weighted_score += weight * score[key]
         
         score['overall_weighted'] = weighted_score
-    
         return score
 
 
@@ -129,7 +120,6 @@ class Length(Metric):
     Computes the length of the episode
     '''
     def __init__(self, name = 'length'):
-
         self.name = name
     
 
@@ -145,7 +135,6 @@ class AreaCoverage(Metric):
     '''
 
     def __init__(self, name = 'area_coverage'):
-
         self.name = name
     
 
@@ -169,7 +158,6 @@ class AreaCoverage(Metric):
 
 
 
-
 class CLIP_SemanticUnderstanding(Metric):
 
     def __init__(
@@ -188,7 +176,7 @@ class CLIP_SemanticUnderstanding(Metric):
         self.name = name
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.clip_model, clip_preprocess = clip.load("ViT-L/14@336px", device=self.device)
+        self.clip_model, self.clip_preprocess = clip.load("ViT-L/14@336px", device=self.device)
         
         #hyperparams for the CLIP metric
         self.bellman_lambda = bellman_lambda
@@ -198,17 +186,13 @@ class CLIP_SemanticUnderstanding(Metric):
         #list of all tasks to be performed in the current scene
         self.scene_to_keys = self.split_by_scene(dataset_path)
         self.hdf =  h5py.File(dataset_path, 'r')
-        
-
 
 
     def split_by_scene(self, hdf5_path):
-
         #mapping which keys are relevant to specific scenes
         scene_to_keys = {}
 
         with h5py.File(hdf5_path, 'r') as hdf_file:
-
             keys = list(hdf_file.keys())
 
             for k in keys:
@@ -229,46 +213,31 @@ class CLIP_SemanticUnderstanding(Metric):
 
 
     def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
-
-        
         # assert(len(traj_model[traj_model.keys()[0]]) == len(traj_gt[traj_gt.keys()[0]]), "Error: GT and model traj don't have the same length")
         assert 'img' in dir(traj_model) and 'img' in dir(traj_gt), "Error: image key not in model or gt trajectory"
         
-
         discounted_clip_reward = 0.0
         ema_clip_reward = 0.0
 
-
         for i in range(traj_model.img.shape[0]):
-
             preprocessed_image = self.clip_preprocess(Image.fromarray(traj_model.img[i])).unsqueeze(0).to(self.device)
-
-            preprocessed_text = clip.tokenize([traj_model.task_cmd]).to(self.device)
+            preprocessed_text = clip.tokenize([task_cmd]).to(self.device)
 
             with torch.no_grad():
-
                 image_features = self.clip_model.encode_image(preprocessed_image)
                 image_features /= image_features.norm(dim=-1, keepdim=True)
 
                 text_features = self.clip_model.encode_text(preprocessed_text)
                 text_features /= text_features.norm(dim=-1, keepdim=True)
 
-
                 clip_similarity_score = image_features @ text_features.T
             
-
-
-            discounted_clip_reward += self.bellman_lambda*clip_similarity_score if i < len(traj_model.img.shape[0])-1 else clip_similarity_score
+            discounted_clip_reward += self.bellman_lambda*clip_similarity_score if i < traj_model.img.shape[0] - 1 else clip_similarity_score
 
             if (i+1) <= self.ema_interval:
                 ema_clip_reward += clip_similarity_score / self.ema_interval
             else:
                 ema_clip_reward = self.ema_alpha*clip_similarity_score + (1-self.ema_alpha)*ema_clip_reward
-
-
-
-
-
 
 
         scene_keys = self.scene_to_keys[scene_name]
@@ -285,35 +254,27 @@ class CLIP_SemanticUnderstanding(Metric):
             all_tasks_for_scene.add(nl_command)
 
         all_tasks_for_scene = list(all_tasks_for_scene)
-        success_index = all_tasks_for_scene.index(traj_model.task_cmd)
+        success_index = all_tasks_for_scene.index(task_cmd)
 
         correct_task_clip_score = 0
 
-        for i in range(len(traj_model.img.shape[0])):
-
+        for i in range(traj_model.img.shape[0]):
             preprocessed_image = self.clip_preprocess(Image.fromarray(traj_model.img[i])).unsqueeze(0).to(self.device)
-
             preprocessed_text = clip.tokenize(all_tasks_for_scene).to(self.device)
 
             with torch.no_grad():
-
                 image_features = self.clip_model.encode_image(preprocessed_image)
                 image_features /= image_features.norm(dim=-1, keepdim=True)
 
                 text_features = self.clip_model.encode_text(preprocessed_text)
                 text_features /= text_features.norm(dim=-1, keepdim=True)
 
-
                 clip_similarity_score = image_features @ text_features.T
             
-            if np.argmax(clip_similarity_score, axis=1) == success_index:
+            if np.argmax(clip_similarity_score.cpu().numpy(), axis=1) == success_index:
                 correct_task_clip_score += 1
-        
 
-        correct_task_clip_score = correct_task_clip_score / len(traj_model.img.shape[0])
+        correct_task_clip_score = correct_task_clip_score / traj_model.img.shape[0]
 
-
-
-
-        scores = {'ema_clip_reward': ema_clip_reward, 'discounted_clip_reward': discounted_clip_reward, 'correct_task_clip_score': correct_task_clip_score}
+        scores = {'ema_clip_reward': ema_clip_reward.cpu().item(), 'discounted_clip_reward': discounted_clip_reward.cpu().item(), 'correct_task_clip_score': correct_task_clip_score}
         return scores

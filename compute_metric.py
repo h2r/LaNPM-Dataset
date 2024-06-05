@@ -28,7 +28,7 @@ class Evaluator():
         self.gt_file = h5py.File(gt_dataset_path, 'r')
         self.metrics: List[Metric] = [
             # AreaCoverage(),
-            # CLIP_SemanticUnderstanding(dataset_path=gt_dataset_path),
+            CLIP_SemanticUnderstanding(dataset_path=gt_dataset_path),
             RootMSE(),
             # TaskSuccMetric(),
             GraspSuccRate(),
