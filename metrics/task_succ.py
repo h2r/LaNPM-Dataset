@@ -28,6 +28,9 @@ if __name__ == "__main__":
     extract_task_succ(a, a, "123")
 
 class TaskSuccMetric(Metric):
+    def __init__(self, name="success_rate"):
+        self.name = name
+    
     def get_score(
             self, 
             scene_name: str, 

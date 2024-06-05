@@ -7,6 +7,7 @@ import torch
 import clip
 from PIL import Image
 import h5py
+import json
 
 from scipy.spatial import ConvexHull
 from shapely.geometry import Polygon
@@ -49,12 +50,12 @@ class RootMSE(Metric):
         self.name = name
         self.property_weights = weightage
 
-    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str, steps:int):
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
         
         score = {}
 
         # assert(len(traj_model[traj_model.keys()[0]]) == len(traj_gt[traj_gt.keys()[0]]), "Error: GT and model traj don't have the same length")
-        assert(len(dir(traj_model)) == len(dir(traj_gt)), "Error: GT and model traj don't have the same keys")
+        assert len(dir(traj_model)) == len(dir(traj_gt)), "Error: GT and model traj don't have the same keys"
 
         traj_model_data = {'xyz_body': traj_model.xyz_body, 'yaw_body': traj_model.yaw_body, 'xyz_ee': traj_model.xyz_ee}
         traj_gt_data = {'xyz_body': traj_gt.xyz_body, 'yaw_body':traj_gt.yaw_body, 'xyz_ee': traj_gt.xyz_ee}
@@ -99,14 +100,12 @@ class AreaCoverage(Metric):
         self.name = name
     
 
-    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str, steps: int):
-
-
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
         # Compute the convex hull
         hull = ConvexHull(traj_model.xyz_body[:,:2])
 
         # Get the vertices of the convex hull
-        hull_points = points[hull.vertices]
+        hull_points = traj_model.xyz_body[hull.vertices]
 
         # Create a polygon from the hull points
         polygon = Polygon(hull_points)
@@ -124,7 +123,13 @@ class AreaCoverage(Metric):
 
 class CLIP_SemanticUnderstanding(Metric):
 
-    def __init__(self, name = 'clip_semantic_understanding', bellman_lambda = 0.99, ema_interval = 10):
+    def __init__(
+            self, 
+            name='clip_semantic_understanding', 
+            bellman_lambda=0.99, 
+            ema_interval=10,
+            dataset_path=None
+        ):
 
         '''
         1. Bellman like discounted reward equation
@@ -142,8 +147,8 @@ class CLIP_SemanticUnderstanding(Metric):
         self.ema_interval = ema_interval
 
         #list of all tasks to be performed in the current scene
-        self.scene_to_keys = self.split_by_scene(DATASET_PATH)
-        self.hdf =  h5py.File(DATASET_PATH, 'r')
+        self.scene_to_keys = self.split_by_scene(dataset_path)
+        self.hdf =  h5py.File(dataset_path, 'r')
         
 
 
@@ -168,17 +173,17 @@ class CLIP_SemanticUnderstanding(Metric):
         for k in scene_to_keys.keys():
             scene_to_keys[k] = list(sorted(scene_to_keys[k]))
         
-        with open('./lanmp_dataloader/scene_to_keys.json', 'w') as f:
+        with open('./lanmp_dataloader_scene_to_keys.json', 'w') as f:
             json.dump(scene_to_keys, f)
 
         return scene_to_keys
 
 
-    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str, steps: int):
+    def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
 
         
         # assert(len(traj_model[traj_model.keys()[0]]) == len(traj_gt[traj_gt.keys()[0]]), "Error: GT and model traj don't have the same length")
-        assert('img' in dir(traj_model) and 'img' in dir(traj_gt), "Error: image key not in model or gt trajectory")
+        assert 'img' in dir(traj_model) and 'img' in dir(traj_gt), "Error: image key not in model or gt trajectory"
         
 
         discounted_clip_reward = 0.0
