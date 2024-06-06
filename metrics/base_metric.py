@@ -132,7 +132,9 @@ class GraspSuccRate(Metric):
         for action, error_msg in zip(traj_model.action, traj_model.errors):
             if action in ["PickupObject", "PutObject"]:
                 total_mani_count += 1
-                if error_msg is not None:
+                if type(error_msg) is list:
+                    error_msg = error_msg[0]
+                if error_msg is not None or error_msg != "":
                     total_mani_errors += 1
         return 1 - total_mani_errors / total_mani_count if total_mani_count > 0 else np.nan
 
