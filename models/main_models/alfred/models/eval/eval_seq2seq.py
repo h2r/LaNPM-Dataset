@@ -31,7 +31,6 @@ if __name__ == '__main__':
     parser.add_argument('--rand_agent', dest='rand_agent', action='store_true')
     parser.add_argument('--gpu', dest='gpu', action='store_true')
     parser.add_argument('--num_threads', type=int, default=1)
-    parser.add_argument('--human_traj', action='store_true')
 
 
     # eval params

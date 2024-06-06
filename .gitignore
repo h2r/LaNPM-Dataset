@@ -13,4 +13,5 @@ __pycache__/
 /models/main_models/alfred/data/feats_discrete_relative/*
 /models/main_models/alfred/data/feats_discrete_relative_extra/*
 /models/main_models/alfred/data/feats_discrete_relative_normalize/*
-/models/main_models/alfred/data/feats_discrete_relative_*/*
+/models/main_models/alfred/data/feats_*
+/models/main_models/alfred/results/*/*.pkl
