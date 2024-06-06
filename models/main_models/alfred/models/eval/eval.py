@@ -22,7 +22,7 @@ class Eval(object):
         self.manager = manager
 
         # load splits
-        with open("/oscar/data/stellex/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
+        with open(os.environ['HOME'] + "/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
             self.splits = json.load(f)
 
 

@@ -31,6 +31,8 @@ if __name__ == '__main__':
     parser.add_argument('--rand_agent', dest='rand_agent', action='store_true')
     parser.add_argument('--gpu', dest='gpu', action='store_true')
     parser.add_argument('--num_threads', type=int, default=1)
+    parser.add_argument('--human_traj', action='store_true')
+
 
     # eval params
     parser.add_argument('--max_steps', type=int, default=1500, help='max steps before episode termination')

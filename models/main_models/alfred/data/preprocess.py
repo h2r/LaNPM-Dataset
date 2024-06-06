@@ -7,7 +7,7 @@ import progressbar
 from vocab import Vocab
 from model.seq2seq import Module as model
 from gen.utils.py_util import remove_spaces_and_lower
-from models.utils.data_utils import split_data, env_folds
+from models.utils.data_utils import split_data, env_folds, task_gen, div
 import h5py
 import numpy as np
 
@@ -31,7 +31,7 @@ class Dataset(object):
         self.noop = -1000
 
         self.bins = {}
-        self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm': 3, 'ee': 4, 'look': 5} #different action modes
+        self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm_base':3, 'arm': 4, 'ee': 5, 'look': 6} #different action modes
         self.base = {'NoOp': 0, 'MoveAhead': 1, 'MoveBack': 2, 'MoveRight': 3, 'MoveLeft': 4} #word actions for base (navigation)
         self.grasp_drop = {'NoOp': 0, 'PickupObject': 1, 'ReleaseObject': 2} # grasp/drop objects classes
         self.up_down = {'NoOp': 0, 'LookUp': 1, 'LookDown': 2} # look-up/look-down classes
@@ -52,17 +52,21 @@ class Dataset(object):
         '''
         return vocab.word2index([w.strip().lower() for w in words], train=train)
 
-    def preprocess_splits(self, splits, folds):
+    def preprocess_splits(self, splits, folds, div_runs):
         '''
         saves preprocessed data as jsons in specified folder
         '''
         if self.args.splits_folds == 'splits':
-            train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'], "")
+            train_keys, test_keys = split_data(self.args.data, splits['train'], splits['test'])
+        elif self.args.splits_folds == 'task_gen':
+            train_keys, test_keys = task_gen(self.args.data)
+        elif self.args.splits_folds == 'div':
+            train_keys, test_keys = div(self.args.data, div_runs['train_envs'], div_runs['test_env'])
         else:
             train_keys, test_keys = env_folds(self.args.data, folds['train_envs'], folds['test_envs'])
         split_keys_dict = {'train':train_keys, 'test':test_keys}
         #make this path relative later
-        with open("/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'w') as f:
+        with open("/oscar/data/stellex/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'w') as f:
             json.dump(split_keys_dict, f)
 
         
@@ -204,7 +208,9 @@ class Dataset(object):
                         mode = None
                         if action_high in ['MoveRight', 'MoveLeft', 'MoveAhead', 'MoveBack']:
                             mode = self.mode['base']
-                        elif action_high in ['MoveArm', 'MoveArmBase']:
+                        elif action_high in ['MoveArmBase']:
+                            mode = self.mode['arm_base']
+                        elif action_high in ['MoveArm']:
                             mode = self.mode['arm']
                         elif action_high in ['RotateAgent']:
                             mode = self.mode['rotate']
@@ -234,7 +240,9 @@ class Dataset(object):
                             base = self.base['MoveRight']
                         elif action_high == 'MoveLeft':
                             base = self.base['MoveLeft']
-                        elif action_high in ['MoveArm', 'MoveArmBase']:
+                        elif action_high == "MoveArmBase":
+                            pass
+                        elif action_high in ['MoveArm']:
                             arm = 'filler'
                         elif action_high in ['RotateAgent']:
                             rotate = 'filler'

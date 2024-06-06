@@ -18,12 +18,13 @@ if __name__ == '__main__':
 
     # settings
     parser.add_argument('--seed', help='random seed', default=123, type=int)
-    parser.add_argument('--data', help='dataset folder', default='/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5')
+    parser.add_argument('--data', help='dataset folder', default=os.environ['HOME'] + '/data/shared/lanmp/lanmp_dataset.hdf5')
     parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats')
     parser.add_argument('--pp_folder', help='folder name for preprocessed data', default='pp')
     parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
     parser.add_argument('--folds', help='json file containing train/test env folds', default='data/splits/env_folds.json')
-    parser.add_argument('--splits_folds', help='splits or folds', default='folds')
+    parser.add_argument('--div_runs', help='json file containing train/test env div', default='data/splits/div_runs.json')
+    parser.add_argument('--splits_folds', help='splits or folds', default='div')
     parser.add_argument('--split_keys', help='json file containing split trajectories', default='data/splits/split_keys.json')
     parser.add_argument('--preprocess', help='store preprocessed data to json files', action='store_true')
     parser.add_argument('--save_every_epoch', help='save model after every epoch (warning: consumes a lot of space)', action='store_true')
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', help='use gpu', action='store_true')
     parser.add_argument('--dout', help='where to save model', default='exp/model:{model}')
     parser.add_argument('--resume', help='load a checkpoint')
-    parser.add_argument('--finetune', help='pretrained model path', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_unseen.pth')
+    parser.add_argument('--finetune', help='pretrained model path', default='/oscar/data/stellex/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_unseen.pth')
     parser.add_argument('--class_mode', help='use regression for action pred', action='store_true')
     parser.add_argument('--action_dims', help='number of dimensions for the action size', default=8, type=int)
     parser.add_argument('--relative', help='use relative actions (deltas)', action='store_true')
@@ -93,12 +94,14 @@ if __name__ == '__main__':
         splits = json.load(f)
     with open(args.folds) as f:
         folds = json.load(f)
+    with open(args.div_runs) as f:
+        div_runs = json.load(f)
 
     # preprocess and save
     if args.preprocess:
         print("\nPreprocessing dataset and saving to %s folders ... This will take a while. Do this once as required." % args.pp_folder)
         dataset = Dataset(args, None) 
-        dataset.preprocess_splits(splits, folds)
+        dataset.preprocess_splits(splits, folds, div_runs)
         vocab = torch.load(os.path.join(args.dout, "%s.vocab" % args.pp_folder))
     else:
         vocab = torch.load(os.path.join(args.pp_data, "%s.vocab" % args.pp_folder))

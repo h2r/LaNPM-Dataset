@@ -131,7 +131,8 @@ class Module(Base):
             # load Resnet features from disk
             if load_frames and not self.test_mode:
                 root = ex['root']
-                root = 'data/feats' + root[34:] #delete later maybe
+                # breakpoint()
+                root = 'data/feats' + root[33:] #delete later maybe
                 im = torch.load(os.path.join(root, 'pp', self.feat_pt))
 
                 
@@ -330,10 +331,13 @@ class Module(Base):
             elif alow[0][0] == 2: #rotate
                 word_action = "RotateAgent"
                 num_action = alow[0][2]
-            elif alow[0][0] == 3: #arm
+            elif alow[0][0] == 3: #arm base
+                word_action = "MoveArmBase"
+                num_action = alow[0][3:]
+            elif alow[0][0] == 4: #arm
                 word_action = 'MoveArm'
-                num_action = alow[0][3:6]
-            elif alow[0][0] == 4: #ee
+                num_action = alow[0][3:]
+            elif alow[0][0] == 5: #ee
                 if alow[0][6] == 0:
                     word_action = 'NoOp' #made by me
                 elif alow[0][6] == 1:
@@ -341,7 +345,7 @@ class Module(Base):
                 elif alow[0][6] == 2:
                     word_action = 'ReleaseObject'
                 num_action = alow[0][6]
-            elif alow[0][0] == 5: #look
+            elif alow[0][0] == 6: #look
                 if alow[0][7] == 0:
                     word_action = 'NoOp'
                 if alow[0][7] == 1:
@@ -385,7 +389,6 @@ class Module(Base):
         '''
         loss function for Seq2Seq agent
         '''
-
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         losses = dict()
@@ -439,7 +442,12 @@ class Module(Base):
             total_loss = torch.zeros(l_alow_valid.shape[0]).to('cuda')
             for dim in range(l_alow_valid.shape[1]): #loops 8 times, one for each action dim
                 if dim == 0:
+                    # try:
+                    # breakpoint()
+                    l_alow_valid = l_alow_valid.long()
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_valid[:, dim, :], l_alow_valid[:, dim])
+                    # except:
+                    #     breakpoint()
                 elif dim == 1:
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_base_valid[:, dim-1, :], l_alow_valid[:, dim])
                 elif dim == 2:
@@ -454,7 +462,9 @@ class Module(Base):
             alow_loss = F.mse_loss(p_alow, l_alow, reduction='none') #regression
         # Calculate the mean loss only over valid elements
         alow_loss_mean = alow_loss.mean()
+        alow_loss_std = alow_loss.std()
         losses['action_low'] = alow_loss_mean * self.args.action_loss_wt
+        losses['action_low_std'] = alow_loss_std
         return losses
 
     def flip_tensor(self, tensor, on_zero=1, on_non_zero=0):
