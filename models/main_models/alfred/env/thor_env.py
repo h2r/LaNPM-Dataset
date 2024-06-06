@@ -354,7 +354,7 @@ class ThorEnv():
         move = 0.2
         a = None
         word_action = state_action['action']
-        print(f'word_action: {word_action}')
+        # print(f'word_action: {word_action}')
         if word_action in ['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']:
             # global_coord_agent = self.last_event.metadata['agent']['position']
             # prev_state_body = [global_coord_agent['x'], global_coord_agent['y'], global_coord_agent['z']]
