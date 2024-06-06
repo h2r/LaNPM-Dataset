@@ -44,7 +44,7 @@ class EvalTask(Eval):
                 print("Error: " + repr(e))
 
         # stop THOR
-        env.stop()
+        env.controller.stop()
 
 
     @classmethod
@@ -145,6 +145,7 @@ class EvalTask(Eval):
         # gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
         # gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
         results = cls.calc_metrics(goal_instr, traj_data['scene'], args.run_save_name, end_inf_state_lst)
+        env.controller.close()
 
     @classmethod
     def get_gt_word_num_actions(cls, action_dict):
