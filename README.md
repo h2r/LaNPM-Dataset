@@ -12,7 +12,7 @@ This implemenetation of RT-1 was pretrained on the <a href="https://sites.google
 
 ```bash
 git clone https://github.com/h2r/NPM-Dataset.git
-git checkout -b rt1-model
+git checkout -b rt1
 pip install -e .
 ```
 
