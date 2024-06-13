@@ -1,14 +1,11 @@
-# Dataset Name (Acronym)
-Write a short summary describing your dataset (limit
-200 words). Include information about the content
-and topic of the data, sources and motivations for the
-dataset, benefits and the problems or use cases it is
-suitable for.
+# LaNMP
+
+LaNMP is a mobile manipulation robot dataset comprised of Natural Language, Navigation, Manipulation, and Perception (LaNMP) data. The dataset is collected in both simulated and real-world environments. The environments are multi-room, ensuring the tasks are long-horizon in nature. The tasks are pick-and-place described by humans to a robot in natural language. The trajectories, which are collected from robots via human teleoperation, contain LaNMP data at every timestep. There are 524 simulated and 50 real trajectories, totalling to 574 trajectories.
 
 #### Dataset Link
 <!-- info: Provide a link to the dataset: -->
 <!-- width: half -->
-Dataset Link
+https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0
 
 #### Data Card Author(s)
 <!-- info: Select **one role per** Data Card Author:
@@ -16,9 +13,7 @@ Dataset Link
 (Usage Note: Select the most appropriate choice to describe the author's role
 in creating the Data Card.) -->
 <!-- width: half -->
-- **Name, Team:** (Owner / Contributor / Manager)
-- **Name, Team:** (Owner / Contributor / Manager)
-- **Name, Team:** (Owner / Contributor / Manager)
+- **Name, Team:** Ahmed Jaafar (Owner)
 
 ## Authorship
 ### Publishers
@@ -26,44 +21,28 @@ in creating the Data Card.) -->
 <!-- scope: telescope -->
 <!-- info: Provide the names of the institution or organization responsible
 for publishing the dataset: -->
-Organization Name
+Brown University, Rutgers University, University of Pennsylvania
 
 #### Industry Type(s)
 <!-- scope: periscope -->
 <!-- info: Select **all applicable** industry types to which the publishing
 organizations belong: -->
-- Corporate - Tech
-- Corporate - Non-Tech (please specify)
+<!-- - Corporate - Tech -->
+<!-- - Corporate - Non-Tech (please specify) -->
 - Academic - Tech
-- Academic - Non-Tech (please specify)
-- Not-for-profit - Tech
+<!-- - Academic - Non-Tech (please specify) -->
+<!-- - Not-for-profit - Tech
 - Not-for-profit - Non-Tech (please specify)
 - Individual (please specify)
-- Others (please specify)
+- Others (please specify) -->
 
 #### Contact Detail(s)
 <!-- scope: microscope -->
 <!-- info: Provide publisher contact details: -->
-- **Publishing POC:** Provide the name for a POC for this dataset's publishers
-- **Affiliation:** Provide the POC's institutional affiliation
-- **Contact:** Provide the POC's contact details
-- **Mailing List:** Provide a mailing list if available
-- **Website:** Provide a website for the dataset if available
-
-### Dataset Owners
-#### Team(s)
-<!-- scope: telescope -->
-<!-- info: Provide the names of the groups or team(s) that own the dataset: -->
-Name of Group or Team
-
-#### Contact Detail(s)
-<!-- scope: periscope -->
-<!-- info: Provide pathways to contact dataset owners: -->
-- **Dataset Owner(s):** Provide the names of the dataset owners
-- **Affiliation:** Provide the affiliation of the dataset owners
-- **Contact:** Provide the email of the dataset owner
-- **Group Email:** Provide a link to the mailing-list@server.com for the dataset owner team
-- **Website:** Provide a link to the website for the dataset owner team
+- **Publishing POC:** Ahmed Jaafar
+- **Affiliation:** Brown University
+- **Contact:** ahmed_jaafar@brown.edu
+- **Website:** https://lanmpdataset.github.io/
 
 #### Author(s)
 <!-- scope: microscope -->
@@ -71,10 +50,14 @@ Name of Group or Team
 
 (Usage Note: Provide the affiliation and year if different from publishing
 institutions or multiple affiliations.) -->
-- Name, Title, Affiliation, YYYY
-- Name, Title, Affiliation, YYYY
-- Name, Title, Affiliation, YYYY
-- Name, Title, Affiliation, YYYY
+- Ahmed Jaafar, Brown University
+- Shreyas Sundara Raman, Brown University
+- Yichen Wei, Brown University
+- Sofia Juliani, Rutgers University
+- Anneke Wernerfelt, University of Pennsylvania
+- Ifrah Idrees, Brown University
+- Jason Xinyu Liu, Brown University
+- Stefanie Tellex, Associate Professor, Brown University
 
 ### Funding Sources
 #### Institution(s)
