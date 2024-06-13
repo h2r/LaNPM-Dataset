@@ -89,7 +89,7 @@ def parse_args():
     parser.add_argument(
         "--checkpoint-dir",
         type=str,
-        default="checkpoints/temp", #rt1_pretraining
+        default="checkpoints/rt1_pretraining",
         help="directory to save checkpoints",
     )
     parser.add_argument(
