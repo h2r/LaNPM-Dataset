@@ -87,14 +87,10 @@ Summarize here. Link to documents if available.
 #### Data Subject(s)
 <!-- scope: telescope -->
 <!-- info: Select ***all applicable**** subjects contained the dataset: -->
-- Sensitive Data about people
-- Non-Sensitive Data about people
-- Data about natural phenomena
 - Data about places and objects
 - Synthetically generated data
 - Data about systems or products and their behaviors
-- Unknown
-- Others (Please specify)
+- Others (Language data provided by humans, robot movement and visual data)
 
 #### Dataset Snapshot
 <!-- scope: periscope -->
@@ -104,13 +100,12 @@ more detailed breakdowns.) -->
 Category | Data
 --- | ---
 Size of Dataset | 123456 MB
-Number of Instances | 123456
+Number of Instances | 524
 Number of Fields | 123456
 Labeled Classes | 123456
 Number of Labels | 123456789
 Average Labeles Per Instance | 123456
-Algorithmic Labels | 123456789
-Human Labels | 123456789
+Human Labels | 574
 Other Characteristics | 123456
 
 **Above:** Provide a caption for the above table of visualization.
@@ -155,114 +150,21 @@ mode |
 <!-- scope: telescope -->
 <!-- info: Select ***all applicable*** data types present in the dataset: -->
 - User Content
-- User Metadata
-- User Activity Data
-- Identifiable Data
-- S/PII
-- Business Data
-- Employee Data
-- Pseudonymous Data
 - Anonymous Data
-- Health Data
-- Children’s Data
-- None
-- Others (Please specify)
+- Others (Robot movement and visual data)
 
-#### Field(s) with Sensitive Data
-<!-- scope: periscope -->
-<!-- info: List fields in the dataset that contain S/PII, and specify if their
-collection was intentional or unintentional.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-**Intentional Collected Sensitive Data**
-
-(S/PII were collected as a part of the
-dataset creation process.)
-
-Field Name | Description
---- | ---
-Field Name | Type of S/PII
-Field Name | Type of S/PII
-Field Name | Type of S/PII
-
-**Unintentionally Collected Sensitive Data**
-
-(S/PII were not explicitly collected as a
-part of the dataset creation process but
-can be inferred using additional
-methods.)
-
-Field Name | Description
---- | ---
-Field Name | Type of S/PII
-Field Name | Type of S/PII
-Field Name | Type of S/PII
-
-**Additional Notes:** Add here
-
-#### Security and Privacy Handling
-<!-- scope: microscope -->
-<!-- info: Summarize the measures or steps to handle sensitive data in this
-dataset.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-
-Summarize here. Include links and metrics where applicable.
-
-**Method:** description
-
-**Method:** description
-
-**Method:** description
-
-**Additional Notes:** Add here
 
 #### Risk Type(s)
 <!-- scope: telescope -->
 <!-- info: Select **all applicable** risk types presenting from the
 dataset: -->
-- Direct Risk
-- Indirect Risk
-- Residual Risk
 - No Known Risks
-- Others (Please Specify)
 
-#### Supplemental Link(s)
-<!-- scope: periscope -->
-<!-- info: Provide link(s) for documentation pertaining to sensitive data in
-the dataset: -->
-**Link Name or Document Type:** link
-
-**Link Name or Document Type:** link
-
-**Link Name or Document Type:** link
-
-#### Risk(s) and Mitigation(s)
-<!-- scope: microscope -->
-<!-- info: Summarize the steps taken to identify and mitigate risks from PII
-or sensitive information.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk type:** Description + Mitigations
-
-**Risk type:** Description + Mitigations
-
-**Risk type:** Description + Mitigations
-
-**Additional Notes:** Add here
 
 ### Dataset Version and Maintenance
 #### Maintenance Status
 <!-- scope: telescope -->
 <!-- info: Select **one:** -->
-**Regularly Updated** - New versions of the dataset
-have been or will continue to be
-made available.
 
 **Actively Maintained** - No new versions will be made
 available, but this dataset will
@@ -270,21 +172,15 @@ be actively maintained,
 including but not limited to
 updates to the data.
 
-**Limited Maintenance** - The data will not be updated,
-but any technical issues will be
-addressed.
-
-**Deprecated** - This dataset is obsolete or is
-no longer being maintained.
 
 #### Version Details
 <!-- scope: periscope -->
 <!-- info: Provide details about **this** version of the dataset: -->
 **Current Version:** 1.0
 
-**Last Updated:** MM/YYYY
+**Last Updated:** 06/2024
 
-**Release Date:** MM/YYYY
+**Release Date:** 06/2024
 
 #### Maintenance Plan
 <!-- scope: microscope -->
@@ -512,16 +408,7 @@ out for, or other relevant information or considerations. -->
 
 **BiBTeX:**
 ```
-@article{kuznetsova2020open,
-  title={The open images dataset v4},
-  author={Kuznetsova, Alina and Rom, Hassan and Alldrin, and others},
-  journal={International Journal of Computer Vision},
-  volume={128},
-  number={7},
-  pages={1956--1981},
-  year={2020},
-  publisher={Springer}
-}
+
 ```
 
 **Additional Notes:** Add here
