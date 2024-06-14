@@ -1,7 +1,9 @@
 # LaNPM-Dataset
-A comprehensive robotics dataset that includes navigation, perception, and manipulation data per data point.
+As robots that follow natural language become more capable and prevalent, we need a benchmark to holistically develop and evaluate their ability to solve long-horizon mobile manipulation tasks in large, diverse environments. Robots must use visual and language understanding, navigation, and manipulation capabilities to tackle this challenge. Existing datasets do not integrate all these aspects, restricting their efficacy as benchmarks. To address this gap, we present the Language, Navigation, Manipulation, Perception (LaNMP) dataset and demonstrate the benefits of integrating these four capabilities and various modalities. LaNMP comprises 574 trajectories across eight simulated and real-world environments for long-horizon room-to-room pick-and-place tasks specified by natural language. Every trajectory consists of over 20 attributes, including RGB-D images, segmentations, and the poses of the robot body, end-effector, and grasped objects. We fine-tuned and tested two models in simulation and on a physical robot to demonstrate its efficacy in development and evaluation. The models perform suboptimally compared to humans across various metrics, indicating significant room for developing better multimodal mobile manipulation models using our benchmark.
 
-## Dataset format
+![Sequential timesteps of images from sim and real collected robot trajectories along with the natural language command describing the task.](Trajectories-Figure.png "Sim and real trajectories")
+
+## Dataset Format
 ### Sim Dataset
 The simulation dataset comes in a single hdf5 file, and has the following hierarchy:
 ```
