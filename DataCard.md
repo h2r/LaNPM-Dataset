@@ -134,13 +134,13 @@ considerations.
 Usage Note: Some statistics will be relevant for numeric data, for not for
 strings. -->
 
-Statistic | Simulation Trajectories | Real Trajectories | Field Name | Field Name | Field Name | Field Name
---- | --- | --- | --- | --- | --- | ---
+Statistic | Simulation Trajectories | Real Trajectories 
+--- | --- | --- 
 count | 524 | 50
 mean |172| 323
 std | 71 | 187
-min |
-max |
+min | 52 | 123
+max | 594 | 733
 
 **Above:** The mean, std, min, and max of the trajectories refers to their lengths.
 
@@ -235,26 +235,16 @@ visualizations as appropriate.
 #### Primary Data Modality
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
-- Image Data
-- Text Data
-- Tabular Data
-- Audio Data
-- Video Data
-- Time Series
-- Graph Data
-- Geospatial Data
-- Multimodel (please specify)
-- Unknown
-- Others (please specify)
+- Multimodel (Natural Language, Vision, Navigation, Manipulation)
 
-#### Sampling of Data Points
+<!-- #### Sampling of Data Points
 <!-- scope: periscope -->
 <!-- info: Provide link(s) to data points or exploratory demos: -->
-- Demo Link
+<!-- - Demo Link
 - Typical Data Point Link
 - Outlier Data Point Link
 - Other Data Point Link
-- Other Data Point Link
+- Other Data Point Link -->
 
 #### Data Fields
 <!-- scope: microscope -->
@@ -263,11 +253,19 @@ visualizations as appropriate.
 (Usage Note: Describe each field in a data point. Optionally use this to show
 the example.) -->
 
-Field Name | Field Value | Description
+Simulation | Value | Description
 --- | --- | ---
-Field Name | Field Value | Description
-Field Name | Field Value | Description
-Field Name | Field Value | Description
+Natural Language | "Go pick up the apple and put it on the coach." | The command the human tells the robot for completing a certain task
+Scene | "FloorPlan_Train8_1" | The simulation environment in AI2THOR
+Sim time | 0.19645 | The simulation time
+Wall clock time |  14:49:37 | The real-world time
+Body state | [4.0, 6.2, 7.5 , 226] | The state of the robot, [x, y, z,yaw]
+End-effector state | [2.59, 0.89, -4.17, -1.94, -1.27, 1.94] | The state of the robot's end-effector, [x, y, z, roll, pitch, yaw]
+Hand sphere radius | 0.059 | The radius of the hand grasp field
+Held objects | [Apple] | A list of objects currently held by the robot
+Held object state | [4.4, 2.3, 5.1] | The state of the currently held objects, [x, y, z]
+Bounding boxes  |    |
+
 
 **Above:** Provide a caption for the above table or visualization if used.
 
@@ -311,7 +309,7 @@ Summarize here. Include any criteria for typicality of data point.
 <!-- info: Provide a list of key domains of application that the dataset has
 been designed for:<br><br>(Usage Note: Use comma-separated keywords.) -->
 
-`Robotics`, `Imitation Learning`, `Reinfocement Learning`, `Machine Learning`
+`Robotics`, `Imitation Learning`, `Behaivor Cloning`, `Reinfocement Learning`, `Machine Learning`
 
 #### Motivating Factor(s)
 <!-- scope: microscope -->
