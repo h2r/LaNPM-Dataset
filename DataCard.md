@@ -60,10 +60,12 @@ institutions or multiple affiliations.) -->
 - Stefanie Tellex, Associate Professor, Brown University
 
 ### Funding Sources
-#### Institution(s)
+Coming soon!
+
+<!-- #### Institution(s) -->
 <!-- scope: telescope -->
 <!-- info: Provide the names of the funding institution(s): -->
-- Name of Institution
+<!-- - Name of Institution
 - Name of Institution
 - Name of Institution
 
@@ -75,13 +77,13 @@ the creation, collection, or curation of the dataset.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-*For example, Institution 1 and institution 2 jointly funded this dataset as a
+<!-- *For example, Institution 1 and institution 2 jointly funded this dataset as a
 part of the XYZ data program, funded by XYZ grant awarded by institution 3 for
 the years YYYY-YYYY.*
 
 Summarize here. Link to documents if available.
 
-**Additional Notes:** Add here
+**Additional Notes:** Add here -->
 
 ## Dataset Overview
 #### Data Subject(s)
@@ -99,18 +101,20 @@ to include relevant information, considerations, and links to table(s) with
 more detailed breakdowns.) -->
 Category | Data
 --- | ---
-Size of Dataset | 123456 MB
-Number of Instances | 524
-Number of Fields | 123456
-Labeled Classes | 123456
-Number of Labels | 123456789
-Average Labeles Per Instance | 123456
+Size of Dataset | 288400 MB
+Number of Instances | 574
 Human Labels | 574
-Other Characteristics | 123456
+Capabilities | 4
+Avg. Trajectory Length | 247
+Number of environments | 8
+Number of rooms | 30
+Number of robots | 2
 
-**Above:** Provide a caption for the above table of visualization.
 
-**Additional Notes:** Add here.
+**Above:** The numbers are combining both the simulated and real datasets. "Capabilities" refers to the high-level aspects/modalities this dataset covers: Natural language, Navigation, Manipulation, and Perception. "Human Labels" refers to the natural language commands of robot tasks provided by humans.
+
+<!-- **Additional Notes:** -->
+
 
 #### Content Description
 <!-- scope: microscope -->
