@@ -259,12 +259,33 @@ Natural Language | "Go pick up the apple and put it on the coach." | The command
 Scene | "FloorPlan_Train8_1" | The simulation environment in AI2THOR
 Sim time | 0.19645 | The simulation time
 Wall clock time |  14:49:37 | The real-world time
-Body state | [4.0, 6.2, 7.5 , 226] | The state of the robot, [x, y, z,yaw]
+Body state | [4.0, 6.2, 7.5 , 226] | The state of the robot, [x, y, z, yaw]
 End-effector state | [2.59, 0.89, -4.17, -1.94, -1.27, 1.94] | The state of the robot's end-effector, [x, y, z, roll, pitch, yaw]
 Hand sphere radius | 0.059 | The radius of the hand grasp field
 Held objects | [Apple] | A list of objects currently held by the robot
 Held object state | [4.4, 2.3, 5.1] | The state of the currently held objects, [x, y, z]
-Bounding boxes  |    |
+Bounding boxes  |  {"keys": [Apple], "values":[418, 42, 23, 321]}  | The objects detected with bounding boxes and the coordinates of those boxes
+RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
+Depth | `./depth_0.npy` | The path to the depth npy egocentric image of the time step
+Instance segmentations | `./inst_seg_0.npy` | The path to the instance segmentations npy egocentric image of the time step
+
+
+Real-world | Value | Description
+--- | --- | ---
+Natural Language | "Go pick up the apple and put it on the coach." | The command the human tells the robot for completing a certain task
+Scene | "FloorPlan_Train8_1" | The simulation environment in AI2THOR
+Wall clock time |  14:49:37 | The real-world time
+Body state | [4.0, 6.2, 7.5] | The euclidean state of the robot, [x, y, z]
+Body state quaternion | [0.04, 0, 0, 0.99] | The quaternion state of the robot body, [w, x, y, z]
+Body orientation  | [0, 0.17, 3.05]  | The rotation of the robot body, [roll, pitch, yaw]
+Body linear velocity | [0, 0.5, 0.1] | The linear velocity of the robot body, [x, y, z]
+Body angular velocity | [0, 0.5, 0.1] | The angular velocity of the robot body, [x, y, z]
+<!-- Held objects | [Apple] | A list of objects currently held by the robot
+Held object state | [4.4, 2.3, 5.1] | The state of the currently held objects, [x, y, z]
+Bounding boxes  |  {"keys": [Apple], "values":[418, 42, 23, 321]}  | The objects detected with bounding boxes and the coordinates of those boxes
+RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
+Depth | `./depth_0.npy` | The path to the depth npy egocentric image of the time step
+Instance segmentations | `./inst_seg_0.npy` | The path to the instance segmentations npy egocentric image of the time step -->
 
 
 **Above:** Provide a caption for the above table or visualization if used.
