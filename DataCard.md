@@ -115,9 +115,9 @@ Other Characteristics | 123456
 #### Content Description
 <!-- scope: microscope -->
 <!-- info: Provide a short description of the content in a data point: -->
-Summarize here. Include links if available.
+Every data point in simulation (trajectory time step) contains these important aspects: natural language command, egocentric RGB-D, instance segmentations, bounding boxes, robot body pose, robot end-effector pose, and grasped object poses.
 
-**Additional Notes:** Add here.
+Every data point in real (trajectory time step) contains on a high-level: natural language command, egocentric RGB-D, egocentric RGB-D, gripper RGB-D, gripper instance segmentations, robot body pose, robot arm pose, feet positions, joint angles, robot body velocity, robot arm velocity, gripper open percentage, object held boolean.
 
 #### Descriptive Statistics
 <!-- width: full -->
@@ -188,9 +188,9 @@ updates to the data.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-Summarize here. Include links and metrics where applicable.
+Ahmed Jaafar will be mainting this dataset and resolving dataset issues brought up by the community.
 
-**Versioning:** Summarize here. Include information about criteria for
+<!-- **Versioning:** Summarize here. Include information about criteria for
 versioning the dataset.
 
 **Updates:** Summarize here. Include information about criteria for refreshing
@@ -202,33 +202,33 @@ or updating the dataset.
 **Feedback:** Summarize here. Include information about criteria for refreshing
 or updating the dataset.
 
-**Additional Notes:** Add here
+**Additional Notes:** Add here -->
 
-#### Next Planned Update(s)
+<!-- #### Next Planned Update(s)
 <!-- scope: periscope -->
 <!-- info: Provide details about the next planned update: -->
-**Version affected:** 1.0
+<!-- **Version affected:** 1.0
 
 **Next data update:** MM/YYYY
 
 **Next version:** 1.1
 
-**Next version update:** MM/YYYY
+**Next version update:** MM/YYYY --> -->
 
-#### Expected Change(s)
+<!-- #### Expected Change(s)
 <!-- scope: microscope -->
 <!-- info: Summarize the updates to the dataset and/or data that are expected
 on the next update.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-**Updates to Data:** Summarize here. Include links, charts, and visualizations
+<!-- **Updates to Data:** Summarize here. Include links, charts, and visualizations
 as appropriate.
 
 **Updates to Dataset:** Summarize here. Include links, charts, and
 visualizations as appropriate.
 
-**Additional Notes:** Add here
+**Additional Notes:** Add here --> -->
 
 ## Example of Data Points
 #### Primary Data Modality
@@ -297,48 +297,20 @@ Summarize here. Include any criteria for typicality of data point.
 
 **Additional Notes:** Add here
 
-#### Atypical Data Point
-<!-- width: half -->
-<!-- info: Provide an example of an outlier data point and describe what makes
-it atypical.
-
-**Use additional notes to capture any other relevant information or
-considerations.** -->
-Summarize here. Include any criteria for atypicality of data point.
-
-```
-{'q_id': '8houtx',
-  'title': 'Why does water heated to room temperature feel colder than the air around it?',
-  'selftext': '',
-  'document': '',
-  'subreddit': 'explainlikeimfive',
-  'answers': {'a_id': ['dylcnfk', 'dylcj49'],
-  'text': ["Water transfers heat more efficiently than air. When something feels cold it's because heat is being transferred from your skin to whatever you're touching. ... Get out of the water and have a breeze blow on you while you're wet, all of the water starts evaporating, pulling even more heat from you."],
-  'score': [5, 2]},
-  'title_urls': {'url': []},
-  'selftext_urls': {'url': []},
-  'answers_urls': {'url': []}}
-```
-
-**Additional Notes:** Add here
 
 ## Motivations & Intentions
 ### Motivations
 #### Purpose(s)
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
-- Monitoring
 - Research
-- Production
-- Others (please specify)
 
 #### Domain(s) of Application
 <!-- scope: periscope -->
 <!-- info: Provide a list of key domains of application that the dataset has
 been designed for:<br><br>(Usage Note: Use comma-separated keywords.) -->
-For example: `Machine Learning`, `Computer Vision`, `Object Detection`.
 
-`keyword`, `keyword`, `keyword`
+`Robotics`, `Imitation Learning`, `Reinfocement Learning`, `Machine Learning`
 
 #### Motivating Factor(s)
 <!-- scope: microscope -->
@@ -357,11 +329,7 @@ Summarize motivation here. Include links where relevant.
 #### Dataset Use(s)
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
-- Safe for production use
 - Safe for research use
-- Conditional use - some unsafe applications
-- Only approved use
-- Others (please specify)
 
 #### Suitable Use Case(s)
 <!-- scope: periscope -->
@@ -377,19 +345,6 @@ look out for, or other relevant information or considerations. -->
 
 **Additional Notes:** Add here
 
-#### Unsuitable Use Case(s)
-<!-- scope: microscope -->
-<!-- info: Summarize known unsuitable and unintended use cases of this dataset.
-
-Use additional notes to capture any specific patterns that readers should look
-out for, or other relevant information or considerations. -->
-**Unsuitable Use Case:** Summarize here. Include links where necessary.
-
-**Unsuitable Use Case:** Summarize here. Include links where necessary.
-
-**Unsuitable Use Case:** Summarize here. Include links where necessary.
-
-**Additional Notes:** Add here
 
 #### Research and Problem Space(s)
 <!-- scope: periscope -->
@@ -418,17 +373,14 @@ out for, or other relevant information or considerations. -->
 #### Access Type
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
-- Internal - Unrestricted
-- Internal - Restricted
 - External - Open Access
-- Others (please specify)
 
 #### Documentation Link(s)
 <!-- scope: periscope -->
 <!-- info: Provide links that describe documentation to access this
 dataset: -->
-- Dataset Website URL
-- GitHub URL
+- Dataset Website URL: https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0
+- GitHub URL: https://github.com/h2r/LaNPM-Dataset/
 
 #### Prerequisite(s)
 <!-- scope: microscope -->
@@ -441,32 +393,6 @@ This dataset requires membership in [specific] database groups:
 - Complete the [Mandatory Training]
 - Read [Data Usage Policy]
 - Initiate a Data Requesting by filing
-
-#### Policy Link(s)
-<!-- scope: periscope -->
-<!-- info: Provide a link to the access policy: -->
-- Direct download URL
-- Other repository URL
-
-Code to download data:
-```
-...
-```
-
-#### Access Control List(s)
-<!-- scope: microscope -->
-<!-- info: List and summarize any access control lists associated with this
-dataset. Include links where necessary.
-
-Use additional notes to capture any other information relevant to accessing
-the dataset. -->
-**Access Control List:** Write summary and notes here.
-
-**Access Control List:** Write summary and notes here.
-
-**Access Control List:** Write summary and notes here.
-
-**Additional Notes:** Add here
 
 ### Retention
 #### Duration
@@ -1172,9 +1098,7 @@ Summarize here. Include links and metrics where applicable.
 - Training
 - Testing
 - Validation
-- Development or Production Use
 - Fine Tuning
-- Others (please specify)
 
 #### Notable Feature(s)
 <!-- scope: periscope -->
@@ -1394,14 +1318,6 @@ Summarize here. Include links and metrics where applicable.
 - **Risk Type:** Description + Mitigations
 - **Risk Type:** Description + Mitigations
 
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where available.
-
 #### Additional Considerations
 <!-- scope: microscope -->
 <!-- info: What additional considerations were
@@ -1458,14 +1374,6 @@ Summarize here. Include links and metrics where applicable.
 **Risk Type:** Description + Mitigations
 
 **Risk Type:** Description + Mitigations
-
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where available.
 
 #### Additional Considerations
 <!-- scope: microscope -->
@@ -1528,14 +1436,6 @@ Summarize here. Include links and metrics where applicable.
 **Risk Type:** Description + Mitigations
 
 **Risk Type:** Description + Mitigations
-
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where available.
 
 #### Additional Considerations
 <!-- scope: microscope -->
@@ -1601,14 +1501,6 @@ Summarize here. Include links and metrics where applicable.
 
 **Risk Type:** Description + Mitigations
 
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where available.
-
 #### Additional Considerations
 <!-- scope: microscope -->
 <!-- info: What additional considerations were made? -->
@@ -1670,14 +1562,6 @@ Summarize here. Include links and metrics where applicable.
 
 **Risk Type:** Description + Mitigations
 
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where
-available.
 
 #### Additional Considerations
 <!-- scope: microscope -->
@@ -1742,13 +1626,6 @@ Summarize here. Include links and metrics where applicable.
 
 **Risk Type:** Description + Mitigations
 
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where available.
 
 #### Additional Considerations
 <!-- scope: microscope -->
@@ -1809,14 +1686,6 @@ Summarize here. Include links and metrics where applicable.
 **Risk type:** [Description + Mitigations]
 
 **Risk type:** [Description + Mitigations]
-
-#### Human Oversight Measure(s)
-<!-- scope: periscope -->
-<!-- info: What human oversight measures,
-including additional testing,
-investigations and approvals were
-taken due to this transformation? -->
-Summarize here. Include links where available.
 
 #### Additional Considerations
 <!-- scope: microscope -->
