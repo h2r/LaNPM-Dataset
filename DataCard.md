@@ -108,12 +108,13 @@ Capabilities | 4
 Avg. Trajectory Length | 247
 Number of environments | 8
 Number of rooms | 30
+Number of actions | 12
 Number of robots | 2
 
 
-**Above:** The numbers are combining both the simulated and real datasets. "Capabilities" refers to the high-level aspects/modalities this dataset covers: Natural language, Navigation, Manipulation, and Perception. "Human Labels" refers to the natural language commands of robot tasks provided by humans.
+**Above:** The numbers are combining both the simulated and real datasets. "Capabilities" refers to the high-level aspects/modalities this dataset covers: Natural language, Navigation, Manipulation, and Perception. "Human Labels" refers to the natural language commands of robot tasks provided by humans. "Number of actions" refers to the high-level discrete actions in only simulation.
 
-<!-- **Additional Notes:** -->
+**Additional Notes:** The robots used are mobile manipulators. The simulation robot is from ManipulaTHOR and the real robot is quadruped with an arm, a Boston Dynamics Spot.
 
 
 #### Content Description
@@ -133,21 +134,17 @@ considerations.
 Usage Note: Some statistics will be relevant for numeric data, for not for
 strings. -->
 
-Statistic | Field Name | Field Name | Field Name | Field Name | Field Name | Field Name
+Statistic | Simulation Trajectories | Real Trajectories | Field Name | Field Name | Field Name | Field Name
 --- | --- | --- | --- | --- | --- | ---
-count |
-mean |
-std |
+count | 524 | 50
+mean |172| 323
+std | 71 | 187
 min |
-25% |
-50% |
-75% |
 max |
-mode |
 
-**Above:** Provide a caption for the above table or visualization.
+**Above:** The mean, std, min, and max of the trajectories refers to their lengths.
 
-**Additional Notes:** Add here.
+<!-- **Additional Notes:** Add here. -->
 
 ### Sensitivity of Data
 #### Sensitivity Type(s)
@@ -217,7 +214,7 @@ or updating the dataset.
 
 **Next version:** 1.1
 
-**Next version update:** MM/YYYY --> -->
+**Next version update:** MM/YYYY -->
 
 <!-- #### Expected Change(s)
 <!-- scope: microscope -->
@@ -232,7 +229,7 @@ as appropriate.
 **Updates to Dataset:** Summarize here. Include links, charts, and
 visualizations as appropriate.
 
-**Additional Notes:** Add here --> -->
+**Additional Notes:** Add here -->
 
 ## Example of Data Points
 #### Primary Data Modality
@@ -367,7 +364,7 @@ out for, or other relevant information or considerations. -->
 
 **BiBTeX:**
 ```
-
+Coming soon!
 ```
 
 **Additional Notes:** Add here
