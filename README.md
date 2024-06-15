@@ -147,6 +147,9 @@ python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{m
 * More details on all the command-line arguments can be found at `./models/train/train_seq2seq.py`
 
 **Running inference:**
+
+This assumes it is run on a machine with a GUI in order to run the AI2THOR simulator, i.e. it was not run on a headless machine.
+
 ```
 python models/eval/eval_seq2seq.py --model_path ./models/main_models/alfred/exp/model:seq2seq_im_mask_discrete_relative_fold1/best_test.pth --gpu --model models.model.seq2seq_im_mask --pp_data ./models/main_models/alfred/data/feats_discrete_relative_fold1 --split_keys 'data/splits/split_keys_discrete_relative_fold1.json'
 ```

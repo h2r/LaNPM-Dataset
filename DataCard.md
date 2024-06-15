@@ -468,7 +468,7 @@ out for, or other relevant information or considerations. -->
 Coming soon!
 ```
 
-## Access, Rentention, & Wipeout
+## Access
 ### Access
 #### Access Type
 <!-- scope: telescope -->
@@ -482,139 +482,17 @@ dataset: -->
 - Dataset Website URL: https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0
 - GitHub URL: https://github.com/h2r/LaNPM-Dataset/
 
-#### Prerequisite(s)
-<!-- scope: microscope -->
-<!-- info: Please describe any required training or prerequisites to access
-this dataset. -->
-For example:
-
-This dataset requires membership in [specific] database groups:
-
-- Complete the [Mandatory Training]
-- Read [Data Usage Policy]
-- Initiate a Data Requesting by filing
-
-### Retention
-#### Duration
-<!-- scope: periscope -->
-<!-- info: Specify the duration for which this dataset can be retained: -->
-Specify duration in days, months, or years.
-
-#### Policy Summary
-<!-- scope: microscope -->
-<!-- info: Summarize the retention policy for this dataset. -->
-**Retention Plan ID:** Write here
-
-**Summary:** Write summary and notes here
-
-#### Process Guide
-<!-- scope: periscope -->
-<!-- info: Summarize any requirements and related steps to retain the dataset.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-For example:
-
-This dataset compiles with [standard policy guidelines].
-
-**Additional Notes:** Add here
-
-#### Exception(s) and Exemption(s)
-<!-- scope: microscope -->
-<!-- info: Summarize any exceptions and related steps to retain the dataset.
-Include links where necessary.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-**Exemption Code:** `ANONYMOUS_DATA` /
-`EMPLOYEE_DATA` / `PUBLIC_DATA` /
-`INTERNAL_BUSINESS_DATA` /
-`SIMULATED_TEST_DATA`
-
-**Summary:** Write summary and notes here.
-
-**Additional Notes:** Add here
-
-### Wipeout and Deletion
-#### Duration
-<!-- scope: periscope -->
-<!-- info: Specify the duration after which this dataset should be deleted or
-wiped out: -->
-Specify duration in days, months, or years.
-
-#### Deletion Event Summary
-<!-- scope: microscope -->
-<!-- info: Summarize the sequence of events and allowable processing for data
-deletion.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-**Sequence of deletion and processing events:**
-
-- Summarize first event here
-- Summarize second event here
-- Summarize third event here
-
-**Additional Notes:** Add here
-
-#### Acceptable Means of Deletion
-<!-- scope: periscope -->
-<!-- info: List the acceptable means of deletion: -->
-- Write acceptable means of deletion
-- Write acceptable means of deletion
-- Write acceptable means of deletion
-
-#### Post-Deletion Obligations
-<!-- scope: microscope -->
-<!-- info: Summarize the sequence of obligations after a deletion event.
-
-**Use additional notes to capture any other relevant information or
-considerations.** -->
-**Sequence of post-deletion obligations:**
-
-- Summarize first obligation here
-- Summarize second obligation here
-- Summarize third obligation here
-
-**Additional Notes:** Add here
-
-#### Operational Requirement(s)
-<!-- scope: periscope -->
-<!-- info: List any wipeout integration operational requirements: -->
-**Wipeout Integration Operational Requirements:**
-
-- Write first requirement here
-- Write second requirement here
-- Write third requirement here
-
-#### Exceptions and Exemptions
-<!-- scope: microscope -->
-<!-- info: Summarize any exceptions and related steps to a deletion event.
-
-**Use additional notes to capture any other relevant information or
-considerations.** -->
-**Policy Exception bug:** [bug]
-
-**Summary:** Write summary and notes here
-
-**Additional Notes:** Add here
 
 ## Provenance
 ### Collection
 #### Method(s) Used
 <!-- scope: telescope -->
 <!-- info: Select **all applicable** methods used to collect data: -->
-- API
-- Artificially Generated
+
 - Crowdsourced - Paid
 - Crowdsourced - Volunteer
-- Vendor Collection Efforts
-- Scraped or Crawled
 - Survey, forms, or polls
-- Taken from other existing datasets
-- Unknown
-- To be determined
-- Others (please specify)
+- Others (Keyboard teleoperated, tablet-controller teleoperated)
 
 #### Methodology Detail(s)
 <!-- scope: periscope -->
@@ -895,14 +773,7 @@ considerations.
 <!-- scope: telescope -->
 <!-- info: Select **all attributes** that are represented (directly or
 indirectly) in the dataset. -->
-- Gender
-- Socio-economic status
-- Geography
 - Language
-- Age
-- Culture
-- Experience or Seniority
-- Others (please specify)
 
 #### Intentionality
 <!-- scope: periscope -->
