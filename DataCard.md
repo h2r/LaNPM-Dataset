@@ -366,84 +366,28 @@ Real-world:
   "body_linear_velocity": {"x": 0.0007985030885781894, "y": 0.0007107887103978708, "z": -0.00001997174236456424},
   "body_angular_velocity": {"x": -0.002894917543479851, "y": -0.0017834609980581554, "z": 0.00032649917985633773},
   "arm_state_rel_body": {"x": 0.5536401271820068, "y": 0.0001991107128560543, "z": 0.2607555091381073},
-  "arm_quaternion_rel_body": {
-    "w": 0.9999642968177795,
-    "x": 0.00019104218517895788,
-    "y": 0.008427758701145649,
-    "z": 0.008427758701145649
-  },
-  "arm_orientation_rel_body": {
-    "x": 0.0003903917486135314,
-    "y": 0.016855526363847233,
-    "z": 0.0009807885066525242
-  },
-  "arm_state_global": {
-    "x": 1.233305266138133,
-    "y": 0.0001991107128560543,
-    "z": 0.2607555091381073
-  },
-  "arm_quaternion_global": {
-    "w": 0.11071797661404018,
-    "x": -0.0083232786094425,
-    "y": 0.0018207155823512953,
-    "z": 0.9938152930378756
-  },
-  "arm_orientation_global": {
-    "x": 0.0017760928400286857,
-    "y": 0.016947586302323542,
-    "z": 2.919693676695565
-  },
-  "arm_linear_velocity": {
-    "x": -0.00015927483240388228,
-    "y": 0.00006229256340773636,
-    "z": -0.003934306244239418
-  },
-  "arm_angular_velocity": {
-    "x": 0.02912604479413378,
-    "y": -0.012041083915871545,
-    "z": 0.009199674753842119
-  },
+  "arm_quaternion_rel_body": {"w": 0.9999642968177795, "x": 0.00019104218517895788, "y": 0.008427758701145649, "z": 0.008427758701145649},
+  "arm_orientation_rel_body": {"x": 0.0003903917486135314, "y": 0.016855526363847233, "z":0.0009807885066525242},
+  "arm_state_global": {"x": 1.233305266138133, "y": 0.0001991107128560543, "z": 0.2607555091381073},
+  "arm_quaternion_global": {"w": 0.11071797661404018, "x": -0.0083232786094425, "y": 0.0018207155823512953, "z": 0.9938152930378756},
+  "arm_orientation_global": {"x": 0.0017760928400286857, "y": 0.016947586302323542, "z": 2.919693676695565},
+  "arm_linear_velocity": {"x": -0.00015927483240388228, "y": 0.00006229256340773636, "z": -0.003934306244239418},
+  "arm_angular_velocity": {"x": 0.02912604479413378, "y": -0.012041083915871545, "z": 0.009199674753842119},
   "arm_stowed": 1,
   "gripper_open_percentage": 0.521618127822876,
   "object_held": 0,
   "feet_state_rel_body": [
-    {
-      "x": 0.32068437337875366,
-      "y": 0.17303785681724548,
-      "z": -0.5148577690124512
-    },
-    {
-      "x": 0.32222312688827515,
-      "y": -0.17367061972618103,
-      "z": -0.5163648128509521
-    },
+    {"x": 0.32068437337875366, "y": 0.17303785681724548, "z": -0.5148577690124512},
+    {"x": 0.32222312688827515, "y": -0.17367061972618103, "z": -0.5163648128509521},
     ...
   ],
   "feet_state_global": [
-    {
-      "x": -0.35111223090819643,
-      "y": -0.0985760241189894,
-      "z": -0.5146475087953596
-    },
-    {
-      "x": -0.27597323368156573,
-      "y": 0.239893453842677,
-      "z": -0.5166350285289446
-    },
+    {"x": -0.35111223090819643, "y": -0.0985760241189894, "z": -0.5146475087953596},
+    {"x": -0.27597323368156573, "y": 0.239893453842677, "z": -0.5166350285289446},
     ...
   ],
-  "all_joint_angles": {
-    "fl.hx": 0.013755097053945065,
-    "fl.hy": 0.7961212992668152,
-    "fl.kn": -1.5724135637283325,
-    ...
-  },
-  "all_joint_velocities": {
-    "fl.hx": -0.007001522462815046,
-    "fl.hy": 0.0006701984675601125,
-    "fl.kn": 0.00015050712681841105,
-    ...
-  }
+  "all_joint_angles": {"fl.hx": 0.013755097053945065, "fl.hy": 0.7961212992668152, "fl.kn": -1.5724135637283325, ...},
+  "all_joint_velocities": {"fl.hx": -0.007001522462815046, "fl.hy": 0.0006701984675601125, "fl.kn": 0.00015050712681841105, ...}
 }
 ```
 
@@ -469,12 +413,8 @@ been designed for:<br><br>(Usage Note: Use comma-separated keywords.) -->
 
 (Usage Note: use this to describe the problem space and corresponding
 motivations for the dataset.) -->
-For example:
 
-- Bringing demographic diversity to imagery training data for object-detection models
-- Encouraging academics to take on second-order challenges of cultural representation in object detection
-
-Summarize motivation here. Include links where relevant.
+There have been recent advances in robotic mobile manipulation, however the field as a whole is still lagging behind. We feel one reason behind this is a lack of useful and difficult benchmarks for mobile manipulation models. In particular, there were no benchmarks that have data for long-horizon room-to-room pick-and-place tasks comprised of natural langauge, navigation, manipulation, and perception in both simulation and the real-world, including a quadruped.
 
 ### Intended Use
 #### Dataset Use(s)
@@ -510,14 +450,12 @@ and/or production.
 
 Use additional notes to capture any specific patterns that readers should look
 out for, or other relevant information or considerations. -->
-**Guidelines & Steps:** Summarize here. Include links where necessary.
+**Guidelines & Steps:** As simple as referncing the BiBTeX below.
 
 **BiBTeX:**
 ```
 Coming soon!
 ```
-
-**Additional Notes:** Add here
 
 ## Access, Rentention, & Wipeout
 ### Access
