@@ -293,6 +293,15 @@ Feet state |  [0.32, 0.17, 0], ... | The state of the four quadruped feet relati
 Feet state global |  [-0.21, 0.05, 0], ...  |  The global state of the four quadruped feet
 Joint angles |   {fl.hx: -0.05, fl.hy: 0.79, fl.kn: -1.57, ...}  |  The angles of all the quadruped's joints
 Joint velocities  |   {fl.hx: 0.004, fl.hy: 0.01, fl.kn: 0.57, ...}   | The velocities of all the quadruped's joints
+Left RGB | `./left_fisheye_image_0.npy` | The path of the left eye RGB egocentric image, which captures the right side of the view
+Right RGB | `./right_fisheye_image_0.npy` | The path of the right eye RGB egocentric image, which captures the left side of the view
+Left Depth |  `./left_fisheye_depth_0.npy` | The path of the left eye depth egocentric image, which captures the right side of the view
+Right Depth | `./right_fisheye_depth_0.npy` | The path of the right eye depth egocentric image, which captures the left side of the view
+Left instance segmentations | `./left_fisheye_image_instance_seg_0.npy` | The path of the left eye instance segmentations egocentric image, which captures the right side of the view
+Right instance segmentations | `./right_fisheye_image_instance_seg_0.npy` | The path of the right eye instance segmentations egocentric image, which captures the left side of the view
+Gripper RGB | `./gripper_image_0.npy`  | The path of the gripper RGB image
+Gripper depth | `./gripper_depth_0.npy`  | The path of the gripper depth image
+Gripper instance segmentations | `./gripper_image_instance_seg_0.npy`  | The path of the gripper instance segmentations image
 
 
 <!-- RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
