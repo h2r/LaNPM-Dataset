@@ -4,6 +4,8 @@ As robots that follow natural language become more capable and prevalent, we nee
 ![Sequential timesteps of images from sim and real collected robot trajectories along with the natural language command describing the task.](Trajectories-Figure.png "Sim and real trajectories")
 
 ## Dataset Format
+More detailed dataset information can be found in the dataset card `DataCard.md`.
+
 ### Sim Dataset
 The simulation dataset comes in a single hdf5 file, and has the following hierarchy:
 ```
@@ -22,9 +24,9 @@ Under each folder, there are three main numpy files: `depth_<num>`, `inst_seg_<n
 which correspond to the depth image, segmentation image, and rgb image, respectively.
 
 Under the metadata for each folder, there is a dumped json describing other metadata of each time step.
-The metadata include the following:
+The detailed metadata can be found in the dataset card.
 
-| key | description | value |
+<!-- | key | description | value |
 |---|---|---|
 | sim_time | Simulation time from game start | 0.1852477639913559 |
 | wall-clock_time | Wall clock time at the step | 15:10:47.900 |
@@ -37,7 +39,7 @@ The metadata include the following:
 | rgb | RGB Image path | ./rgb_0.npy |
 | depth | Depth Image Path | ./depth_0.npy |
 | inst_seg | Segmentation Image Path | ./inst_seg_0.npy |
-| hand_sphere_radius | Radius of simulated hand sphere | 0.05999999865889549 |
+| hand_sphere_radius | Radius of simulated hand sphere | 0.05999999865889549 | -->
 
 
 ### Real Dataset
@@ -77,8 +79,9 @@ The images have the following sizes:
 | right_fisheye_image_10 | (640, 480, 3) |
 
 
-The metadata group contains the following fields:
-| key | value |
+The detailed metadata can be found in the dataset card.
+
+<!-- | key | value |
 |---|---|
 | language_command | Go to the toy kitchen that is to the right when you exit the room, grab the plastic green pepper, go to the kitchen area in the main room, place it on top of the kitchen counter. |
 | scene_name |  |
@@ -111,14 +114,35 @@ The metadata group contains the following fields:
 | feet_state_rel_body | [{'x': 0.31900572776794434, 'y': 0.1706952601671219, 'z': -0.5149730443954468}, {'x': 0.31945377588272095, 'y': -0.1728239506483078, 'z': -0.5141311883926392}, {'x': -0.2761070132255554, 'y': 0.16958178579807281, 'z': -0.5163593292236328}, {'x': -0.27343159914016724, 'y': -0.17093735933303833, 'z': -0.5132700800895691}] |
 | feet_state_global | [{'x': -0.3417697928292626, 'y': -0.12515192969139824, 'z': -0.5134483088395115}, {'x': -0.29392495738104474, 'y': 0.21502042274777644, 'z': -0.5134433259390588}, {'x': 0.2475817365128402, 'y': -0.20770630519960115, 'z': -0.5168959239815084}, {'x': 0.2928081121510568, 'y': 0.12981321041772212, 'z': -0.5146285409874121}] |
 | all_joint_angles | {"fl.hx": 0.00921491626650095, "fl.hy": 0.8005377054214478, "fl.kn": -1.574602723121643, "fr.hx": -0.013359702192246914, "fr.hy": 0.8004810810089111, "fr.kn": -1.5761274099349976, "hl.hx": 0.007037687581032515, "hl.hy": 0.7966209053993225, "hl.kn": -1.5693817138671875, "hr.hx": -0.009716067463159561, "hr.hy": 0.7977815270423889, "hr.kn": -1.581333041191101, "arm0.sh0": 0.0001010894775390625, "arm0.sh1": -3.1184749603271484, "arm0.hr0": 0.0, "arm0.el0": 3.1350982189178467, "arm0.el1": 1.5687037706375122, "arm0.wr0": -0.00045931339263916016, "arm0.wr1": -1.5694420337677002, "arm0.f1x": -0.007805943489074707} |
-| all_joint_velocities | {"fl.hx": -0.0014713359996676445, "fl.hy": -0.0019799235742539167, "fl.kn": 0.011371612548828125, "fr.hx": -0.007194998674094677, "fr.hy": 0.0033285804092884064, "fr.kn": -0.01216356735676527, "hl.hx": 0.004889719653874636, "hl.hy": -0.0077947331592440605, "hl.kn": 0.005902839358896017, "hr.hx": 0.01074210461229086, "hr.hy": 0.005369353573769331, "hr.kn": -0.019331036135554314, "arm0.sh0": -0.009795751422643661, "arm0.sh1": 0.011766805313527584, "arm0.hr0": 0.0, "arm0.el0": 0.010913466103374958, "arm0.el1": -0.007954984903335571, "arm0.wr0": 0.004147909115999937, "arm0.wr1": 0.003433068050071597, "arm0.f1x": -0.0011129062622785568} |
+| all_joint_velocities | {"fl.hx": -0.0014713359996676445, "fl.hy": -0.0019799235742539167, "fl.kn": 0.011371612548828125, "fr.hx": -0.007194998674094677, "fr.hy": 0.0033285804092884064, "fr.kn": -0.01216356735676527, "hl.hx": 0.004889719653874636, "hl.hy": -0.0077947331592440605, "hl.kn": 0.005902839358896017, "hr.hx": 0.01074210461229086, "hr.hy": 0.005369353573769331, "hr.kn": -0.019331036135554314, "arm0.sh0": -0.009795751422643661, "arm0.sh1": 0.011766805313527584, "arm0.hr0": 0.0, "arm0.el0": 0.010913466103374958, "arm0.el1": -0.007954984903335571, "arm0.wr0": 0.004147909115999937, "arm0.wr1": 0.003433068050071597, "arm0.f1x": -0.0011129062622785568} | -->
 
-## Running RT-1
-Coming very soon!
+## RT-1
+The RT-1 model from the paper ["RT-1: Robotics Transformer for Real-World Control at Scale"](https://www.roboticsproceedings.org/rss19/p025.pdf) by _Brohan et al._ was modified and fine-tuned on LaNMP.
 
-## Running ALFRED Seq2Seq
+To be continued...
+
+## ALFRED Seq2Seq
+The ALFRED Seq2Seq model from the paper ["ALFRED A Benchmark for Interpreting Grounded Instructions for Everyday Tasks"](https://openaccess.thecvf.com/content_CVPR_2020/papers/Shridhar_ALFRED_A_Benchmark_for_Interpreting_Grounded_Instructions_for_Everyday_Tasks_CVPR_2020_paper.pdf) by _Shridhar et al._ was modified and fine-tuned on LaNMP.
+This model was trained and ran on an NVIDIA 3090 GPU, so some of the following instructions assume the use of that GPU.
+
+**Preliminary:**
 1. Create a Python virtual environment using Python 3.9: `python3.9 -m venv my-env`
-2. Download and set up the **AI2THOR** simulator version 3.0.0: `pip install ai2thor==3.0.0` (provided in the requirements.txt)
-3. Install all dependencies: `pip install -r requirements.txt`
-4. To be continued...
+2. Install and load **CUDA Toolkit 11.8** and **cuDNN 8.7**
+3. `cd LaNMP-Dataset/models`
+4. `export ALFRED_ROOT=$(pwd)/alfred`
+5. `cd alfred`
+6. Download and set up the **AI2THOR** simulator version 3.0.0: `pip install ai2thor==3.0.0` (provided in the requirements.txt)
+7. Install all dependencies: `pip install -r requirements.txt`
 
+
+**Running training:**
+```
+python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{model}_discrete_relative_fold1 --gpu --batch 8 --pm_aux_loss_wt 0.1 --subgoal_aux_loss_wt 0.1 --pp_data 'data/feats_discrete_relative_fold1' --split_keys 'data/splits/split_keys_discrete_relative_fold1.json --class_mode --relative --preprocess'
+```
+
+* `--class_mode` puts the model into classification mode to use cross-entropy loss and output discrete actions
+* `--relative` makes the model produce relative (delta between current step and next step) actions rather than global actions
+* `--preprocess` preprocesses the data and saves it on disk to be used for the training down the pipeline. This only needs to be ran once. It can be removed after the first time to only run the training.
+* More details on all the command-line arguments can be found at `./models/train/train_seq2seq.py`
+
+**Running inference:**

@@ -189,7 +189,7 @@ updates to the data.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-Ahmed Jaafar will be mainting this dataset and resolving dataset issues brought up by the community.
+Ahmed Jaafar will be maintaining this dataset and resolving dataset issues brought up by the community.
 
 <!-- **Versioning:** Summarize here. Include information about criteria for
 versioning the dataset.
