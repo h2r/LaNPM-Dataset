@@ -255,15 +255,15 @@ the example.) -->
 
 Simulation | Value | Description
 --- | --- | ---
-Natural Language | "Go pick up the apple and put it on the coach." | The command the human tells the robot for completing a certain task
+Natural Language | "Go pick up the apple and put it on the couch." | The command the human tells the robot for completing a certain task
 Scene | "FloorPlan_Train8_1" | The simulation environment in AI2THOR
 Sim time | 0.19645 | The simulation time
 Wall clock time |  14:49:37 | The real-world time
-Body state | [4.0, 6.2, 7.5 , 226] | The state of the robot, [x, y, z, yaw]
-End-effector state | [2.59, 0.89, -4.17, -1.94, -1.27, 1.94] | The state of the robot's end-effector, [x, y, z, roll, pitch, yaw]
+Body state | [4.0, 6.2, 7.5 , 226] | The global state of the robot, [x, y, z, yaw]
+End-effector state | [2.59, 0.89, -4.17, -1.94, -1.27, 1.94] | The global state of the robot's end-effector, [x, y, z, roll, pitch, yaw]
 Hand sphere radius | 0.059 | The radius of the hand grasp field
 Held objects | [Apple] | A list of objects currently held by the robot
-Held object state | [4.4, 2.3, 5.1] | The state of the currently held objects, [x, y, z]
+Held object state | [4.4, 2.3, 5.1] | The global state of the currently held objects, [x, y, z]
 Bounding boxes  |  {"keys": [Apple], "values":[418, 42, 23, 321]}  | The objects detected with bounding boxes and the coordinates of those boxes
 RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
 Depth | `./depth_0.npy` | The path to the depth npy egocentric image of the time step
@@ -272,18 +272,30 @@ Instance segmentations | `./inst_seg_0.npy` | The path to the instance segmentat
 
 Real-world | Value | Description
 --- | --- | ---
-Natural Language | "Go pick up the apple and put it on the coach." | The command the human tells the robot for completing a certain task
+Natural Language | "Go pick up the apple and put it on the couch." | The command the human tells the robot for completing a certain task
 Scene | "FloorPlan_Train8_1" | The simulation environment in AI2THOR
 Wall clock time |  14:49:37 | The real-world time
-Body state | [4.0, 6.2, 7.5] | The euclidean state of the robot, [x, y, z]
-Body state quaternion | [0.04, 0, 0, 0.99] | The quaternion state of the robot body, [w, x, y, z]
-Body orientation  | [0, 0.17, 3.05]  | The rotation of the robot body, [roll, pitch, yaw]
+Body state | [4.0, 6.2, 7.5] | The global euclidean state of the robot, [x, y, z]
+Body state quaternion | [0.04, 0, 0, 0.99] | The global quaternion state of the robot body, [w, x, y, z]
+Body orientation  | [0, 0.17, 3.05]  | The global rotation of the robot body, [roll, pitch, yaw]
 Body linear velocity | [0, 0.5, 0.1] | The linear velocity of the robot body, [x, y, z]
 Body angular velocity | [0, 0.5, 0.1] | The angular velocity of the robot body, [x, y, z]
-<!-- Held objects | [Apple] | A list of objects currently held by the robot
-Held object state | [4.4, 2.3, 5.1] | The state of the currently held objects, [x, y, z]
-Bounding boxes  |  {"keys": [Apple], "values":[418, 42, 23, 321]}  | The objects detected with bounding boxes and the coordinates of those boxes
-RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
+Arm state | [0.5, 0, 0.26] | The robot arm state relative to the body, [x, y, z]
+Arm quaternion state | [0.99, 0, 0.7, 0.008]  | The quaternion robot arm state relative to the body, [w, x, y, z]
+Arm state global | [1.9, 0.5, 0] | The global robot arm state, [x, y, z]
+Arm quaternion state global | [0.04, 0, 0, 0.99]  | The global quaternion robot arm state, [w, x, y, z]
+Arm linear velocity | [0.2, 0.04, 0] | The linear velocity of the robot arm, [x, y, z]
+Arm angular velocity | [0.1, 0.4, 0.008] | The angular velocity of the robot arm, [x, y, z]
+Arm stowed  |  1  | Boolean of if the arm is stowed or not
+Gripper open |  0.512  | The percentage of how open the gripper is
+Object held  |  1  | Boolean of if an object is currently held by the gripper
+Feet state |  [0.32, 0.17, 0], ... | The state of the four quadruped feet relative to the body, [x, y, z]
+Feet state global |  [-0.21, 0.05, 0], ...  |  The global state of the four quadruped feet
+Joint angles |   {fl.hx: -0.05, fl.hy: 0.79, fl.kn: -1.57, ...}  |  The angles of all the quadruped's joints
+Joint velocities  |   {fl.hx: 0.004, fl.hy: 0.01, fl.kn: 0.57, ...}   | The velocities of all the quadruped's joints
+
+
+<!-- RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
 Depth | `./depth_0.npy` | The path to the depth npy egocentric image of the time step
 Instance segmentations | `./inst_seg_0.npy` | The path to the instance segmentations npy egocentric image of the time step -->
 
@@ -299,23 +311,142 @@ it typical.
 
 **Use additional notes to capture any other relevant information or
 considerations.** -->
-Summarize here. Include any criteria for typicality of data point.
+
+Simulation:
+```
+{
+    "nl_command": "Go to the table and pick up the salt and place it in the white bin in the living room.",
+    "scene": "FloorPlan_Train8_1",
+    "steps": [
+        {
+            "sim_time": 0.1852477639913559,
+            "wall-clock_time": "15:10:47.900",
+            "action": "Initialize",
+            "state_body": [3.0, 0.9009992480278015, -4.5, 269.9995422363281],
+            "state_ee": [2.5999975204467773, 0.8979992270469666, -4.171003341674805, -1.9440563492718068e-07, -1.2731799533306385, 1.9440386333307377e-07],
+            "hand_sphere_radius": 0.05999999865889549
+            "held_objs": [],
+            "held_objs_state": {},
+            "inst_det2D": {
+                "keys": [
+                    "Wall_4|0.98|1.298|-2.63",
+                    "RemoteControl|+01.15|+00.48|-04.24",
+                ],
+                "values": [
+                    [418, 43, 1139, 220], [315, 0, 417, 113], ...
+                ]
+            },
+            "rgb": "./rgb_0.npy",
+            "depth": "./depth_0.npy",
+            "inst_seg": "./inst_seg_0.npy",
+        }
+    ]
+}
+```
+
+Real-world:
 
 ```
-{'q_id': '8houtx',
-  'title': 'Why does water heated to room temperature feel colder than the air around it?',
-  'selftext': '',
-  'document': '',
-  'subreddit': 'explainlikeimfive',
-  'answers': {'a_id': ['dylcnfk', 'dylcj49'],
-  'text': ["Water transfers heat more efficiently than air. When something feels cold it's because heat is being transferred from your skin to whatever you're touching. ... Get out of the water and have a breeze blow on you while you're wet, all of the water starts evaporating, pulling even more heat from you."],
-  'score': [5, 2]},
-  'title_urls': {'url': []},
-  'selftext_urls': {'url': []},
-  'answers_urls': {'url': []}}
+{
+  "language_command": "Go pick up Hershey's syrup in the room with the big window and bring it to the room with the other Spot.",
+  "scene_name": "",
+  "wall_clock_time": "12:50:10.923",
+  "left_fisheye_rgb": "./Trajectories/trajectories/data_3/folder_0.zip/left_fisheye_image_0.npy",
+  "left_fisheye_depth": "./Trajectories/trajectories/data_3/folder_0.zip/left_fisheye_depth_0.npy",
+  "right_fisheye_rgb": "./Trajectories/trajectories/data_3/folder_0.zip/right_fisheye_image_0.npy",
+  "right_fisheye_depth": "./Trajectories/trajectories/data_3/folder_0.zip/right_fisheye_depth_0.npy",
+  "gripper_rgb": "./Trajectories/trajectories/data_3/folder_0.zip/gripper_image_0.npy",
+  "gripper_depth": "./Trajectories/trajectories/data_3/folder_0.zip/gripper_depth_0.npy",
+  "left_fisheye_instance_seg": "./Trajectories/trajectories/data_3/folder_0.zip/left_fisheye_image_instance_seg_0.npy",
+  "right_fisheye_instance_seg": "./Trajectories/trajectories/data_3/folder_0.zip/right_fisheye_image_instance_seg_0.npy",
+  "gripper_fisheye_instance_seg": "./Trajectories/trajectories/data_3/folder_0.zip/gripper_image_instance_seg_0.npy",
+  "body_state": {"x": 1.7732375781707208, "y": -0.2649551302417769, "z": 0.04729541059536978},
+  "body_quaternion": {"w": 0.11121513326494507, "x": 0.00003060940357089109, "y": 0.0006936040684443222, "z": 0.9937961119411372},
+  "body_orientation": {"r": 0.0017760928400286857, "p": 0.016947586302323542, "y": 2.919693676695565},
+  "body_linear_velocity": {"x": 0.0007985030885781894, "y": 0.0007107887103978708, "z": -0.00001997174236456424},
+  "body_angular_velocity": {"x": -0.002894917543479851, "y": -0.0017834609980581554, "z": 0.00032649917985633773},
+  "arm_state_rel_body": {"x": 0.5536401271820068, "y": 0.0001991107128560543, "z": 0.2607555091381073},
+  "arm_quaternion_rel_body": {
+    "w": 0.9999642968177795,
+    "x": 0.00019104218517895788,
+    "y": 0.008427758701145649,
+    "z": 0.008427758701145649
+  },
+  "arm_orientation_rel_body": {
+    "x": 0.0003903917486135314,
+    "y": 0.016855526363847233,
+    "z": 0.0009807885066525242
+  },
+  "arm_state_global": {
+    "x": 1.233305266138133,
+    "y": 0.0001991107128560543,
+    "z": 0.2607555091381073
+  },
+  "arm_quaternion_global": {
+    "w": 0.11071797661404018,
+    "x": -0.0083232786094425,
+    "y": 0.0018207155823512953,
+    "z": 0.9938152930378756
+  },
+  "arm_orientation_global": {
+    "x": 0.0017760928400286857,
+    "y": 0.016947586302323542,
+    "z": 2.919693676695565
+  },
+  "arm_linear_velocity": {
+    "x": -0.00015927483240388228,
+    "y": 0.00006229256340773636,
+    "z": -0.003934306244239418
+  },
+  "arm_angular_velocity": {
+    "x": 0.02912604479413378,
+    "y": -0.012041083915871545,
+    "z": 0.009199674753842119
+  },
+  "arm_stowed": 1,
+  "gripper_open_percentage": 0.521618127822876,
+  "object_held": 0,
+  "feet_state_rel_body": [
+    {
+      "x": 0.32068437337875366,
+      "y": 0.17303785681724548,
+      "z": -0.5148577690124512
+    },
+    {
+      "x": 0.32222312688827515,
+      "y": -0.17367061972618103,
+      "z": -0.5163648128509521
+    },
+    ...
+  ],
+  "feet_state_global": [
+    {
+      "x": -0.35111223090819643,
+      "y": -0.0985760241189894,
+      "z": -0.5146475087953596
+    },
+    {
+      "x": -0.27597323368156573,
+      "y": 0.239893453842677,
+      "z": -0.5166350285289446
+    },
+    ...
+  ],
+  "all_joint_angles": {
+    "fl.hx": 0.013755097053945065,
+    "fl.hy": 0.7961212992668152,
+    "fl.kn": -1.5724135637283325,
+    ...
+  },
+  "all_joint_velocities": {
+    "fl.hx": -0.007001522462815046,
+    "fl.hy": 0.0006701984675601125,
+    "fl.kn": 0.00015050712681841105,
+    ...
+  }
+}
 ```
 
-**Additional Notes:** Add here
 
 
 ## Motivations & Intentions
@@ -330,7 +461,7 @@ Summarize here. Include any criteria for typicality of data point.
 <!-- info: Provide a list of key domains of application that the dataset has
 been designed for:<br><br>(Usage Note: Use comma-separated keywords.) -->
 
-`Robotics`, `Imitation Learning`, `Behaivor Cloning`, `Reinfocement Learning`, `Machine Learning`
+`Robotics`, `Imitation Learning`, `Behavior Cloning`, `Reinfocement Learning`, `Machine Learning`
 
 #### Motivating Factor(s)
 <!-- scope: microscope -->
