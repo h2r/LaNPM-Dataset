@@ -1,4 +1,4 @@
-# LaNPM
+# LaNPM Dataset Benchmark
 As robots that follow natural language become more capable and prevalent, we need a benchmark to holistically develop and evaluate their ability to solve long-horizon mobile manipulation tasks in large, diverse environments. Robots must use visual and language understanding, navigation, and manipulation capabilities to tackle this challenge. Existing datasets do not integrate all these aspects, restricting their efficacy as benchmarks. To address this gap, we present the Language, Navigation, Manipulation, Perception (LaNMP) dataset and demonstrate the benefits of integrating these four capabilities and various modalities. LaNMP comprises 574 trajectories across eight simulated and real-world environments for long-horizon room-to-room pick-and-place tasks specified by natural language. Every trajectory consists of over 20 attributes, including RGB-D images, segmentations, and the poses of the robot body, end-effector, and grasped objects. We fine-tuned and tested two models in simulation and on a physical robot to demonstrate its efficacy in development and evaluation. The models perform suboptimally compared to humans across various metrics, indicating significant room for developing better multimodal mobile manipulation models using our benchmark.
 
 ![Sequential timesteps of images from sim and real collected robot trajectories along with the natural language command describing the task.](Trajectories-Figure.png "Sim and real trajectories")
@@ -117,4 +117,8 @@ The metadata group contains the following fields:
 Coming very soon!
 
 ## Running ALFRED Seq2Seq
-Coming very soon!
+1. Create a Python virtual environment using Python 3.9: `python3.9 -m venv my-env`
+2. Download and set up the **AI2THOR** simulator version 3.0.0: `pip install ai2thor==3.0.0` (provided in the requirements.txt)
+3. Install all dependencies: `pip install -r requirements.txt`
+4. To be continued...
+
