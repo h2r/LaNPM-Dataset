@@ -437,20 +437,22 @@ There have been recent advances in robotic mobile manipulation, however the fiel
 
 Use additional notes to capture any specific patterns that readers should
 look out for, or other relevant information or considerations. -->
-**Suitable Use Case:** Summarize here. Include links where necessary.
+**Suitable Use Case:** Training and testing behavior cloning models.
 
-**Suitable Use Case:** Summarize here. Include links where necessary.
+**Suitable Use Case:** Learning reward functions via inverse reinforcement learning.
 
-**Suitable Use Case:** Summarize here. Include links where necessary.
+**Suitable Use Case:** Robot skill learning.
 
-**Additional Notes:** Add here
+**Suitable Use Case:** Providing in-context examples for robot planning.
+
+<!-- **Additional Notes:** Add here -->
 
 
 #### Research and Problem Space(s)
 <!-- scope: periscope -->
 <!-- info: Provide a description of the specific problem space that this
 dataset intends to address. -->
-Summarize here. Include any specific research questions.
+This dataset intendes to serve as a benchmark addressing the gap of the integration of natural language, navigation, manipulation, and perception for pick-and-place mobile manipulation tasks that span room-to-room and floor-to-floor in both simulated and real environments. Mobile manipulation is lagging behind overall, and we believe one of the reasons behind that is a lack of difficult comprehensive benchmarks that models in developement can be tested against. LaNMP is here to fill this gap.
 
 #### Citation Guidelines
 <!-- scope: microscope -->
