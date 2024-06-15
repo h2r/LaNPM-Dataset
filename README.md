@@ -1,7 +1,7 @@
 # LaNPM Dataset Benchmark
 As robots that follow natural language become more capable and prevalent, we need a benchmark to holistically develop and evaluate their ability to solve long-horizon mobile manipulation tasks in large, diverse environments. Robots must use visual and language understanding, navigation, and manipulation capabilities to tackle this challenge. Existing datasets do not integrate all these aspects, restricting their efficacy as benchmarks. To address this gap, we present the Language, Navigation, Manipulation, Perception (LaNMP) dataset and demonstrate the benefits of integrating these four capabilities and various modalities. LaNMP comprises 574 trajectories across eight simulated and real-world environments for long-horizon room-to-room pick-and-place tasks specified by natural language. Every trajectory consists of over 20 attributes, including RGB-D images, segmentations, and the poses of the robot body, end-effector, and grasped objects. We fine-tuned and tested two models in simulation and on a physical robot to demonstrate its efficacy in development and evaluation. The models perform suboptimally compared to humans across various metrics, indicating significant room for developing better multimodal mobile manipulation models using our benchmark.
 
-![Sequential timesteps of images from sim and real collected robot trajectories along with the natural language command describing the task.](Trajectories-Figure.png "Sim and real trajectories")
+![Sequential timesteps of images from sim and real collected robot trajectories along with the natural language command describing the task.](./media/Trajectories-Figure.png "Sim and real trajectories")
 
 ## Dataset Format
 More detailed dataset information can be found in the dataset card `DataCard.md`.
@@ -126,7 +126,8 @@ The ALFRED Seq2Seq model from the paper ["ALFRED A Benchmark for Interpreting Gr
 This model was trained and ran on an NVIDIA 3090 GPU, so some of the following instructions assume the use of that GPU.
 
 **Preliminary:**
-1. Create a Python virtual environment using Python 3.9: `python3.9 -m venv my-env`
+1. Create a Python virtual environment using Python 3.9: `python3.9 -m venv alfred-env`
+2. Activate the virtual environment: `source alfred-env/bin/activate`
 2. Install and load **CUDA Toolkit 11.8** and **cuDNN 8.7**
 3. `cd LaNMP-Dataset/models`
 4. `export ALFRED_ROOT=$(pwd)/alfred`
@@ -146,3 +147,7 @@ python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{m
 * More details on all the command-line arguments can be found at `./models/train/train_seq2seq.py`
 
 **Running inference:**
+```
+python models/eval/eval_seq2seq.py --model_path ./models/main_models/alfred/exp/model:seq2seq_im_mask_discrete_relative_fold1/best_test.pth --gpu --model models.model.seq2seq_im_mask --pp_data ./models/main_models/alfred/data/feats_discrete_relative_fold1 --split_keys 'data/splits/split_keys_discrete_relative_fold1.json'
+```
+* More details on all the command-line arguments can be found at `./models/eval/eval_seq2seq.py`
