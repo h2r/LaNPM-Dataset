@@ -1,3 +1,6 @@
 *.zip
 /sim_data
 /web/*
+__pycache__/
+/models/main_models/alfred/pretrained/*
+/models/main_models/alfred/exp/*
