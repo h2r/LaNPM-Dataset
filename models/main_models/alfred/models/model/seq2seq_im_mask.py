@@ -9,8 +9,6 @@ from torch.nn import functional as F
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 from model.seq2seq import Module as Base
 from models.utils.metric import compute_f1, compute_exact
-from gen.utils.image_util import decompress_mask
-
 
 class Module(Base):
 
