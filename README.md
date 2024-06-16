@@ -139,7 +139,11 @@ This model was trained and ran on an NVIDIA 3090 GPU, so some of the following i
 
 The original pretrained model used for fine-tuning can be downloaded from this [Google Drive Folder](https://drive.google.com/drive/folders/12cXF86BgWhWWaMK2EFLbujP2plN4u1ds?usp=sharing). 
 
-1.
+1. Place the model in `alfred/pretrained`
+2. To run ResNet to extract the images features and save them to disk, run
+```
+python models/utils/extract_resnet.py --gpu
+```
 
 ```
 python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{model}_discrete_relative_fold1 --gpu --batch 8 --pm_aux_loss_wt 0.1 --subgoal_aux_loss_wt 0.1 --pp_data 'data/feats_discrete_relative_fold1' --split_keys 'data/splits/split_keys_discrete_relative_fold1.json --class_mode --relative --preprocess'

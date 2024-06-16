@@ -505,51 +505,86 @@ considerations.
 type.) -->
 **Collection Type**
 
-**Source:** Describe here. Include links where available.
+**Source:** Prolific.
 
-**Platform:** [Platform Name], Describe platform here. Include links where relevant.
+**Platform:** [Prolific](www.prolific.com), A crowdsourcing platform for researchers to collect data.
 
-**Is this source considered sensitive or high-risk?** [Yes/No]
+**Is this source considered sensitive or high-risk?** No
 
-**Dates of Collection:** [MMM YYYY - MMM YYYY]
+**Dates of Collection:** [03 2024 - 04 2024]
 
 **Primary modality of collection data:**
 
-*Usage Note: Select one for this collection type.*
-
-- Image Data
 - Text Data
-- Tabular Data
-- Audio Data
-- Video Data
-- Time Series
-- Graph Data
-- Geospatial Data
-- Unknown
-- Multimodal (please specify)
-- Others (please specify)
 
 **Update Frequency for collected data:**
 
-*Usage Note: Select one for this collection type.*
-
-- Yearly
-- Quarterly
-- Monthly
-- Biweekly
-- Weekly
-- Daily
-- Hourly
 - Static
-- Others (please specify)
 
-**Additional Links for this collection:**
+**Additional Notes:** Used to collect the natural language commands. Crowdsourced humans explore the simulated environements and come up with commands for tasks the robot can do in those environements.
 
-- [Access Policy]
-- [Wipeout Policy]
-- [Retention Policy]
 
-**Additional Notes:** Add here
+**Collection Type**
+
+**Source:** Human teleoperation
+
+**Platform:** [AI2THOR](https://ai2thor.allenai.org/) simulator
+
+**Is this source considered sensitive or high-risk?** No
+
+**Dates of Collection:** [03 2024 - 04 2024]
+
+**Primary modality of collection data:**
+
+- Multimodal (Navigation, Manipulation, Vision)
+
+**Update Frequency for collected data:**
+
+- Static
+
+**Additional Notes:** Humans teleoperate a simulated robot via keyboard to collect the robot trajectory data.
+
+
+**Collection Type**
+
+**Source:** Human speech
+
+**Platform:** N/A
+
+**Is this source considered sensitive or high-risk?** No
+
+**Dates of Collection:** [05 2024]
+
+**Primary modality of collection data:**
+
+- Text Data
+
+**Update Frequency for collected data:**
+
+- Static
+
+**Additional Notes:** Used to collect the natural language commands. Humans explore the real-world environements and come up with commands for tasks the robot can do in those environements.
+
+
+**Collection Type**
+
+**Source:** Human teleoperation
+
+**Platform:** [Boston Dynamics Spot](https://bostondynamics.com/products/spot/)
+
+**Is this source considered sensitive or high-risk?** No
+
+**Dates of Collection:** [05 2024]
+
+**Primary modality of collection data:**
+
+- Multimodal (Navigation, Manipulation, Vision)
+
+**Update Frequency for collected data:**
+
+- Static
+
+**Additional Notes:** Human teleoperates a real quadruped robot via a tablet/joystick controller to collect the robot trajectory data.
 
 #### Source Description(s)
 <!-- scope: microscope -->
@@ -888,29 +923,6 @@ links where necessary.
 
 **Additional Notes:** add here
 
-#### Risk(s) and Mitigation(s)
-<!-- scope: microscope -->
-<!-- info: Summarize systemic or residual risks, performance expectations,
-trade-offs and caveats because of human attributes in this dataset.
-
-Use additional notes to capture any other relevant information or
-considerations.
-
-Usage Note: Duplicate and complete the following for each human attribute. -->
-**Human Attribute**
-
-Summarize here. Include links and metrics where applicable.
-
-**Risk type:** [Description + Mitigations]
-
-**Risk type:** [Description + Mitigations]
-
-**Risk type:** [Description + Mitigations]
-
-**Trade-offs, caveats, & other considerations:** Summarize here. Include
-visualizations, metrics, or links where necessary.
-
-**Additional Notes:** Add here
 
 ## Extended Use
 ### Use with Other Data
@@ -1087,21 +1099,6 @@ visualizations where relevant.
 
 **Additional Notes:** Add here
 
-#### Usage Guideline(s)
-<!-- scope: microscope -->
-<!-- info: Summarize usage guidelines or policies that consumers should be
-aware of.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-**Usage Guidelines:** Summarize here. Include links where necessary.
-
-**Approval Steps:** Summarize here. Include links where necessary.
-
-**Reviewer:** Provide the name of a reviewer for publications referencing
-this dataset.
-
-**Additional Notes:** Add here
 
 #### Distribution(s)
 <!-- scope: periscope -->
