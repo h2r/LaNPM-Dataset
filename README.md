@@ -132,8 +132,7 @@ This model was trained and ran on an NVIDIA 3090 GPU, so some of the following i
 3. `cd LaNMP-Dataset/models`
 4. `export ALFRED_ROOT=$(pwd)/alfred`
 5. `cd alfred`
-6. Download and set up the **AI2THOR** simulator version 3.0.0: `pip install ai2thor==3.0.0` (provided in the requirements.txt)
-7. Install all dependencies: `pip install -r requirements.txt`
+6. Install all dependencies: `pip install -r requirements.txt`
 
 
 **Running training:**
@@ -157,10 +156,10 @@ The fine-tuned models can be downloaded from this [Google Drive folder](https://
 
 The command assumes it is run on a machine with a GUI in order to run the AI2THOR simulator, i.e. not on a headless machine.
 
-1. Place the model pth file in `./models/main_models/alfred/exp/[matching_dir]` where [matching_dir] is the one that matches the model pth, e.g. "best_test_fold1.pth" would go in the "fold1" directory.
-2. Make sure you are in the `alfred` directory and run
+1. Place the model pth file in `./models/main_models/alfred/exp`
+2. You should already be in the `alfred` directory, and run
 ```
-python models/eval/eval_seq2seq.py --model_path exp/fold1/best_test.pth --gpu --model models.model.seq2seq_im_mask --pp_data ./models/main_models/alfred/data/feats_discrete_relative_fold1 --split_keys 'data/splits/split_keys_discrete_relative_fold1.json'
+python models/eval/eval_seq2seq.py --model_path exp/best_test_fold1.pth --gpu --model models.model.seq2seq_im_mask --pp_data data/feats_discrete_relative_fold1 --split_keys 'data/splits/split_keys_discrete_relative_fold1.json'
 ```
-* `--model_path` should change for each different model pth file, e.g `exp/fold2/best_test.pth` to run fold2's model
+* Any argument that includes 'fold1', that part should be changed to whatever model is being used, e.g. "task" for "best_test_task.pth"
 * More details on all the command-line arguments can be found at `./models/eval/eval_seq2seq.py`
