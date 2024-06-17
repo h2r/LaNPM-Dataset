@@ -60,30 +60,28 @@ institutions or multiple affiliations.) -->
 - Stefanie Tellex, Associate Professor, Brown University
 
 ### Funding Sources
-Coming soon!
 
-<!-- #### Institution(s) -->
+#### Institution(s)
 <!-- scope: telescope -->
 <!-- info: Provide the names of the funding institution(s): -->
-<!-- - Name of Institution
-- Name of Institution
-- Name of Institution
+- Office of Naval Research (ONR)
+- National Science Foundation (NSF)
+- Amazon Robotics
 
 #### Funding or Grant Summary(ies)
-<!-- scope: periscope -->
+<!-- scope: periscope
 <!-- width: full -->
 <!-- info: Provide a short summary of programs or projects that may have funded
 the creation, collection, or curation of the dataset.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-<!-- *For example, Institution 1 and institution 2 jointly funded this dataset as a
+ <!-- *For example, Institution 1 and institution 2 jointly funded this dataset as a
 part of the XYZ data program, funded by XYZ grant awarded by institution 3 for
-the years YYYY-YYYY.*
+the years YYYY-YYYY.* -->
 
-Summarize here. Link to documents if available.
+This work is supported by ONR under grant award numbers N00014-22-1-2592 and N00014-23-1-2794, NSF under grant award number CNS-2150184, and with support from Amazon Robotics.
 
-**Additional Notes:** Add here -->
 
 ## Dataset Overview
 #### Data Subject(s)
@@ -302,16 +300,6 @@ Right instance segmentations | `./right_fisheye_image_instance_seg_0.npy` | The 
 Gripper RGB | `./gripper_image_0.npy`  | The path of the gripper RGB image
 Gripper depth | `./gripper_depth_0.npy`  | The path of the gripper depth image
 Gripper instance segmentations | `./gripper_image_instance_seg_0.npy`  | The path of the gripper instance segmentations image
-
-
-<!-- RGB | `./rgb_0.npy` | The path to the RGB npy egocentric image of the time step
-Depth | `./depth_0.npy` | The path to the depth npy egocentric image of the time step
-Instance segmentations | `./inst_seg_0.npy` | The path to the instance segmentations npy egocentric image of the time step -->
-
-
-**Above:** Provide a caption for the above table or visualization if used.
-
-**Additional Notes:** Add here
 
 #### Typical Data Point
 <!-- width: half -->
@@ -765,92 +753,12 @@ considerations. -->
 - **Human Attribute:** Prolific.com
 - **Human Attribute:** In-person humans
 
-#### Methodology Detail(s)
-<!-- scope: microscope -->
-<!-- info: Describe the methods used to collect human attributes in the
-dataset.
-
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete the following for each human
-attribute.) -->
-
-**Human Attribute Method:** Describe the collection method here. Include links where necessary
-
-**Collection task:** Describe the task here. Include links where necessary
-
-**Platforms, tools, or libraries:**
-
-- [Platform, tools, or libraries]: Write description here
-- [Platform, tools, or libraries]: Write description here
-- [Platform, tools, or libraries]: Write description here
-
-**Additional Notes:** Add here
-
-#### Distribution(s)
-<!-- width: full -->
-<!-- info: Provide basic descriptive statistics for each human attribute,
-noting key takeaways in the caption.
-
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete the following for each human
-attribute.) -->
-Human Attribute | Label or Class | Label or Class | Label or Class | Label or Class
---- | --- | --- | --- | ---
-Count | 123456 | 123456 | 123456 | 123456
-[Statistic] | 123456 | 123456 | 123456 | 123456
-[Statistic] | 123456 | 123456 | 123456 | 123456
-[Statistic] | 123456 | 123456 | 123456 | 123456
-
-**Above:** Provide a caption for the above table or visualization.
-**Additional Notes:** Add here
-
-#### Known Correlations
-<!-- scope: periscope -->
-<!-- info: Describe any known correlations with the indicated sensitive
-attributes in this dataset.
-
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate for each known correlation.) -->
-[`field_name`, `field_name`]
-
-**Description:** Summarize here. Include visualizations, metrics, or links
-where necessary.
-
-**Impact on dataset use:** Summarize here. Include visualizations, metrics, or
-links where necessary.
-
-**Additional Notes:** add here
-
-
 ## Extended Use
 ### Use with Other Data
 #### Safety Level
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
 - Safe to use with other data
-- Conditionally safe to use with other data
-- Should not be used with other data
-- Unknown
-- Others (please specify)
-
-#### Known Safe Dataset(s) or Data Type(s)
-<!-- scope: periscope -->
-<!-- info: List the known datasets or data types and corresponding
-transformations that **are safe to join or aggregate** this dataset with. -->
-**Dataset or Data Type:** Summarize here. Include visualizations, metrics,
-or links where necessary.
-
-**Dataset or Data Type:** Summarize here. Include visualizations, metrics,
-or links where necessary.
-
-**Dataset or Data Type:** Summarize here. Include visualizations, metrics,
-or links where necessary.
 
 #### Best Practices
 <!-- scope: microscope -->
@@ -859,57 +767,14 @@ or data types.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-Summarize here. Include visualizations, metrics, demonstrative examples,
-or links where necessary.
-
-**Additional Notes:** Add here
-
-#### Known Unsafe Dataset(s) or Data Type(s)
-<!-- scope: periscope -->
-<!-- info: Fill this out if you selected "Conditionally safe to use with other
-datasets" or "Should not be used with other datasets":
-
-List the known datasets or data types and corresponding transformations that
-are **unsafe to join or aggregate** with this dataset. -->
-**Dataset or Data Type:** Summarize here. Include visualizations, metrics,
-or links where necessary.
-
-**Dataset or Data Type:** Summarize here. Include visualizations, metrics,
-or links where necessary.
-
-**Dataset or Data Type:** Summarize here. Include visualizations, metrics,
-or links where necessary.
-
-#### Limitation(s) and Recommendation(s)
-<!-- scope: microscope -->
-<!-- info: Fill this out if you selected "Conditionally safe to use with
-other datasets" or "Should not be used with
-other datasets":
-
-Summarize limitations of the dataset that introduce foreseeable risks when the
-dataset is conjoined with other datasets.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-Summarize here. Include links and metrics where applicable.
-
-**Limitation type:** Dataset or data type, description and recommendation.
-
-**Limitation type:** Dataset or data type, description and recommendation.
-
-**Limitation type:** Dataset or data type, description and recommendation.
-
-**Additional Notes:** Add here
+- Make sure the datasets are both in the same format
+- Do not mix at the time step level, only at the trajectory level, e.g. Other dataset trajectory Y can come after LaNMP trajectory X, but X and Y's time steps should not be mixed
 
 ### Forking & Sampling
 #### Safety Level
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
 - Safe to form and/or sample
-- Conditionally safe to fork and/or sample
-- Should not be forked and/or sampled
-- Unknown
-- Others (please specify)
 
 #### Acceptable Sampling Method(s)
 <!-- scope: periscope -->
@@ -919,13 +784,9 @@ dataset: -->
 - Haphazard Sampling
 - Multi-stage sampling
 - Random Sampling
-- Retrospective Sampling
 - Stratified Sampling
 - Systematic Sampling
 - Weighted Sampling
-- Unknown
-- Unsampled
-- Others (please specify)
 
 #### Best Practice(s)
 <!-- scope: microscope -->
@@ -933,50 +794,7 @@ dataset: -->
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-Summarize here. Include links, figures, and demonstrative examples where
-available.
-
-**Additional Notes:** Add here
-
-#### Risk(s) and Mitigation(s)
-<!-- scope: periscope -->
-<!-- info: Fill this out if you selected "Conditionally safe to fork and/or
-sample" or "Should not be forked and/or sampled":
-
-Summarize known or residual risks associated with forking and sampling methods
-when applied to the dataset.
-
-Use additional notes to capture any other
-relevant information or considerations. -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk Type:** [Description + Mitigations]
-
-**Risk Type:** [Description + Mitigations]
-
-**Risk Type:** [Description + Mitigations]
-
-**Additional Notes:** Add here
-
-#### Limitation(s) and Recommendation(s)
-<!-- scope: microscope -->
-<!-- info: Fill this out if you selected "Conditionally safe to fork and/or
-sample" or "Should not be forked and/or sample":
-
-Summarize the limitations that the dataset introduces when forking
-or sampling the dataset and corresponding recommendations.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-Summarize here. Include links and metrics where applicable.
-
-**Limitation Type:** [Description + Recommendation]
-
-**Limitation Type:** [Description + Recommendation]
-
-**Limitation Type:** [Description + Recommendation]
-
-**Additional Notes:** Add here
+Do not sample at the time step level, only at the trajectory level, e.g. sample trajectories 4-15 but not the timesteps of those trajectories.
 
 ### Use in ML or AI Systems
 #### Dataset Use(s)
@@ -994,14 +812,7 @@ individual instances made explicit.
 
 Include links to servers where readers can explore the data on their own. -->
 
-**Exploration Demo:** [Link to server or demo.]
-
-**Notable Field Name:** Describe here. Include links, data examples, metrics,
-visualizations where relevant.
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
+**Exploration Demo:** [Google Colab notebook](https://colab.research.google.com/drive/18fTkjqcvlyOkCkbou6LK2RG2XKsPT__K?usp=sharing)
 
 
 #### Distribution(s)
@@ -1013,40 +824,12 @@ relevant information or considerations. -->
 
 Set | Number of data points
 --- | ---
-Train | 62,563
-Test | 62,563
-Validation | 62,563
-Dev | 62,563
+Train | 446
+Test | 78
 
-**Above:** Provide a caption for the above table or visualization.
+**Above:** We don't hyperparameter tune so we only use train and test splits. 85% and 15% respectively. This is only for the simulation data.
 
-**Additional Notes:** Add here
-
-#### Known Correlation(s)
-<!-- scope: microscope -->
-<!-- info: Summarize any known correlations with
-the indicated features in this dataset.
-
-Use additional notes to capture any other
-relevant information or considerations.
-
-(Usage Note: Duplicate for each known
-correlation.) -->
-`field_name`, `field_name`
-
-**Description:** Summarize here. Include
-visualizations, metrics, or links where
-necessary.
-
-**Impact on dataset use:** Summarize here.
-Include visualizations, metrics, or links
-where necessary.
-
-**Risks from correlation:** Summarize here.
-Include recommended mitigative steps if
-available.
-
-**Additional Notes:** Add here
+**Additional Notes:** This split was only used during the task generalization experiment. More details in the paper.
 
 #### Split Statistics
 <!-- scope: periscope -->
@@ -1054,14 +837,13 @@ available.
 <!-- info: Provide the sizes of each split. As appropriate, provide any
 descriptive statistics for features. -->
 
-Statistic | Train | Test | Valid | Dev
---- | --- | --- | --- | ---
-Count | 123456 | 123456 | 123456 | 123456
-Descriptive Statistic | 123456 | 123456 | 123456 | 123456
-Descriptive Statistic | 123456 | 123456 | 123456 | 123456
-Descriptive Statistic | 123456 | 123456 | 123456 | 123456
+Statistic | Train | Test 
+--- | --- | --- | --- 
+Count | 446 | 78 
 
-**Above:** Caption for table above.
+
+**Above:** We don't hyperparameter tune so we only use train and test splits. 85% and 15% respectively. This is only for the simulation data.
+
 
 ## Transformations
 <!-- info: Fill this section if any transformations were applied in the
@@ -1071,15 +853,7 @@ creation of your dataset. -->
 <!-- scope: telescope -->
 <!-- info: Select **all applicable** transformations
 that were applied to the dataset. -->
-- Anomaly Detection
-- Cleaning Mismatched Values
-- Cleaning Missing Values
-- Converting Data Types
-- Data Aggregation
-- Dimensionality Reduction
-- Joining Input Sources
-- Redaction or Anonymization
-- Others (Please specify)
+- Other (Fixing natural langauge command grammatical mistakes)
 
 #### Field(s) Transformed
 <!-- scope: periscope -->
@@ -1163,60 +937,6 @@ Summarize here. Include links where necessary.
 
 #### Comparative Summary
 <!-- scope: microscope -->
-<!-- info: Why were missing values cleaned using
-this method (over others)? Provide
-comparative charts showing before
-and after missing values were cleaned. -->
-Summarize here. Include links, tables, visualizations where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Residual & Other Risk(s)
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-- **Risk Type:** Description + Mitigations
-- **Risk Type:** Description + Mitigations
-- **Risk Type:** Description + Mitigations
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were
-made? -->
-Summarize here. Include links where available.
-
-#### Cleaning Mismatched Value(s)
-<!-- scope: telescope -->
-<!-- info: Which fields in the data were corrected
-for mismatched values? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: How were incorrect or mismatched
-values cleaned? What other choices
-were considered? -->
-Summarize here. Include links where available.
-
-#### Comparative Summary
-<!-- scope: microscope -->
 <!-- info: Why were incorrect or mismatched
 values cleaned using this method (over
 others)? Provide a comparative
@@ -1233,336 +953,6 @@ Field Name | Before: After
 **Above:** Provide a caption for the above table or visualization.
 
 **Additional Notes:** Add here
-
-#### Residual & Other Risk(s)
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were made? -->
-Summarize here. Include links where available.
-
-#### Anomalies
-<!-- scope: telescope -->
-<!-- info: How many anomalies or outliers were
-detected?
-If at all, how were detected anomalies
-or outliers handled?
-Why or why not? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: What methods were used to detect
-anomalies or outliers? -->
-Summarize here. Include links where necessary.
-
-**Platforms, tools, or libraries**
-
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-#### Comparative Summary
-<!-- scope: microscope -->
-<!-- info: Provide a comparative analysis
-demonstrating before and after
-anomaly handling measures. -->
-Summarize here. Include links, tables, visualizations where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Residual & Other Risk(s)
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were made? -->
-Summarize here. Include links where available.
-
-#### Dimensionality Reduction
-<!-- scope: telescope -->
-<!-- info: How many original features were
-collected and how many dimensions
-were reduced? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: What methods were used to reduce the
-dimensionality of the data? What other
-choices were considered? -->
-Summarize here. Include links where
-necessary.
-
-**Platforms, tools, or libraries**
-
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-#### Comparative Summary
-<!-- scope: microscope -->
-<!-- info: Why were features reduced using this
-method (over others)? Provide
-comparative charts showing before
-and after dimensionality reduction
-processes. -->
-Summarize here. Include links, tables, visualizations where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Residual & Other Risks
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were made? -->
-Summarize here. Include links where available.
-
-#### Joining Input Sources
-<!-- scope: telescope -->
-<!-- info: What were the distinct input sources that were joined? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: What are the shared columns of fields used to join these
-sources? -->
-Summarize here. Include links where necessary.
-
-**Platforms, tools, or libraries**
-
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-#### Comparative Summary
-<!-- scope: microscope -->
-<!-- info: Why were features joined using this
-method over others?
-
-Provide comparative charts showing
-before and after dimensionality
-reduction processes. -->
-Summarize here. Include links, tables, visualizations where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Residual & Other Risk(s)
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were
-made? -->
-Summarize here. Include links where
-available.
-
-#### Redaction or Anonymization
-<!-- scope: telescope -->
-<!-- info: Which features were redacted or
-anonymized? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: What methods were used to redact or
-anonymize data? -->
-Summarize here. Include links where necessary.
-
-**Platforms, tools, or libraries**
-
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-#### Comparative Summary
-<!-- scope: microscope -->
-<!-- info: Why was data redacted or anonymized
-using this method over others? Provide
-comparative charts showing before
-and after redaction or anonymization
-process. -->
-Summarize here. Include links, tables, visualizations where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Residual & Other Risk(s)
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-**Risk Type:** Description + Mitigations
-
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were
-made? -->
-Summarize here. Include links where available.
-
-#### Others (Please Specify)
-<!-- scope: telescope -->
-<!-- info: What was done? Which features or
-fields were affected? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-**Field Name:** Count or Description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: What method were used? -->
-Summarize here. Include links where necessary.
-
-**Platforms, tools, or libraries**
-
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-#### Comparative Summary
-<!-- scope: microscope -->
-<!-- info: Why was this method used over
-others? Provide comparative charts
-showing before and after this
-transformation. -->
-Summarize here. Include links, tables, visualizations where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Residual & Other Risk(s)
-<!-- scope: telescope -->
-<!-- info: What risks were introduced because of
-this transformation? Which risks were
-mitigated? -->
-Summarize here. Include links and metrics where applicable.
-
-**Risk type:** [Description + Mitigations]
-
-**Risk type:** [Description + Mitigations]
-
-**Risk type:** [Description + Mitigations]
-
-#### Additional Considerations
-<!-- scope: microscope -->
-<!-- info: What additional considerations were made? -->
-Summarize here. Include links where available.
 
 ## Annotations & Labeling
 <!-- info: Fill this section if any human or algorithmic annotation tasks were
