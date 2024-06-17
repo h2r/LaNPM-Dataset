@@ -603,13 +603,19 @@ relevant information or considerations.
 collection method.) -->
 **Collection Method or Source**
 
-**Description:** Describe here. Include links where relevant.
+**Description:** Natural language commands
 
-**Methods employed:** Describe here. Include links where relevant.
+**Methods employed:** Utilized other humans to manually correct grammatical mistakes in the given textual natural language commands. The humans deleted the commands that were not possible for the robot to execute or did not match the desired research goal.
 
-**Tools or libraries:** Describe here. Include links where relevant.
+**Tools or libraries:** N/A
 
-**Additional Notes:** Add here
+**Collection Method or Source**
+
+**Description:** Robot trajectories
+
+**Methods employed:** Utilized other humans to manually delete incomplete collected trajectories.
+
+**Tools or libraries:** N/A
 
 ### Collection Criteria
 #### Data Selection
@@ -618,11 +624,8 @@ collection method.) -->
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-- **Collection Method of Source:** Summarize data selection criteria here. Include links where available.
-- **Collection Method of Source:** Summarize data selection criteria here. Include links where available.
-- **Collection Method of Source:** Summarize data selection criteria here. Include links where available.
-
-**Additional Notes:** Add here
+- **Natural language commands:** The criteria for selction included commands that mention a pick-and-place task where the robot picks up an object and places it somewhere else, and having the robot go from room-to-room.
+- **Trajectories:** The criteria for selction included trajectories that execute the commands in the most efficient manner, ones that minimize robot lag, and ones that don't collide objects in the environment.
 
 ### Relationship to Source
 
@@ -635,11 +638,10 @@ Use additional notes to capture any other relevant information or
 considerations.
 
 (Usage Note: Duplicate and complete the following for each source type.) -->
-- **Source Type:** Summarize here. Include links where available.
-- **Source Type:** Summarize here. Include links where available.
-- **Source Type:** Summarize here. Include links where available.
+- Combines natural language, navigation, manipulation, and perception robot data
+- Mobile manipulation pick-and-place tasks that are room-to-room and some are cross-floor making them long-horizon
+- Utilizing a quadruped which can handle terrains that other robots can't, such as stairs, enabling cross-floor tasks
 
-**Additional Notes:** Add here
 
 #### Limitation(s) and Trade-Off(s)
 <!-- scope: microscope -->
@@ -737,19 +739,13 @@ Field Name | Description
 Field Name | Human Attributed Collected
 Field Name | Human Attributed Collected
 
-**Additional Notes:** Add here
 
 **Unintentionally Collected Attributes**
 
 Human attributes were not explicitly collected as a part of the dataset
 creation process but can be inferred using additional methods.
 
-Field Name | Description
---- | ---
-Field Name | Human Attributed Collected
-Field Name | Human Attributed Collected
-
-**Additional Notes:** Add here
+N/A
 
 #### Rationale
 <!-- scope: microscope -->
