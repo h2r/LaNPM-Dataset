@@ -641,6 +641,7 @@ considerations.
 - Combines natural language, navigation, manipulation, and perception robot data
 - Mobile manipulation pick-and-place tasks that are room-to-room and some are cross-floor making them long-horizon
 - Utilizing a quadruped which can handle terrains that other robots can't, such as stairs, enabling cross-floor tasks
+- Diverse environements and objects
 
 
 #### Limitation(s) and Trade-Off(s)
@@ -650,23 +651,23 @@ compared to the upstream source(s)?
 
 Break down by source type.<br><br>(Usage Note: Duplicate and complete the
 following for each source type.) -->
-- **Source Type:** Summarize here. Include links where available.
-- **Source Type:** Summarize here. Include links where available.
-- **Source Type:** Summarize here. Include links where available.
+- Only pick-and-place tasks
+- No ground-truth goal position of the target object
+- Size
 
-### Version and Maintenance
+<!-- ### Version and Maintenance
 <!-- info: Fill this next row if this is not the first version of the dataset,
 and there is no data card available for the first version -->
-#### First Version
+<!-- #### First Version -->
 <!-- scope: periscope -->
 <!-- info: Provide a **basic description of the first version** of this
 dataset. -->
-- **Release date:** MM/YYYY
+<!-- - **Release date:** MM/YYYY
 - **Link to dataset:** [Dataset Name + Version]
 - **Status:** [Select one: Actively Maintained/Limited Maintenance/Deprecated]
 - **Size of Dataset:** 123 MB
-- **Number of Instances:** 123456
-
+- **Number of Instances:** 123456 -->
+<!-- 
 #### Note(s) and Caveat(s)
 <!-- scope: microscope -->
 <!-- info: Summarize the caveats or nuances of the first version of this
@@ -674,14 +675,14 @@ dataset that may affect the use of the current version.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-Summarize here. Include links where available.
+<!-- Summarize here. Include links where available.
 
-**Additional Notes:** Add here
+**Additional Notes:** Add here -->
 
-#### Cadence
+<!-- #### Cadence
 <!-- scope: telescope -->
 <!-- info: Select **one**: -->
-- Yearly
+<!-- - Yearly
 - Quarterly
 - Monthly
 - Biweekly
@@ -689,19 +690,19 @@ Summarize here. Include links where available.
 - Daily
 - Hourly
 - Static
-- Others (please specify)
+- Others (please specify) -->
 
-#### Last and Next Update(s)
+<!-- #### Last and Next Update(s) -->
 <!-- scope: periscope -->
 <!-- info: Please describe the update schedule: -->
-- **Date of last update:** DD/MM/YYYY
+<!-- - **Date of last update:** DD/MM/YYYY
 - **Total data points affected:** 12345
 - **Data points updated:** 12345
 - **Data points added:** 12345
 - **Data points removed:** 12345
-- **Date of next update:** DD/MM/YYYY
+- **Date of next update:** DD/MM/YYYY -->
 
-#### Changes on Update(s)
+<!-- #### Changes on Update(s)
 <!-- scope: microscope -->
 <!-- info: Summarize the changes that occur when the dataset is refreshed.
 
@@ -709,11 +710,11 @@ Use additional notes to capture any other relevant information or
 considerations.
 
 (Usage Note: Duplicate and complete the following for each source type.) -->
-- **Source Type:** Summarize here. Include links where available.
+<!-- - **Source Type:** Summarize here. Include links where available.
 - **Source Type:** Summarize here. Include links where available.
 - **Source Type:** Summarize here. Include links where available.
 
-**Additional Notes:** Add here
+**Additional Notes:** Add here -->
 
 ## Human and Other Sensitive Attributes
 #### Sensitive Human Attribute(s)
@@ -736,8 +737,8 @@ process.
 
 Field Name | Description
 --- | ---
-Field Name | Human Attributed Collected
-Field Name | Human Attributed Collected
+nl_command | Natural language commands given by humans telling the robot what task to do in the simulator
+language_command | Natural language commands given by humans telling the robot what task to do in the real-world
 
 
 **Unintentionally Collected Attributes**
@@ -753,7 +754,7 @@ N/A
 that caused this dataset to include the indicated human attributes.
 
 Summarize why or how this might affect the use of the dataset. -->
-Summarize here. Include links, table, and media as relevant.
+We wanted to capture a natural distribution of commands that humans would tell a househould robots to complete long-horizon mobile manipulation tasks. Rather than automatically generating the commands using tools such as LLMs, we wanted to capture what humans really want done in households by assitant robots, so we used humans to provide the commands. Since the ultimate goal is to one day have assistive robots in the home and workplace, capturing the commands that humans would eventually tell them now is crucial for research and development to get to that goal.
 
 #### Source(s)
 <!-- scope: periscope -->
@@ -761,11 +762,8 @@ Summarize here. Include links, table, and media as relevant.
 
 Use additional notes to capture any other relevant information or
 considerations. -->
-- **Human Attribute:** Sources
-- **Human Attribute:** Sources
-- **Human Attribute:** Sources
-
-**Additional Notes:** Add here
+- **Human Attribute:** Prolific.com
+- **Human Attribute:** In-person humans
 
 #### Methodology Detail(s)
 <!-- scope: microscope -->
@@ -2133,110 +2131,3 @@ for each model.) -->
 tables as relevant.
 
 **Additioanl Notes:** Add here
-
-## Terms of Art
-### Concepts and Definitions referenced in this Data Card
-<!-- info: Use this space to include the expansions and definitions of any
-acronyms, concepts, or terms of art used across the Data Card.
-Use standard definitions where possible. Include the source of the definition
-where indicated. If you are using an interpretation,
-adaptation, or modification of the standard definition for the purposes of your
-Data Card or dataset, include your interpretation as well. -->
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-#### Term of Art
-Definition: Write here
-
-Source: Write here and share link
-
-Interpretation: Write here
-
-## Reflections on Data
-<!-- info: Use this space to include any additional information about the
-dataset that has not been captured by the Data Card. For example,
-does the dataset contain data that might be offensive, insulting, threatening,
-or might otherwise cause anxiety? If so, please contact the appropriate parties
-to mitigate any risks. -->
-### Title
-Write notes here.
-
-### Title
-Write notes here.
-
-### Title
-Write notes here.
