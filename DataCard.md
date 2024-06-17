@@ -838,7 +838,7 @@ Test | 78
 descriptive statistics for features. -->
 
 Statistic | Train | Test 
---- | --- | --- | --- 
+--- | --- | --- 
 Count | 446 | 78 
 
 
@@ -1167,63 +1167,21 @@ annotation type.) -->
 
 **Additional Notes:** Add here
 
-#### Location(s)
-<!-- scope: periscope -->
-<!-- info: Provide annotator distributions for each
-annotation type.
-
-Use additional notes to capture any other
-relevant information or considerations.
-
-(Usage Note: Duplicate and complete the
-following for each annotation type.) -->
-**(Annotation Type)**
-
-- Location [Percentage %]
-- Location [Percentage %]
-- Location [Percentage %]
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Gender(s)
-<!-- scope: microscope -->
-<!-- info: Provide annotator distributions for
-each annotation type.
-
-Use additional notes to capture any
-other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete
-the following for each annotation
-type.) -->
-**(Annotation Type)**
-
-- Gender [Percentage %]
-- Gender [Percentage %]
-- Gender [Percentage %]
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-## Validation Types
+<!-- ## Validation Types -->
 <!-- info: Fill this section if the data in the dataset was validated during
 or after the creation of your dataset. -->
-#### Method(s)
+<!-- #### Method(s) -->
 <!-- scope: telescope -->
 <!-- info: Select **all applicable**: -->
-- Data Type Validation
+<!-- - Data Type Validation
 - Range and Constraint Validation
 - Code/cross-reference Validation
 - Structured Validation
 - Consistency Validation
 - Not Validated
-- Others (Please Specify)
+- Others (Please Specify) -->
 
-#### Breakdown(s)
+<!-- #### Breakdown(s) -->
 <!-- scope: periscope -->
 <!-- info: Provide a description of the fields and data
 points that were validated.
@@ -1233,7 +1191,7 @@ relevant information or considerations.
 
 (Usage Note: Duplicate and complete the
 following for each validator type.) -->
-**(Validation Type)**
+<!-- **(Validation Type)**
 
 **Number of Data Points Validated:** 12345
 
@@ -1244,9 +1202,9 @@ Field | 123456
 Field | 123456
 Field | 123456
 
-**Above:** Provide a caption for the above table or visualization.
+**Above:** Provide a caption for the above table or visualization. -->
 
-#### Description(s)
+<!-- #### Description(s) -->
 <!-- scope: microscope -->
 <!-- info: Provide a description of the methods used to
 validate the dataset.
@@ -1256,7 +1214,7 @@ relevant information or considerations.
 
 (Usage Note: Duplicate and complete the
 following for each validator type.) -->
-**(Validation Type)**
+<!-- **(Validation Type)**
 
 **Method:** Describe the validation method here. Include links where
 necessary.
@@ -1270,24 +1228,24 @@ necessary.
 **Validation Results:** Provide results, outcomes, and actions taken because
 of the validation. Include visualizations where available.
 
-**Additional Notes:** Add here
+**Additional Notes:** Add here -->
 
-### Description of Human Validators
+<!-- ### Description of Human Validators -->
 <!-- info: Fill this section if the dataset was validated using human
 validators -->
-#### Characteristic(s)
+<!-- #### Characteristic(s) -->
 <!-- scope: periscope -->
 <!-- info: Provide characteristics of the validator
 pool(s). Use additional notes to capture any
 other relevant information or considerations. -->
-**(Validation Type)**
+<!-- **(Validation Type)**
 - Unique validators: 12345
 - Number of examples per validator: 123456
 - Average cost/task/validator: $$$
 - Training provided: Y/N
-- Expertise required: Y/N
+- Expertise required: Y/N -->
 
-#### Description(s)
+<!-- #### Description(s) -->
 <!-- scope: microscope -->
 <!-- info: Provide a brief description of the validator
 pool(s). Use additional notes to capture any
@@ -1295,7 +1253,7 @@ other relevant information or considerations.
 
 (Usage Note: Duplicate and complete the
 following for each validator type.) -->
-**(Validation Type)**
+<!-- **(Validation Type)**
 
 **Validator description:** Summarize here. Include links if available.
 
@@ -1305,58 +1263,7 @@ following for each validator type.) -->
 
 **Training provided:** Summarize here. Include links if available.
 
-**Additional Notes:** Add here
-
-#### Language(s)
-<!-- scope: telescope -->
-<!-- info: Provide validator distributions.
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete the following for each annotation type.)-->
-**(Validation Type)**
-
-- Language [Percentage %]
-- Language [Percentage %]
-- Language [Percentage %]
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Location(s)
-<!-- scope: periscope -->
-<!-- info: Provide validator distributions.
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete the following for each annotation type.)-->
-**(Validation Type)**
-
-- Location [Percentage %]
-- Location [Percentage %]
-- Location [Percentage %]
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Gender(s)
-<!-- scope: microscope -->
-<!-- info: Provide validator distributions.
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete the following for each annotation type.)-->
-**(Validation Type)**
-
-- Gender [Percentage %]
-- Gender [Percentage %]
-- Gender [Percentage %]
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
+**Additional Notes:** Add here -->
 
 ## Sampling Methods
 <!-- info: Fill out the following block if your dataset employs any sampling
@@ -1365,56 +1272,7 @@ methods. -->
 <!-- scope: telescope -->
 <!-- info: Select **all applicable** methods used in the creation of this
 dataset: -->
-- Cluster Sampling
-- Haphazard Sampling
-- Multi-stage Sampling
-- Random Sampling
-- Retrospective Sampling
-- Stratified Sampling
-- Systematic Sampling
-- Weighted Sampling
-- Unknown
 - Unsampled
-- Others (Please specify)
-
-#### Characteristic(s)
-<!-- scope: periscope -->
-<!-- info: Provide characteristics of each sampling
-method used.
-
-Use additional notes to capture any other
-relevant information or considerations.
-
-(Usage Note: Duplicate and complete the
-following for each sampling method
-used.) -->
-**(Sampling Type)** | **Number**
---- | ---
-Upstream Source | Write here
-Total data sampled | 123m
-Sample size | 123
-Threshold applied | 123k units at property
-Sampling rate | 123
-Sample mean | 123
-Sample std. dev | 123
-Sampling distribution | 123
-Sampling variation | 123
-Sample statistic | 123
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
-
-#### Sampling Criteria
-<!-- scope: microscope -->
-<!-- info: Describe the criteria used to sample data from
-upstream sources.
-
-Use additional notes to capture any other
-relevant information or considerations. -->
-- **Sampling method:** Summarize here. Include links where applicable.
-- **Sampling method:** Summarize here. Include links where applicable.
-- **Sampling method:** Summarize here. Include links where applicable.
 
 ## Known Applications & Benchmarks
 <!-- info: Fill out the following section if your dataset was primarily

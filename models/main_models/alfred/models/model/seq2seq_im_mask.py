@@ -88,7 +88,6 @@ class Module(Base):
 
     def load_pretrained_model(self, path):
 
-         # You might want to filter out unnecessary keys
         model_dict = self.state_dict()
 
         # Load the pretrained state dict
