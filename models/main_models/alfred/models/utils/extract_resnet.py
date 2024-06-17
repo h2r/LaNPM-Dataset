@@ -15,15 +15,17 @@ if __name__ == '__main__':
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     # settings
-    parser.add_argument('--data', help='data folder', default='/users/ajaafar/data/shared/lanmp/lanmp_dataset.hdf5') #make relative later
-    parser.add_argument('--pp_data', help='preprocessed dataset folder', default='/users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/data/feats') #make relative later
+    parser.add_argument('--data', help='data folder', default='../../../dataset/sim_dataset.hdf5') 
+    parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/vis_feats')
     parser.add_argument('--gpu', help='use gpu', action='store_true')
-    # parser.add_argument('--skip_existing', help='skip folders that already have feats', action='store_true')
     parser.add_argument('--visual_model', default='resnet18', help='model type: maskrcnn or resnet18', choices=['maskrcnn', 'resnet18'])
     parser.add_argument('--filename', help='filename of feat', default='feat_conv.pt')
 
     # parser
     args = parser.parse_args()
+
+    if not os.path.exists(args.pp_data):
+        os.makedirs(args.pp_data)
 
     # load resnet model
     extractor = Resnet(args, eval=True)
@@ -33,10 +35,14 @@ if __name__ == '__main__':
         # Iterate through all top-level groups (arbitrary groups) in the HDF5 file
         for top_group_name in tqdm(hdf.keys(), desc='Trajectory'):
             top_group = hdf[top_group_name]
-            path = os.path.join(args.pp_data, top_group_name, 'pp', args.filename)
+            folder_path = os.path.join(args.pp_data, top_group_name, 'pp')
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+
+            file_path = os.path.join(args.pp_data, top_group_name, 'pp', args.filename)
             
             #skipping already done ones
-            if os.path.isfile(path):
+            if os.path.isfile(file_path):
                 print(f"Skipping {top_group_name}")
                 continue
             
@@ -61,4 +67,4 @@ if __name__ == '__main__':
 
             imgs = [Image.fromarray(raw_img) for raw_img in raw_imgs]
             feat = extractor.featurize(imgs, batch=len(imgs))
-            torch.save(feat.cpu(), path)
+            torch.save(feat.cpu(), file_path)

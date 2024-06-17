@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     # settings
     parser.add_argument('--seed', help='random seed', default=123, type=int)
-    parser.add_argument('--data', help='dataset folder', default=os.environ['HOME'] + '/data/shared/lanmp/lanmp_dataset.hdf5')
+    parser.add_argument('--data', help='dataset folder', default='../../../dataset/sim_dataset.hdf5')
     parser.add_argument('--pp_data', help='preprocessed dataset folder', default='data/feats')
     parser.add_argument('--pp_folder', help='folder name for preprocessed data', default='pp')
     parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', help='use gpu', action='store_true')
     parser.add_argument('--dout', help='where to save model', default='exp/model:{model}')
     parser.add_argument('--resume', help='load a checkpoint')
-    parser.add_argument('--finetune', help='pretrained model path', default='/oscar/data/stellex/ajaafar/NPM-Dataset/models/main_models/alfred/pretrained/best_unseen.pth')
+    parser.add_argument('--finetune', help='pretrained model path', default='pretrained/best_unseen.pth')
     parser.add_argument('--class_mode', help='use regression for action pred', action='store_true')
     parser.add_argument('--action_dims', help='number of dimensions for the action size', default=8, type=int)
     parser.add_argument('--relative', help='use relative actions (deltas)', action='store_true')

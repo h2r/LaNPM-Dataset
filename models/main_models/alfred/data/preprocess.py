@@ -6,7 +6,7 @@ import copy
 import progressbar
 from vocab import Vocab
 from model.seq2seq import Module as model
-from models.utils.data_utils import split_data, env_folds, task_gen, div
+from models.utils.data_utils import split_data, env_folds, task_gen, div, remove_spaces_and_lower
 import h5py
 import numpy as np
 
@@ -64,11 +64,9 @@ class Dataset(object):
         else:
             train_keys, test_keys = env_folds(self.args.data, folds['train_envs'], folds['test_envs'])
         split_keys_dict = {'train':train_keys, 'test':test_keys}
-        #make this path relative later
-        with open("/oscar/data/stellex/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'w') as f:
+        with open(self.args.split_keys, 'w') as f:
             json.dump(split_keys_dict, f)
 
-        
         self.find_all_max_min(split_keys_dict) #for both regression and classification
         if self.args.class_mode:
             self.discretize_actions()
@@ -135,7 +133,6 @@ class Dataset(object):
         ex and traj are the same with traj having a few more dic keys for some metadata
         '''
 
-        
         # tokenize language
         traj['ann'] = {
             'task_desc': nl_command,
@@ -303,6 +300,8 @@ class Dataset(object):
             # in the case where self.args.bins is 256, then there are now 257 bins and len(bin_edges) is 258. index for last bin is 256
             self.bins[dim] = bin_edges
 
+        if not os.path.exists(self.args.pp_data):
+            os.makedirs(self.args.pp_data)
         bins_path = os.path.join(self.args.pp_data, 'bins.json')
         with open(bins_path, 'w') as f:
             json.dump({key: value.tolist() for key, value in self.bins.items()}, f, indent=4)

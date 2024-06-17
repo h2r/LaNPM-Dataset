@@ -129,8 +129,7 @@ class Module(Base):
             # load Resnet features from disk
             if load_frames and not self.test_mode:
                 root = ex['root']
-                # breakpoint()
-                root = 'data/feats' + root[33:] #delete later maybe
+                root = 'data/vis_feats/' + os.path.basename(root)
                 im = torch.load(os.path.join(root, 'pp', self.feat_pt))
 
                 

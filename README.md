@@ -5,6 +5,7 @@ As robots that follow natural language become more capable and prevalent, we nee
 
 ## Dataset Format
 More detailed dataset information can be found in the dataset card [DataCard.md](https://github.com/h2r/LaNPM-Dataset/blob/main/DataCard.md#lanmp).
+
 Download the dataset from this [DropBox](https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0).
 
 ### Sim Dataset

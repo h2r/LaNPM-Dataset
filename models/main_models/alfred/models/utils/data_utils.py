@@ -151,3 +151,14 @@ def div(hdf5_path, train_runs, test_run):
         ])
 
     return train_trajs.tolist(), test_trajs
+
+
+def remove_spaces(s):
+    cs = ' '.join(s.split())
+    return cs
+
+
+def remove_spaces_and_lower(s):
+    cs = remove_spaces(s)
+    cs = cs.lower()
+    return cs

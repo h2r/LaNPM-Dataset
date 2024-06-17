@@ -3,4 +3,12 @@
 /web/*
 __pycache__/
 /models/main_models/alfred/pretrained/*
+!/models/main_models/alfred/pretrained/.gitkeep
 /models/main_models/alfred/exp/*
+!/models/main_models/alfred/exp/.gitkeep
+/models/main_models/alfred/data/feats_discrete_relative_foldz/*
+/models/main_models/alfred/data/splits/split_keys_discrete_relative_foldz.json
+/models/main_models/alfred/data/vis_feats/*
+!/models/main_models/alfred/data/vis_feats/.gitkeep
+/dataset/*
+!/dataset/.gitkeep

@@ -61,7 +61,7 @@ class Module(nn.Module):
         args = args or self.args
 
         # splits
-        with open(os.environ['HOME'] + "/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
+        with open(self.args.split_keys, 'r') as f:
             split_keys = json.load(f)
             train = split_keys['train']
             test = split_keys['test']
