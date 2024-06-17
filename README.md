@@ -5,6 +5,7 @@ As robots that follow natural language become more capable and prevalent, we nee
 
 ## Dataset Format
 More detailed dataset information can be found in the dataset card [DataCard.md](https://github.com/h2r/LaNPM-Dataset/blob/main/DataCard.md#lanmp).
+Download the dataset from this [DropBox](https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0).
 
 ### Sim Dataset
 The simulation dataset comes in a single hdf5 file, and has the following hierarchy:
@@ -126,25 +127,29 @@ The ALFRED Seq2Seq model from the paper ["ALFRED A Benchmark for Interpreting Gr
 This model was trained and ran on an NVIDIA 3090 GPU, so some of the following instructions assume the use of that GPU.
 
 **Preliminary:**
+
 1. Create a Python virtual environment using Python 3.9: `python3.9 -m venv alfred-env`
-2. Activate the virtual environment: `source alfred-env/bin/activate`
+2. Activate the virtual environment `source alfred-env/bin/activate`
 2. Install and load **CUDA Toolkit 11.8** and **cuDNN 8.7**
-3. `cd LaNMP-Dataset/models`
+3. `cd LaNMP-Dataset/models/main_models`
 4. `export ALFRED_ROOT=$(pwd)/alfred`
 5. `cd alfred`
 6. Install all dependencies: `pip install -r requirements.txt`
+7. Download the dataset from the [DropBox](https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0)
+8. Place the zipped dataset files in `LaNMP-Dataset/dataset`
+9. Unzip the datasets `gunzip *.gz`
 
 
 **Running training:**
 
 The original pretrained model used for fine-tuning can be downloaded from this [Google Drive Folder](https://drive.google.com/drive/folders/12cXF86BgWhWWaMK2EFLbujP2plN4u1ds?usp=sharing). 
 
-1. Place the model in `alfred/pretrained`
-2. To run ResNet to extract the images features and save them to disk, run
+1. Place the model in `LaNMP-Dataset/models/main_models/alfred/pretrained`
+2. To extract the image features using the ResNet and save them to disk, run:
 ```
 python models/utils/extract_resnet.py --gpu
 ```
-
+3. To fine-tune, run:
 ```
 python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{model}_discrete_relative_fold1 --gpu --batch 8 --pm_aux_loss_wt 0.1 --subgoal_aux_loss_wt 0.1 --pp_data 'data/feats_discrete_relative_fold1' --split_keys 'data/splits/split_keys_discrete_relative_fold1.json --class_mode --relative --preprocess'
 ```
@@ -156,14 +161,18 @@ python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{m
 
 **Running inference:**
 
-The fine-tuned models can be downloaded from this [Google Drive folder](https://drive.google.com/drive/folders/1Cy1vR64jaYEO5whRO9A2yeQzXyplz1Io?usp=sharing).
+The simulated fine-tuned models can be downloaded from this [Google Drive folder](https://drive.google.com/drive/folders/1Cy1vR64jaYEO5whRO9A2yeQzXyplz1Io?usp=sharing).
 
-The command assumes it is run on a machine with a GUI in order to run the AI2THOR simulator, i.e. not on a headless machine.
+The simulated extracted ResNet visual features can be downloaded from this [Google Drive folder](https://drive.google.com/drive/folders/1PqZYFZrt-k0ylXKm_y_2skMeccI4deiN?usp=sharing).
 
-1. Place the model pth file in `./models/main_models/alfred/exp`
-2. You should already be in the `alfred` directory, and run
+
+1. Place the model pth files in `LaNMP-Dataset/models/main_models/alfred/exp`
+2. Place the zipped vision features file in `LaNMP-Dataset/models/main_models/alfred/data/vis_feats`
+3. Unzip and extract the file `tar -xzvf vis_feats.tar.gz`
+4. `cd LaNMP-Dataset/models/main_models/alfred` and run:
 ```
 python models/eval/eval_seq2seq.py --model_path exp/best_test_fold1.pth --gpu --model models.model.seq2seq_im_mask --pp_data data/feats_discrete_relative_fold1 --split_keys 'data/splits/split_keys_discrete_relative_fold1.json'
 ```
-* Any argument that includes 'fold1', that part should be changed to whatever model is being used, e.g. "task" for "best_test_task.pth"
-* More details on all the command-line arguments can be found at `./models/eval/eval_seq2seq.py`
+* The command assumes it is run on a machine with a GUI in order to run the AI2THOR simulator, i.e. not on a headless machine.
+* To run other models instead of the "fold1" model, change any part that has "fold1" in the command to the desired model, e.g. "task" for the "best_test_task.pth" model.
+* More details on all the command-line arguments can be found at `./models/eval/eval_seq2seq.py`.

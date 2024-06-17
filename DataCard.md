@@ -586,62 +586,10 @@ type.) -->
 
 **Additional Notes:** Human teleoperates a real quadruped robot via a tablet/joystick controller to collect the robot trajectory data.
 
-#### Source Description(s)
-<!-- scope: microscope -->
-<!-- info: Provide a description of each upstream source of data.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-- **Source:** Describe here. Include links, data examples, metrics, visualizations where relevant.
-- **Source:** Describe here. Include links, data examples, metrics, visualizations where relevant.
-- **Source:** Describe here. Include links, data examples, metrics, visualizations where relevant.
-
-**Additional Notes:** Add here
-
 #### Collection Cadence
 <!-- scope: telescope -->
 <!-- info: Select **all applicable**: -->
 **Static:** Data was collected once from single or multiple sources.
-
-**Streamed:** Data is continuously acquired from single or multiple sources.
-
-**Dynamic:** Data is updated regularly from single or multiple sources.
-
-**Others:** Please specify
-
-#### Data Integration
-<!-- scope: periscope -->
-<!-- info: List all fields collected from different sources, and specify if
-they were included or excluded from the dataset.
-
-Use additional notes to
-capture any other relevant information or considerations.
-
-(Usage Note: Duplicate and complete the following for each upstream
-source.) -->
-**Source**
-
-**Included Fields**
-
-Data fields that were collected and are included in the dataset.
-
-Field Name | Description
---- | ---
-Field Name | Describe here. Include links, data examples, metrics, visualizations where relevant.
-Field Name | Describe here. Include links, data examples, metrics, visualizations where relevant.
-
-**Additional Notes:** Add here
-
-**Excluded Fields**
-
-Data fields that were collected but are excluded from the dataset.
-
-Field Name | Description
---- | ---
-Field Name | Describe here. Include links, data examples, metrics, visualizations where relevant.
-Field Name | Describe here. Include links, data examples, metrics, visualizations where relevant.
-
-**Additional Notes:** Add here
 
 #### Data Processing
 <!-- scope: microscope -->
@@ -676,45 +624,7 @@ considerations. -->
 
 **Additional Notes:** Add here
 
-#### Data Inclusion
-<!-- scope: periscope -->
-<!-- info: Summarize the data inclusion criteria.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-- **Collection Method of Source:** Summarize data inclusion criteria here. Include links where available.
-- **Collection Method of Source:** Summarize data inclusion criteria here. Include links where available.
-- **Collection Method of Source:** Summarize data inclusion criteria here. Include links where available.
-
-**Additional Notes:** Add here
-
-#### Data Exclusion
-<!-- scope: microscope -->
-<!-- info: Summarize the data exclusion criteria.
-
-Use additional notes to capture any other relevant information or
-considerations. -->
-- **Collection Method of Source:** Summarize data exclusion criteria here. Include links where available.
-- **Collection Method of Source:** Summarize data exclusion criteria here. Include links where available.
-- **Collection Method of Source:** Summarize data exclusion criteria here. Include links where available.
-
-**Additional Notes:** Add here
-
 ### Relationship to Source
-#### Use & Utility(ies)
-<!-- scope: telescope -->
-<!-- info: Describe how the resulting dataset is aligned with the purposes,
-motivations, or intended use of the upstream source(s).
-
-Use additional notes to capture any other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete the following for each source type.) -->
-- **Source Type:** Summarize here. Include links where available.
-- **Source Type:** Summarize here. Include links where available.
-- **Source Type:** Summarize here. Include links where available.
-
-**Additional Notes:** Add here
 
 #### Benefit and Value(s)
 <!-- scope: periscope -->
