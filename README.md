@@ -8,6 +8,8 @@ More detailed dataset information can be found in the dataset card [DataCard.md]
 
 Download the dataset from this [DropBox](https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0).
 
+Code that opens, reads, and displays the dataset contents can be found in this [Google Colab notebook](https://colab.research.google.com/drive/18fTkjqcvlyOkCkbou6LK2RG2XKsPT__K?usp=sharing).
+
 ### Sim Dataset
 The simulation dataset comes in a single hdf5 file, and has the following hierarchy:
 ```
