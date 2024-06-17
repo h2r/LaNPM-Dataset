@@ -145,11 +145,12 @@ This model was trained and ran on an NVIDIA 3090 GPU, so some of the following i
 The original pretrained model used for fine-tuning can be downloaded from this [Google Drive Folder](https://drive.google.com/drive/folders/12cXF86BgWhWWaMK2EFLbujP2plN4u1ds?usp=sharing). 
 
 1. Place the model in `LaNMP-Dataset/models/main_models/alfred/pretrained`
-2. To extract the image features using the ResNet and save them to disk, run:
+2. `cd LaNMP-Dataset/models/main_models/alfred`
+3. Extract the image features using the ResNet and save them to disk:
 ```
 python models/utils/extract_resnet.py --gpu
 ```
-3. To fine-tune, run:
+4. Fine-tune:
 ```
 python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{model}_discrete_relative_fold1 --gpu --batch 8 --pm_aux_loss_wt 0.1 --subgoal_aux_loss_wt 0.1 --pp_data 'data/feats_discrete_relative_fold1' --split_keys 'data/splits/split_keys_discrete_relative_fold1.json --class_mode --relative --preprocess'
 ```
@@ -157,7 +158,7 @@ python models/train/train_seq2seq.py --model seq2seq_im_mask --dout exp/model:{m
 * `--class_mode` puts the model into classification mode to use cross-entropy loss and output discrete actions
 * `--relative` makes the model produce relative (delta between current step and next step) actions rather than global actions
 * `--preprocess` preprocesses the data and saves it on disk to be used for the training down the pipeline. This only needs to be ran once. It can be removed after the first time to only run the training.
-* More details on all the command-line arguments can be found at `./models/train/train_seq2seq.py`
+* More details on all the command-line arguments can be found at `LaNMP-Dataset/models/main_models/train/train_seq2seq.py`
 
 **Running inference:**
 
@@ -169,10 +170,11 @@ The simulated extracted ResNet visual features can be downloaded from this [Goog
 1. Place the model pth files in `LaNMP-Dataset/models/main_models/alfred/exp`
 2. Place the zipped vision features file in `LaNMP-Dataset/models/main_models/alfred/data/vis_feats`
 3. Unzip and extract the file `tar -xzvf vis_feats.tar.gz`
-4. `cd LaNMP-Dataset/models/main_models/alfred` and run:
+4. `cd LaNMP-Dataset/models/main_models/alfred`
+5. Run inference using fold1's fine-tuned model:
 ```
 python models/eval/eval_seq2seq.py --model_path exp/best_test_fold1.pth --gpu --model models.model.seq2seq_im_mask --pp_data data/feats_discrete_relative_fold1 --split_keys 'data/splits/split_keys_discrete_relative_fold1.json'
 ```
 * The command assumes it is run on a machine with a GUI in order to run the AI2THOR simulator, i.e. not on a headless machine.
 * To run other models instead of the "fold1" model, change any part that has "fold1" in the command to the desired model, e.g. "task" for the "best_test_task.pth" model.
-* More details on all the command-line arguments can be found at `./models/eval/eval_seq2seq.py`.
+* More details on all the command-line arguments can be found at `LaNMP-Dataset/models/main_models/eval/eval_seq2seq.py`.
