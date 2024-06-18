@@ -962,18 +962,10 @@ performed in the creation of your dataset. -->
 <!-- info: Select **all applicable** annotation
 workforce types or methods used
 to annotate the dataset: -->
-- Annotation Target in Data
-- Machine-Generated
-- Annotations
 - Human Annotations (Expert)
 - Human Annotations (Non-Expert)
 - Human Annotations (Employees)
-- Human Annotations (Contractors)
 - Human Annotations (Crowdsourcing)
-- Human Annotations (Outsourced / Managed)
-- Teams
-- Unlabeled
-- Others (Please specify)
 
 #### Annotation Characteristic(s)
 <!-- scope: periscope -->
@@ -988,19 +980,49 @@ relevant information or considerations.
 
 (Usage Note: Duplicate and complete the
 following for each annotation type.) -->
-**Annotation Type** | **Number**
+**Expert** | **Number**
 --- | ---
-Number of unique annotations | 123456789
-Total number of annotations | 123456789
-Average annotations per example | 123456789
-Number of annotators per example | 123456789
+Number of unique annotations | 50
+Total number of annotations | 50
+Average annotations per example | 1
+Number of annotators | 1
+Number of annotators per example | 1
+<!-- [Quality metric per granuality] | 123456789
 [Quality metric per granuality] | 123456789
-[Quality metric per granuality] | 123456789
-[Quality metric per granuality] | 123456789
+[Quality metric per granuality] | 123456789 -->
 
-**Above:** Provide a caption for the above table or visualization.
+**Above:** The real-world robot trajectory execution (teleoperation) data collection done by one of the authors.
 
-**Additional Notes:** Add here
+**Non-Expert** | **Number**
+--- | ---
+Number of unique annotations | 50
+Total number of annotations | 50
+Average annotations per example | 1
+Number of annotators | 7
+Number of annotators per example | 1
+
+**Above:** Humans that gave natural language commands of tasks for the real-world robot to execute.
+
+**Employees** | **Number**
+--- | ---
+Number of unique annotations | 524
+Total number of annotations | 524
+Average annotations per example | 1
+Number of annotators | 15
+Number of annotators per example | 1
+
+**Above:** Humans that exected the trajectories in the simulator.
+
+**Crowdsourcing** | **Number**
+--- | ---
+Number of unique annotations | 524
+Total number of annotations | 524
+Average annotations per example | 1
+Number of annotators | 41
+Number of annotators per example | 1
+
+**Above:**  Humans that gave natural language commands of tasks for the simulated robot to execute.
+
 
 #### Annotation Description(s)
 <!-- scope: microscope -->
@@ -1016,69 +1038,46 @@ considerations.
 (Usage Note: Duplicate and complete
 the following for each annotation
 type.) -->
-**(Annotation Type)**
 
-**Description:** Description of annotations (labels, ratings) produced.
-Include how this was created or authored.
+**Expert**
 
-**Link:** Relevant URL link.
+**Description:** The real-world robot trajectory execution (teleoperation) data collection done by one of the authors.
+
+**Link:** N/A
 
 **Platforms, tools, or libraries:**
 
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
+- Boston Dynamics Spot
 
-**Additional Notes:** Add here
+**Non-Expert**
 
-#### Annotation Distribution(s)
-<!-- scope: periscope -->
-<!-- info: Provide a distribution of annotations for each
-annotation or class of annotations using the
-format below.
+**Description:** Humans that gave natural language commands of tasks for the real-world robot to execute.
 
-Use additional notes to capture any other
-relevant information or considerations.
+**Link:** N/A
 
-(Usage Note: Duplicate and complete the
-following for each annotation type.) -->
-**Annotation Type** | **Number**
---- | ---
-Annotations (or Class) | 12345 (20%)
-Annotations (or Class) | 12345 (20%)
-Annotations (or Class) | 12345 (20%)
-Annotations (or Class) | 12345 (20%)
-Annotations (or Class) | 12345 (20%)
+**Platforms, tools, or libraries:**
 
-**Above:** Provide a caption for the above table or visualization.
+- N/A
 
-**Additional Notes:** Add here
+**Employees**
 
-#### Annotation Task(s)
-<!-- scope: microscope -->
-<!-- info: Summarize each task type associated
-with annotations in the dataset.
+**Description:** Humans that exected the trajectories in the simulator.
 
-Use additional notes to capture any
-other relevant information or
-considerations.
+**Link:** https://ai2thor.allenai.org/
 
-(Usage Note: Duplicate and complete
-the following for each task type.) -->
-**(Task Type)**
+**Platforms, tools, or libraries:**
 
-**Task description:** Summarize here. Include links if available.
+- AI2THOR
 
-**Task instructions:** Summarize here. Include links if available.
+**Crowdsourcing**
 
-**Methods used:** Summarize here. Include links if available.
+**Description:** Humans that gave natural language commands of tasks for the simulated robot to execute.
 
-**Inter-rater adjudication policy:** Summarize here. Include links if
-available.
+**Link:** https://www.prolific.com/
 
-**Golden questions:** Summarize here. Include links if available.
+**Platforms, tools, or libraries:**
 
-**Additional notes:** Add here
+- Prolific
 
 ### Human Annotators
 <!-- info: Fill this section if human annotators were used. -->
@@ -1111,39 +1110,9 @@ available.
 **Summary of annotation instructions:** Summarize here. Include links if
 available.
 
-**Summary of gold questions:** Summarize here. Include links if available.
-
 **Annotation platforms:** Summarize here. Include links if available.
 
 **Additional Notes:** Add here
-
-#### Annotator Task(s)
-<!-- scope: microscope -->
-<!-- info: Provide a brief description for each
-annotator pool performing the human
-annotation task.
-
-Use additional notes to capture any
-other relevant information or
-considerations.
-
-(Usage Note: Duplicate and complete
-the following for each annotation
-type.) -->
-**(Task Type)**
-
-**Task description:** Summarize here. Include links if available.
-
-**Task instructions:** Summarize here. Include links if available.
-
-**Methods used:** Summarize here. Include links if available.
-
-**Inter-rater adjudication policy:** Summarize here. Include links if
-available.
-
-**Golden questions:** Summarize here. Include links if available.
-
-**Additional notes:** Add here
 
 #### Language(s)
 <!-- scope: telescope -->
@@ -1157,15 +1126,9 @@ considerations.
 (Usage Note: Duplicate and
 complete the following for each
 annotation type.) -->
-**(Annotation Type)**
+- English [100%]
 
-- Language [Percentage %]
-- Language [Percentage %]
-- Language [Percentage %]
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
+**Above:** All the natural language commands.
 
 <!-- ## Validation Types -->
 <!-- info: Fill this section if the data in the dataset was validated during
@@ -1284,7 +1247,7 @@ that the dataset has been
 used for.
 
 Usage Note: Use comma-separated keywords. -->
-*For example: Classification, Regression, Object Detection*
+*Classification, Regression, Supervised Learning, Imitation Learning*
 
 #### Evaluation Result(s)
 <!-- scope: periscope -->
@@ -1298,9 +1261,24 @@ considerations.
 
 (Usage Note: Duplicate and complete the
 following for each model.) -->
-**(Model Name)**
+**RT-1**
 
-**Model Card:** [Link to full model card]
+**Model Card:** In page 21 of the [paper](https://robotics-transformer.github.io/assets/rt1.pdf).
+
+Evaluation Results
+
+- Accuracy: 123 (params)
+- Precision: 123 (params)
+- Recall: 123 (params)
+- Performance metric: 123 (params)
+
+**Above:** Provide a caption for the above table or visualization.
+
+**Additional Notes:** Add here
+
+**ALFRED Seq2Seq**
+
+**Model Card:** No card available. Please refer to the [GitHub repo](https://github.com/askforalfred/alfred) instead.
 
 Evaluation Results
 
@@ -1348,18 +1326,22 @@ considerations.
 
 (Usage Note: Duplicate and complete the
 following for each model.) -->
-**(Model Name)**
+**RT-1**
 
-**Model Card:** Link to full model card
+**Model Card:** In page 21 of the [paper](https://robotics-transformer.github.io/assets/rt1.pdf).
 
 **Model Description:** Summarize here. Include links where applicable.
 
-- Model Size: 123 (params)
-- Model Weights: 123 (params)
-- Model Layers 123 (params)
-- Latency: 123 (params)
+- Model Size: 35M (params)
 
-**Additional Notes:** Add here
+**ALFRED Seq2Seq**
+
+**Model Card:** No card available. Please refer to the [GitHub repo](https://github.com/askforalfred/alfred) instead.
+
+**Model Description:** Summarize here. Include links where applicable.
+
+- Model Size: 35M (params)
+
 
 #### Expected Performance and Known Caveats
 <!-- scope: microscope -->
