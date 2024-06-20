@@ -124,6 +124,10 @@ class get_data():
         
 
     def save(self,command):
+        # self.rgb = np.array(self.rgb)
+        # self.depth = np.array(self.depth)
+        # self.inst_seg = np.array(self.inst_seg)
+
         final_dic = {"nl_command": command, "scene":self.scene, "steps":self.data}
         # final_dic = self._ndarray_to_list(final_dic)
 
@@ -157,6 +161,6 @@ class get_data():
                     with zipf.open(filename, 'w') as npy_file:
                         npy_file.write(npy_data.getvalue())
     
-                save_npy_to_zip(self.rgb, rgb_filename)
-                save_npy_to_zip(self.depth, depth_filename)
-                save_npy_to_zip(self.inst_seg, inst_seg_filename)
+                save_npy_to_zip(self.rgb[idx], rgb_filename)
+                save_npy_to_zip(self.depth[idx], depth_filename)
+                save_npy_to_zip(self.inst_seg[idx], inst_seg_filename)

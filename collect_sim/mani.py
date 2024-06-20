@@ -35,6 +35,8 @@ if __name__ == "__main__":
         gridSize=0.25,
         renderDepthImage=True,
         renderInstanceSegmentation=True,
+        # width= 256,
+        # height= 144,
         width= 1280,
         height= 720,
         fieldOfView=60
