@@ -68,7 +68,7 @@ def parse_args():
         "--wandb",
         action="store_true",
         help="use wandb for logging",
-        default=True,
+        default=False,
     )
 
     parser.add_argument(
@@ -100,6 +100,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    
 
     os.makedirs(args.checkpoint_path, exist_ok=True)
 

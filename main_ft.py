@@ -91,20 +91,20 @@ def parse_args():
     parser.add_argument(
         "--checkpoint-dir",
         type=str,
-        default="checkpoints/diversity_v1_4",
+        default="checkpoints/temp", #"checkpoints/diversity_v1_4"
         help="directory to save checkpoints",
     )
     parser.add_argument(
         "--load-checkpoint",
         type=str,
-        default=None, #NOTE: include the path to load the checkpoint here
+        default='/oscar/data/stellex/shared/rt1-checkpoints/checkpoints/bridge/checkpoint_14400_loss_70.621.pt', #NOTE: include the path to load the checkpoint here
         help="checkpoint to load from; defaults to None",
     )
     parser.add_argument(
         "--wandb",
         action="store_true",
         help="use wandb for logging",
-        default=True,
+        default=False,
     )
 
     parser.add_argument(
@@ -115,7 +115,7 @@ def parse_args():
 
     parser.add_argument(
         "--split-type",
-        default = 'diversity_ablation',
+        default = 'k_fold_scene',
         choices =  ['k_fold_scene', 'task_split', 'diversity_ablation'],
     )
 
@@ -142,6 +142,8 @@ def parse_args():
 
 
 def main():
+
+    
     args = parse_args()
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
