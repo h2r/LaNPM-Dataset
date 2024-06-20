@@ -870,13 +870,12 @@ type applied. Include the data types to
 which fields were transformed.) -->
 **Transformation Type**
 
-Field Name | Source & Target
+Field Name | Description
 --- | ---
-Field Name | Source Field: Target Field
-Field Name | Source Field: Target Field
-... | ...
+nl_command | Natural language commands given by humans telling the robot what task to do in the simulator
+language_command | Natural language commands given by humans telling the robot what task to do in the real-world
 
-**Additional Notes:** Add here
+**Additional Notes:** Fixing grammatical mistakes of the commands or deleting trajectories where the commands are incomplete.
 
 #### Library(ies) and Method(s) Used
 <!-- scope: microscope -->
@@ -893,66 +892,9 @@ the following for each transformation
 type applied.) -->
 **Transformation Type**
 
-**Method:** Describe the transformation
-method here. Include links where
-necessary.
+**Method:** Manually fixing grammatically incorrect natural language commands and injecting them into their respective trajectories to replace the already saved wrong commands. Also deleting trajectories that have incomplete commands e.g. "Pick up the blue"
 
-**Platforms, tools, or libraries:**
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-**Transformation Results:** Provide
-results, outcomes, and actions taken
-because of the transformations. Include
-visualizations where available.
-
-**Additional Notes:** Add here
-
-### Breakdown of Transformations
-<!-- info: Fill out relevant rows. -->
-#### Cleaning Missing Value(s)
-<!-- scope: telescope -->
-<!-- info: Which fields in the data were missing
-values? How many? -->
-Summarize here. Include links where available.
-
-**Field Name:** Count or description
-
-**Field Name:** Count or description
-
-**Field Name:** Count or description
-
-#### Method(s) Used
-<!-- scope: periscope -->
-<!-- info: How were missing values cleaned?
-What other choices were considered? -->
-Summarize here. Include links where necessary.
-
-**Platforms, tools, or libraries**
-
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-- Platform, tool, or library: Write description here
-
-#### Comparative Summary
-<!-- scope: microscope -->
-<!-- info: Why were incorrect or mismatched
-values cleaned using this method (over
-others)? Provide a comparative
-analysis demonstrating before and
-after values were cleaned. -->
-Summarize here. Include links where available.
-
-**Field Name** | **Diff**
---- | ---
-Field Name | Before: After
-Field Name | Before: After
-... | ...
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
+**Transformation Results:** Trajectories with the fixed commands, and less trajectories overall due to the deletion of the ones that had incompelete commands.
 
 ## Annotations & Labeling
 <!-- info: Fill this section if any human or algorithmic annotation tasks were
@@ -1091,28 +1033,56 @@ relevant information or considerations.
 
 (Usage Note: Duplicate and complete the
 following for each annotation type.) -->
-**(Annotation Type)**
+**Expert Real-Robot Trajectory Collection**
 
-**Task type:** Summarize here. Include links if available.
+**Task type:**  The real-world robot trajectory execution (teleoperation) data collection done by one of the authors
 
-**Number of unique annotators:** Summarize here. Include links if available.
+**Number of unique annotators:** 1
 
-**Expertise of annotators:** Summarize here. Include links if available.
+**Expertise of annotators:** Expert
 
-**Description of annotators:** Summarize here. Include links if available.
+**Description of annotators:** An author.
 
-**Language distribution of annotators:** Summarize here. Include links if
-available.
+**Language distribution of annotators:** English
 
-**Geographic distribution of annotators:** Summarize here. Include links if
-available.
+**Geographic distribution of annotators:** United States
 
-**Summary of annotation instructions:** Summarize here. Include links if
-available.
+**Annotation platforms:** Boston Dyanmics Spot
 
-**Annotation platforms:** Summarize here. Include links if available.
 
-**Additional Notes:** Add here
+**Non-Expert Real-Robot Command Collection**
+
+**Task type:**  Humans that gave natural language commands of tasks for the real-world robot to execute
+
+**Number of unique annotators:** 7
+
+**Expertise of annotators:** Non-Expert
+
+**Description of annotators:** Students
+
+**Language distribution of annotators:** English
+
+**Geographic distribution of annotators:** United States
+
+**Annotation platforms:** N/A
+
+
+**Employed Simulator Command Collection**
+
+**Task type:**  Humans that exected the trajectories in the simulator
+
+**Number of unique annotators:** 7
+
+**Expertise of annotators:** Non-Expert
+
+**Description of annotators:** General adults
+
+**Language distribution of annotators:** English
+
+**Geographic distribution of annotators:** United States and United Kingdom
+
+**Annotation platforms:** Prolific.com
+
 
 #### Language(s)
 <!-- scope: telescope -->
@@ -1265,31 +1235,24 @@ following for each model.) -->
 
 **Model Card:** In page 21 of the [paper](https://robotics-transformer.github.io/assets/rt1.pdf).
 
-Evaluation Results
-
-- Accuracy: 123 (params)
-- Precision: 123 (params)
-- Recall: 123 (params)
-- Performance metric: 123 (params)
-
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
 
 **ALFRED Seq2Seq**
 
 **Model Card:** No card available. Please refer to the [GitHub repo](https://github.com/askforalfred/alfred) instead.
 
-Evaluation Results
 
-- Accuracy: 123 (params)
-- Precision: 123 (params)
-- Recall: 123 (params)
-- Performance metric: 123 (params)
+**Evaluation Results**
+| Model               | SR  | Length            | Grasp SR | RMSE v.s. GT | Weighted $\Delta_\text{xyz}$ | CLIP EMA Score | End Goal Dist | CE Loss         |
+|---------------------|-----|-------------------|----------|--------------|------------------------------|----------------|---------------|-----------------|
+| **Cross-Scene**     |     |                   |          |              |                              |                |               |                 |
+| --- ALFRED Seq2Seq  | 0.0 | 655.09 ± 450.52   | 0.0      | 3.11 ± 0.63  | 0.0026 ± 0.0035              | 0.1614 ± 0.0120 | 12.42 ± 5.44  | 286.77 ± 20.31  |
+| --- RT-1            | 0.0 | 205.03 ± 27.36    | 0.0      | 9.50 ± 0.27  | 1.3423 ± 0.1133              | 0.1521 ± 0.0065 | 12.56 ± 6.67  | 80.98 ± 4.68    |
+| **Task Generalization** |     |                   |          |              |                              |                |               |                 |
+| --- ALFRED Seq2Seq  | 0.0 | 501.60 ± 578.62   | 0.0      | 3.01 ± 1.18  | 0.0008 ± 0.0014              | 0.1681 ± 0.0327 | 12.83 ± 11.12 | 286.66 ± 398.80 |
+| --- RT-1            | 0.0 | 199.56 ± 106.11   | 0.0      | 9.74 ± 1.67  | 1.3980 ± 0.5834              | 0.1488 ± 0.0243 | 12.40 ± 12.20 | 82.61 ± 1.81    |
+| **Ground Truth**    | 1.0 | 171.69 ± 70.80    | 1.0      | ---          | 0.5576 ± 0.1751              | 0.2067 ± 0.0311 | ---           | ---             |
 
-**Above:** Provide a caption for the above table or visualization.
-
-**Additional Notes:** Add here
+**Additional Notes:** These results are from the simulation data only.
 
 #### Evaluation Process(es)
 <!-- scope: microscope -->
@@ -1303,16 +1266,33 @@ information or considerations.
 
 (Usage Note: Duplicate and complete the following
 for each model and method used.) -->
-**(Model Name)**
 
-**[Method used]:** Summarize here. Include links where available.
+**[Metrics used]:**
+- **Task Success** (GTR): a binary value measuring whether an agent achieves the goal/completes the task specified in the command.
+- **Distance From Goal** (GTR): the spatial distance between the agent's final position after executing a learned trajectory and the designated gold goal state.
+    ```
+    d = 1/2 (sqrt{x_{gt_body,n}^2 - x_{eval_body,n}^2} + sqrt{x_{gt_ee,n}^2 - x_{eval_ee,n}^2})
+    ```
+- **Grasp Success Rate** (GTR): the efficacy of the agent's attempts to grasp objects in the scene. Specifically, the percentage of attempts that result in successful object acquisition.
+- **Average RMSE** (GTR): the average root-mean-square error of the agent's body and end-effector coordinates between the generated trajectory and the ground truth. It reports a weighted average between body and end-effector errors normalized across the maximum length of both trajectories.
+    ```
+    RMSE = sum_{i=0}^n 1/2 (sqrt{x_{gt_body,i}^2 - x_{eval_body,i}^2} + sqrt{x_{gt_ee,i}^2 - x_{eval_ee,i}^2})
+    ```
+- **Average Number of Steps** (GTR): the total number of actions an agent takes. It serves to evaluate a model's ability to replicate efficient human navigation.
+- **Mean and Standard Deviation in State Differences** (GTI): the standard deviation in positional differences between successive timesteps in a trajectory. It assesses the control smoothness exhibited by the agent to compare learned trajectories against the fluidity and naturalness of the ground-truth trajectories.
+    ```
+    Delta = sum_{i=1}^n 1/2 (sqrt{x_{eval_body,i}^2 - x_{eval_body,(i-1)}^2} + sqrt{x_{eval_ee,i}^2 - x_{eval_ee,(i-1)}^2})
+    ```
+- **CLIP Embedding Reward** (GTI): the exponential moving average of CLIP text-image correlation scores for all steps of a trajectory. Natural language task specification can be ambiguous and difficult to formulate into a structured goal condition. Inspired by previous works using CLIP for RL rewards, we propose this metric to capture complex semantic correlations between the trajectory and task specification. That is understanding, reasoning, the grounding of a task using the CLIP embedding space. This provides a measure of the agent's task comprehension and execution fidelity.
+    ```
+    EMA_i = alpha EMA_{i-1} + (1-alpha)r_i
+    ```
+    where
+    ```
+    r_i := CLIP(task,img_i)
+    ```
 
-- **Process:** Summarize here. Include links, diagrams, visualizations, tables as relevant.
-- **Factors:** Summarize here. Include links, diagrams, visualizations, tables as relevant.
-- **Considerations:** Summarize here. Include links, diagrams, visualizations, tables as relevant.
-- **Results:** Summarize here. Include links, diagrams, visualizations, tables as relevant.
-
-**Additional Notes:** Add here
+**Additional Notes:** For robust evaluation, we consider two categories of metrics for cross-scene and task generalization experiments: ``ground truth relative" (GTR) metrics that compare against trajectories in LaNMP as standards and "ground truth independent" (GTI) metrics that evaluate a trajectory (ground-truth or generated) on task understanding or smoothness.
 
 #### Description(s) and Statistic(s)
 <!-- scope: periscope -->
@@ -1330,7 +1310,9 @@ following for each model.) -->
 
 **Model Card:** In page 21 of the [paper](https://robotics-transformer.github.io/assets/rt1.pdf).
 
-**Model Description:** Summarize here. Include links where applicable.
+**Model Description:** Robotics Transformer 1 (RT-1) is a model designed for generalizing across large-scale, multi-task datasets with real-time inference capabilities. RT-1 leverages a Transformer architecture to process images and natural language instructions to generate discretized actions for mobile manipulation. RT-1 is trained on a diverse dataset of approximately 130K episodes across more
+than 700 tasks collected using 13 robots. This enables RT-1 to learn through BC from human
+demonstrations annotated with detailed instructions.
 
 - Model Size: 35M (params)
 
@@ -1338,7 +1320,7 @@ following for each model.) -->
 
 **Model Card:** No card available. Please refer to the [GitHub repo](https://github.com/askforalfred/alfred) instead.
 
-**Model Description:** Summarize here. Include links where applicable.
+**Model Description:** The ALFRED paper introduces a Sequence-to-Sequence model leveraging a CNN-LSTM architecture with an attention mechanism for task execution. It encodes visual inputs via ResNet-18 and processes language through a bidirectional LSTM. A decoder leverages these multimodal inputs along with historical action data to iteratively predict subsequent actions and generate pixelwise interaction masks, enhancing precise object manipulation capabilities within the given environment.
 
 - Model Size: 35M (params)
 
@@ -1353,11 +1335,7 @@ information or considerations.
 
 (Usage Note: Duplicate and complete the following
 for each model.) -->
-**(Model Name)**
 
-**Expected Performance:** Summarize here. Include links where available.
+**Expected Performance:** We expected RT-1 to perform better than ALFRED Seq2Seq due to it being more recent and more advanced. We expected both models to perform poorly, especially on the Task Success metric.
 
-**Known Caveats:** Summarize here. Include links, diagrams, visualizations, and
-tables as relevant.
-
-**Additioanl Notes:** Add here
+**Known Caveats:** The model architectures had to be modified to make them work for LaNMP. RT-1 had to be pretrained by us instead of using the provided pretrained checkpoint. There were some simulator issues during real-time evaluation.
