@@ -104,9 +104,13 @@ class get_data():
     def _chunk_dict(self, data, chunk_size):
         """Yield successive chunk_size chunks from the dictionary."""
         
-        # Construct the base dictionary without the later keys and their associated lists
-        #base_dict = {k: v for k, v in data.items() if k != 'steps'}
+        # Construct the base dictionary without the 'hi' key and its associated list
+        # base_dict = {k: v for k, v in data.items() if k != 'steps'}
         list_data = data['steps']
+        
+        # Getting all keys if not equal to steps
+        base_keys = [k for k in data.keys() if k != 'steps']
+        
 
 
 
@@ -116,8 +120,10 @@ class get_data():
 
         # Iterate over the list in chunks
         for i in range(0, len(list_data), chunk_size):
-            #chunked_dict = base_dict.copy()  # Copy the base data (without the large list)
-            chunked_dict = {k: data[k] for k in base_keys}
+         #   chunked_dict = base_dict.copy()  # Copy the base data (without the large list)
+         
+            # Should be more memory efficient since we dont make a separate copy of base_dict
+            chunked_dict = {k: data[k] for k in base_keys} 
             chunked_dict['steps'] = list_data[i:i+chunk_size]
             yield chunked_dict
 
