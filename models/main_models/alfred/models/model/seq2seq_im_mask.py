@@ -425,6 +425,8 @@ class Module(Base):
                 if dim == 0:
                     l_alow_valid = l_alow_valid.long()
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_valid[:, dim, :], l_alow_valid[:, dim])
+                    # except:
+                    #     breakpoint()
                 elif dim == 1:
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_base_valid[:, dim-1, :], l_alow_valid[:, dim])
                 elif dim == 2:

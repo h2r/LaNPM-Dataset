@@ -18,7 +18,7 @@ from time import sleep
 class ThorEnv():
     def __init__(self, pp_data_path):
 
-        self.controller = None
+        self.controller: Controller = None
         self.last_event = None
         self.i = 0
         self.bins_path = path.join(pp_data_path, 'bins.json')
@@ -32,6 +32,9 @@ class ThorEnv():
         reset scene / start scene
         '''
         print("Resetting/starting ThorEnv")
+        if self.controller is not None:
+            self.controller.stop()
+            del self.controller
         self.controller = Controller(
             agentMode="arm",
             massThreshold=None,
@@ -346,7 +349,7 @@ class ThorEnv():
         move = 0.2
         a = None
         word_action = state_action['action']
-        print(f'word_action: {word_action}')
+        # print(f'word_action: {word_action}')
         if word_action in ['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']:
             # global_coord_agent = self.last_event.metadata['agent']['position']
             # prev_state_body = [global_coord_agent['x'], global_coord_agent['y'], global_coord_agent['z']]
@@ -388,7 +391,7 @@ class ThorEnv():
         elif word_action in ['MoveArm']:
             a = dict(action='MoveArm',position=dict(x=state_action['state_ee'][0], y=state_action['state_ee'][1], z=state_action['state_ee'][2]),coordinateSpace="world",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
 
-        sleep(0.35) #for debugging/movement analysis
+        # sleep(0.35) #for debugging/movement analysis
         # if a['action'] == 'Teleport' and word_action in ['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']:
             # breakpoint()
         event = self.controller.step(a)
@@ -477,13 +480,13 @@ class ThorEnv():
                 elif word_action == "MoveLeft":
                     a = dict(action="MoveAgent", ahead=0, right=-move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
 
-        sleep(1) #for debugging/movement analysis
+        # sleep(1) #for debugging/movement analysis
         event = self.controller.step(a)
         success = event.metadata['lastActionSuccess']
         error = event.metadata['errorMessage']
         self.last_event = event
         #for debugging/movement analysis
-        sleep(0.5)
+        # sleep(0.5)
         if rand_agent:
             print(f"Random Word Action: {rand_word_action} ", end="\r")
         # else:

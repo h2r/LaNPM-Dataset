@@ -104,21 +104,18 @@ class RootMSE(Metric):
         return score
 
 
-class EndDistanceDiff(Metric):
+class GoalDistanceDiff(Metric):
     """
     Computes the distance between the gt last epi and the true last epi xyz
     """
-    def __init__(self, name="distance_diff", diff_type="body"):
-        assert diff_type in ["body", "ee"], diff_type + " distance type not implemented. implemented options are: body, ee"
-        self.diff_type = diff_type
+    def __init__(self, name="goal_diff"):
         self.name = name
     
     def get_score(self, scene_name: str, traj_model: TrajData, traj_gt: TrajData, final_state: Controller, task_cmd: str):
-        if self.diff_type == "body":
-            abs_diff = traj_model.xyz_body[-1] - traj_gt.xyz_body[-1]
-        elif self.diff_type == "ee":
-            abs_diff = traj_model.xyz_ee[-1] - traj_gt.xyz_ee[-1]
-        return np.sqrt(np.mean(abs_diff ** 2))
+        return {
+            "body": np.sum((traj_model.xyz_body[-1] - traj_gt.xyz_body[-1]) ** 2),
+            "ee": np.sum((traj_model.xyz_ee[-1] - traj_gt.xyz_ee[-1]) ** 2)
+        }
 
 
 class GraspSuccRate(Metric):
@@ -135,7 +132,9 @@ class GraspSuccRate(Metric):
         for action, error_msg in zip(traj_model.action, traj_model.errors):
             if action in ["PickupObject", "PutObject"]:
                 total_mani_count += 1
-                if error_msg is not None:
+                if type(error_msg) is list:
+                    error_msg = error_msg[0]
+                if error_msg is not None or error_msg != "":
                     total_mani_errors += 1
         return 1 - total_mani_errors / total_mani_count if total_mani_count > 0 else np.nan
 
