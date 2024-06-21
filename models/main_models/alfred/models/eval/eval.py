@@ -11,11 +11,6 @@ import os
 
 class Eval(object):
 
-    # tokens
-    # STOP_TOKEN = "<<stop>>"
-    # SEQ_TOKEN = "<<seg>>"
-    # TERMINAL_TOKENS = [STOP_TOKEN, SEQ_TOKEN]
-
     def __init__(self, args, manager):
         # args and manager
         self.args = args
@@ -36,8 +31,6 @@ class Eval(object):
 
         # updated args
         self.model.args.dout = self.args.model_path.replace(self.args.model_path.split('/')[-1], '')
-        #come back to, may or may not need
-        # self.model.args.data = self.args.data if self.args.data else self.model.args.data
 
 
         # load resnet
@@ -108,9 +101,6 @@ class Eval(object):
         # scene setup
         scene_name = traj_data['scene']
         env.reset(scene_name)
-
-        # initialize to start position
-        # env.step(dict(traj_data['scene']['init_action']))
 
         # print goal instr
         print("Task: %s" % (traj_data['ann']['task_desc']))

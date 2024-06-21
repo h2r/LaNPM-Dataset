@@ -109,15 +109,7 @@ class ConvFrameMaskDecoder(nn.Module):
         # nn.init.uniform_(self.go, -0.1, 0.1)
         nn.init.xavier_uniform_(self.adapter.weight) #maybe initialize with custom range later but probably not needed
         
-        if self.class_mode: #classification
-            #initialize each dimension's weights to a random value within its actual value range
-            # prev = 0
-            # num_bins_iter = self.num_bins
-            # for dim in range(action_dim):
-            #     nn.init.uniform_(self.actor.weight[prev:num_bins_iter, :], a=self.min_vals[dim], b=self.max_vals[dim])
-            #     prev += self.num_bins
-            #     num_bins_iter += self.num_bins 
-            
+        if self.class_mode: #classification    
             #initialize weights to random values within the ranges
             nn.init.uniform_(self.actor.weight[:(1*self.mode_class_num), :], a=0, b=self.mode_class_num) # b is exlusive
             last = (1*self.mode_class_num)
@@ -163,7 +155,6 @@ class ConvFrameMaskDecoder(nn.Module):
         # decode action
         cont_t = torch.cat([h_t, inp_t], dim=1)
         action_emb_t = self.actor(self.actor_dropout(cont_t))
-        #action_t = action_emb_t.mm(self.emb.weight.t()) #decode the action distribution for each traj in a batch (old discrete)
         if self.class_mode: #classification
             # logits = action_emb_t.view(-1, self.action_dim, self.num_bins)
             # action_t = logits
@@ -220,7 +211,6 @@ class ConvFrameMaskDecoder(nn.Module):
                 e_t = w_t
         
         results = {
-            # 'out_action_low': torch.stack(actions, dim=1).flatten(start_dim=2) if self.class_mode else torch.stack(actions, dim=1), #reshapes it group each trajectory's steps' distributions together. new shape is [batch, steps, action_space] (groups steps within the same traj together)
             'out_action_low': torch.stack(actions, dim=1), #reshapes it group each trajectory's steps' distributions together. new shape is [batch, steps, action_space] (groups steps within the same traj together)
             'out_attn_scores': torch.stack(attn_scores, dim=1),
             'state_t': state_t

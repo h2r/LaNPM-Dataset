@@ -25,11 +25,6 @@ class EvalTask(Eval):
                 break
 
             task = task_queue.get()
-            # task = task_queue.get()
-            # task = task_queue.get()
-            # task = task_queue.get()
-            # task = task_queue.get()
-
 
             try:
                 traj = model.load_task_json(task)
@@ -60,10 +55,8 @@ class EvalTask(Eval):
         print('lang: ', goal_instr)
 
         gt_traj_tknzd = traj_data['num']['action_low']
-        # print("lang: ", traj_data['ann'][1])
         print("root: ", traj_data['root'])
         print('scene: ', traj_data['scene'])
-        # breakpoint()
 
         done, success = False, False
         fails = 0
@@ -75,7 +68,6 @@ class EvalTask(Eval):
             while not done:
                 # break if max_steps reached
                 if t >= args.max_steps:
-                # if t >= 3:
                     break
 
                 # extract visual features
@@ -88,7 +80,7 @@ class EvalTask(Eval):
                 m_pred = list(m_pred.values())[0]
 
 
-                # # check if <<stop>> was predicted
+                # check if <<stop>> was predicted
                 if m_pred['action_low_word'] == "stop":
                     print("\tpredicted STOP")
                     break
@@ -119,29 +111,18 @@ class EvalTask(Eval):
         else: #human traj
             gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
             gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
-            # breakpoint()
-            # for step_action, gt_action in zip(gt_traj_tknzd[:-1], gt_traj): #skip the stop action at the end
             for gt_action in gt_traj[1:]:
-                # breakpoint()
-                # word_action, num_action = cls.get_gt_word_num_actions(step_action)
-                # print(f'word_action: {word_action}')
-                # print(f'step num: {i}')
                 t_success, error, end_inf_state = env.take_human_action(gt_action)
 
                 arm_data = end_inf_state["arm"]["joints"][3]['position']
                 global_coord_agent = end_inf_state['agent']['position']
                 yaw_agent =  end_inf_state['agent']['rotation']['y']
                 body_data = [global_coord_agent['x'], global_coord_agent['y'], global_coord_agent['z'], yaw_agent]
-                # print(f"arm: {arm_data}")
-                # print(f'body: {body_data}')
-                # print(f'error: {error}')
 
                 end_inf_state_lst.append(end_inf_state)
 
         env.i = 0
         
-        # gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
-        # gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
         results = cls.calc_metrics(end_inf_state_lst)
 
     @classmethod
@@ -167,7 +148,6 @@ class EvalTask(Eval):
         elif alow['mode'] == 2: #rotate
             word_action = "RotateAgent"
             num_action = alow['state_rot'][0]
-        # self.mode = {'stop': 0, 'base': 1, 'rotate': 2, 'arm_base':3, 'arm': 3, 'ee': 4, 'look': 6} #different action modes
         elif alow['mode'] == 3:
             word_action = 'MoveArmBase'
             num_action = alow['state_ee']
@@ -195,7 +175,7 @@ class EvalTask(Eval):
 
     @classmethod
     def get_gt_traj(cls, gt_traj_name):
-        hdf5_file_path = '/oscar/data/stellex/data/shared/lanmp/lanmp_dataset.hdf5'
+        hdf5_file_path = '../../../dataset/sim_dataset.hdf5'
         # Trajectory to fetch actions from
         trajectory_name = gt_traj_name
 

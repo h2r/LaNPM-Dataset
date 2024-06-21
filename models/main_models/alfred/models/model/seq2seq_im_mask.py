@@ -22,8 +22,6 @@ class Module(Base):
         self.enc = nn.LSTM(args.demb, args.dhid, bidirectional=True, batch_first=True)
         self.enc_att = vnn.SelfAttn(args.dhid*2)
 
-        # subgoal monitoring
-        # self.subgoal_monitoring = (self.args.pm_aux_loss_wt > 0 or self.args.subgoal_aux_loss_wt > 0)
 
         # get action max and mins
         max_min_path = os.path.join(self.args.pp_data, 'max_min.json')
@@ -65,9 +63,6 @@ class Module(Base):
         # paths
         self.root_path = os.getcwd()
         self.feat_pt = 'feat_conv.pt'
-
-        # params
-        # self.max_subgoals = 25
 
         # reset model
         self.reset()
@@ -301,12 +296,6 @@ class Module(Base):
                 pad_start_idx = alow.index(self.action_pad)
                 alow = alow[:pad_start_idx]
 
-            # if clean_special_tokens:
-            #     # remove <<stop>> tokens
-            #     if self.stop_token in alow:
-            #         stop_start_idx = alow.index(self.stop_token)
-            #         alow = alow[:stop_start_idx]
-
             word_action = None
             num_action = None
             if alow[0][0] == 0:
@@ -363,11 +352,7 @@ class Module(Base):
     def embed_action(self, action):
         '''
         embed low-level action for real-time inference
-        '''
-        # device = torch.device('cuda') if self.args.gpu else torch.device('cpu')
-        # action_num = torch.tensor(self.vocab['action_low'].word2index(action), device=device)
-        # action_emb = self.dec.emb(action_num).unsqueeze(0)
-        
+        '''        
         # embedding to input into next step in the sequence
         embedded_mode = self.dec.emb['emb_mode'](action[:, :1])
         embedded_base = self.dec.emb['emb_base'](action[:, 1:2])  
@@ -438,12 +423,8 @@ class Module(Base):
             total_loss = torch.zeros(l_alow_valid.shape[0]).to('cuda')
             for dim in range(l_alow_valid.shape[1]): #loops 8 times, one for each action dim
                 if dim == 0:
-                    # try:
-                    # breakpoint()
                     l_alow_valid = l_alow_valid.long()
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_valid[:, dim, :], l_alow_valid[:, dim])
-                    # except:
-                    #     breakpoint()
                 elif dim == 1:
                     loss = nn.CrossEntropyLoss(reduction='none')(p_alow_1d_base_valid[:, dim-1, :], l_alow_valid[:, dim])
                 elif dim == 2:
