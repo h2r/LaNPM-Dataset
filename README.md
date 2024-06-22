@@ -199,7 +199,42 @@ When running any of the finetuning or pretraining scripts, please ensure the fol
 ```module load cuda/11.8.0-lpttyok```
 ```module load cudnn/8.7.0.84-11.8-lg2dpd5```
 
+### Preliminary
+1. Create a Python virtual environment using Python 3.9.16 using `python3.9 -m venv rt1_env`
+2. Activate the virtual environment using `source rt1_env/bin/activate`
+3. Install and load the **CUDA Toolkit 11.8.0** and **cuDNN 8.7.0**
+4. `cd LaNMP-Dataset/models/main_models/rt1`
+5. Load necessary libraries using `pip install -e .` or directly activate the saved `rt1_env` folder using `source rt1_env/bin/activate` (if Python 3.9 is loaded onto your system)
 
+### Running Pre-Training 
+1. `cd LaNMP-Dataset/models/main_models/rt1`
+2. Open `main.py` and modify the `load-checkpoint` argument to `None` (since we are pretraining from initialization)
+3. Ensure the `checkpoint-dir` argument is a known and valid local path (where checkpoints during pretraining will be saved at the `checkpoint-freq`)
+4. Set all other arguments in `main.py'
+5. Navigate to `LaNMP-Dataset/models/main_models/rt1/rt1_pytorch/tokenizers/action_tokenizer.py`
+6. Ensure the `action_order` and `action_space` in lines 61 and 62 of `action_tokenizer.py` fetch from `bridge_keys` defined in line 56
+7. Run `python3 main.py` with all arguments input as required
+8. Checkpoints for pretraining should be saved chronologically (by step number) in the `checkpoint-dir` directory
+
+   
+### Running Fine-Tuning
+1. `cd LaNMP-Dataset/models/main_models/rt1`
+2. Open `main_ft.py` and modify the `load-checkpoint` argument to the checkpoint path generated from pretraining or the path where the pretrained checkpoint (from Google Drive) is saved
+3. Ensure the `checkpoint-dir` argument is a known and valid local path (where checkpoints during finetuning will be saved at the `checkpoint-freq`)
+4. Set all other arguments in `main_ft.py' (particularly `split-type` defines the type of experiment to be run i.e. k-fold across scenes, task generalization or diversity ablations)
+5. Navigate to `LaNMP-Dataset/models/main_models/rt1/rt1_pytorch/tokenizers/action_tokenizer.py`
+6. Ensure the `action_order` and `action_space` in lines 61 and 62 of `action_tokenizer.py` fetch from `lanmp_keys` defined in line 56
+7. Run `python3 main_ft.py` with all arguments input as required
+8. Checkpoints for pretraining should be saved chronologically (by step number) in the `checkpoint-dir` directory
+
+### Running Inference (on AI2Thor)
+1. `cd LaNMP-Dataset/models/main_models/rt1`
+2. Open `main_ft_eval.py` and modify the `checkpoint-path` argument to the checkpoint path from pretraining, finetuning or one of the pre-saved checkpoints (from Google Drive)
+4. Set all other arguments in `main_ft_eval.py' (particularly `split-type` defines the type of experiment to be run i.e. k-fold across scenes, task generalization or diversity ablations)
+5. Navigate to `LaNMP-Dataset/models/main_models/rt1/rt1_pytorch/tokenizers/action_tokenizer.py`
+6. Ensure the `action_order` and `action_space` in lines 61 and 62 of `action_tokenizer.py` fetch from `lanmp_keys` defined in line 56
+7. Run `python3 main_ft_eval.py` with all arguments input as required
+8. Evaluation loss logs should be reported on weights and biases as well as printed (mean ± std dev) on the terminal
 
 ## ALFRED Seq2Seq
 The ALFRED Seq2Seq model from the paper ["ALFRED A Benchmark for Interpreting Grounded Instructions for Everyday Tasks"](https://openaccess.thecvf.com/content_CVPR_2020/papers/Shridhar_ALFRED_A_Benchmark_for_Interpreting_Grounded_Instructions_for_Everyday_Tasks_CVPR_2020_paper.pdf) by _Shridhar et al._ was modified and fine-tuned on LaNMP.
