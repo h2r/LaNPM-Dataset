@@ -188,9 +188,10 @@ Most relevant files in this repository accept the same set of arguments that are
 
 ### Checkpoint samples
 
-Please find the follow checkpoints samples that can be loaded to the RT-1 model. These can be found on the supplementary Google Drive associated with this project
+Please find the follow checkpoints samples that can be loaded to the RT-1 model. These can be found on the supplementary <a href='https://drive.google.com/drive/folders/1vorYOcqRRnQUqFEl9lzwbPJNb4nC9eZI?usp=drive_link'>Google Drive</a> associated with this project
 * ```sample_checkpoints/pretrained_bridge```: the final checkpoint saved when pretraining the RT-1 model on the Bridge dataset
 * ```sample_checkpoints/task_gen```: the final checkpoint saved after finetuning RT-1 model on the task-wise split for the task generalization experiment
+* ```sample_checkpoints/kfold_cross_val```: the final checkpoints saved after finetuning RT-1 model using k-fold cross validations where each fold represented a held out scene from AI2Thor
 
 ### Additional notes
 
