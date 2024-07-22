@@ -153,4 +153,5 @@ models/main_models/rt1_dataset/*
 models/main_models/traj_rollouts/*
 models/main_models/run_rt1_main.sh
 models/main_models/rt1_ft_env
-/models/main_models/alfred/results/*/*.pkl
+/modespot/
+Trajectories/
