@@ -63,9 +63,6 @@ class get_data():
         dic['held_objs'] = event.metadata['arm']['heldObjects']
         pos_rot_dic = self._get_objs_pos(event.metadata['arm']['heldObjects'], event.metadata["objects"])
         dic['held_objs_state'] =  pos_rot_dic
-        # dic['rgb'] = event.frame
-        # dic['depth'] = event.depth_frame
-        # dic['inst_seg'] = event.instance_segmentation_frame
         dic['inst_det2D'] = {'keys': list(event.instance_detections2D.keys()), 'values': list(event.instance_detections2D.values())}
         dic['rgb'] = f'./rgb_{num}.npy'
         dic['depth'] = f'./depth_{num}.npy'
@@ -88,57 +85,29 @@ class get_data():
         self.inst_seg.append(event.instance_segmentation_frame)
 
 
-    # def _ndarray_to_list(self,obj):
-    #         logging.info("Processing an object of type %s", type(obj))
-    #         if isinstance(obj, dict):
-    #             return {key: self._ndarray_to_list(value) if key in ['inst_seg', 'depth', 'rgb', 'inst_det2D'] or isinstance(value, (dict, list)) else value
-    #                     for key, value in obj.items()}
-    #         elif isinstance(obj, list):
-    #             return [self._ndarray_to_list(element) for element in obj]
-    #         elif isinstance(obj, np.ndarray):
-    #             return obj.tolist()
-    #         else:
-    #             return obj
-
-
     def _chunk_dict(self, data, chunk_size):
         """Yield successive chunk_size chunks from the dictionary."""
         
         # Construct the base dictionary without the 'hi' key and its associated list
-        # base_dict = {k: v for k, v in data.items() if k != 'steps'}
         list_data = data['steps']
         
         # Getting all keys if not equal to steps
         base_keys = [k for k in data.keys() if k != 'steps']
-        
-
-
-
 
         # Getting all keys if not equal to steps
         base_keys = [k for k in data.keys() if k != 'steps']
 
         # Iterate over the list in chunks
-        for i in range(0, len(list_data), chunk_size):
-         #   chunked_dict = base_dict.copy()  # Copy the base data (without the large list)
-         
+        for i in range(0, len(list_data), chunk_size):         
             # Should be more memory efficient since we dont make a separate copy of base_dict
             chunked_dict = {k: data[k] for k in base_keys} 
             chunked_dict['steps'] = list_data[i:i+chunk_size]
             yield chunked_dict
 
-        
 
     def save(self,command):
-        # self.rgb = np.array(self.rgb)
-        # self.depth = np.array(self.depth)
-        # self.inst_seg = np.array(self.inst_seg)
 
         final_dic = {"nl_command": command, "scene":self.scene, "steps":self.data}
-        # final_dic = self._ndarray_to_list(final_dic)
-
-        # with open('/home/user/NPM-Dataset/data.json', 'w') as f:
-        #     json.dump(final_dic, f, indent=4)
 
         print("\nSaving...\n")
         CHUNK_SIZE=1

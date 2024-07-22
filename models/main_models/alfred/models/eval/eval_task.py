@@ -27,11 +27,6 @@ class EvalTask(Eval):
                 break
 
             task = task_queue.get()
-            # task = task_queue.get()
-            # task = task_queue.get()
-            # task = task_queue.get()
-            # task = task_queue.get()
-
 
             try:
                 traj = model.load_task_json(task)
@@ -61,7 +56,6 @@ class EvalTask(Eval):
         goal_instr = traj_data['ann']['task_desc']
         print('lang: ', goal_instr)
 
-        gt_traj_tknzd = traj_data['num']['action_low']
         print("root: ", traj_data['root'])
         print('scene: ', traj_data['scene'])
 
@@ -130,8 +124,6 @@ class EvalTask(Eval):
 
         env.i = 0
         
-        # gt_traj_name = traj_data['root'].rsplit('/', 1)[1]
-        # gt_traj, lang, scene = cls.get_gt_traj(gt_traj_name) #getting raw traj to see the global coords rather than the tokenized deltas
         results = cls.calc_metrics(goal_instr, traj_data['scene'], args.run_save_name, end_inf_state_lst)
 
     @classmethod
@@ -226,7 +218,6 @@ class EvalTask(Eval):
         
         """
 
-        
         results = []
         for img, metadata in end_inf_state_lst:
             action = metadata['lastAction']
@@ -261,9 +252,6 @@ class EvalTask(Eval):
                 "trajectory_data": results,
                 "final_state": final_state
             }, f)
-
-        #results_dict = yichen_mystery_method(gt_traj, last_inf_state)
-
 
 
     def create_stats(self):

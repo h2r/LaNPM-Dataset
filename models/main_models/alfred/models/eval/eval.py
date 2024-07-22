@@ -17,9 +17,8 @@ class Eval(object):
         self.manager = manager
 
         # load splits
-        with open(os.environ['HOME'] + "/data/ajaafar/NPM-Dataset/models/main_models/alfred/" + self.args.split_keys, 'r') as f:
+        with open(self.args.split_keys, 'r') as f:
             self.splits = json.load(f)
-
 
         # load model
         print("Loading: ", self.args.model_path)
@@ -48,18 +47,12 @@ class Eval(object):
         random.seed(int(time.time()))
 
     def queue_tasks(self):
-        '''python models/eval/eval_seq2seq.py --model_path /users/ajaafar/data/ajaafar/NPM-Dataset/models/main_models/alfred/exp/model:seq2seq_im_mask_discrete_relative_extra/best_unseen.pth --data data/json_feat_2.1.0 --gpu --model models.model.seq2seq_im_mask
+        '''
         create queue of trajectories to be evaluated
         '''
         task_queue = self.manager.Queue()
-        if self.args.eval_split == 'valid_unseen':
-            files = self.splits['val']
-        elif self.args.eval_split == 'valid_seen':
-            train = self.splits['train']
-            valid_unseen = self.splits['val']
-            files = random.sample(train, len(valid_unseen))
-        else:
-            files = self.splits['test']
+    
+        files = self.splits['test']
 
         # debugging: fast epoch
         if self.args.fast_epoch:

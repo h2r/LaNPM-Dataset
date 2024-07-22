@@ -21,7 +21,6 @@ if __name__ == '__main__':
 
     # settings
     parser.add_argument('--split_keys', help='json file containing split trajectories', default='data/splits/split_keys.json')
-    parser.add_argument('--eval_split', type=str, default='test', choices=['test', 'valid_seen', 'valid_unseen'])
     parser.add_argument('--run_save_name', type=str, default='1')
     parser.add_argument('--pp_data', type=str, default="data/feats")
     parser.add_argument('--model_path', type=str, default="model.pth")
@@ -39,7 +38,6 @@ if __name__ == '__main__':
     parser.add_argument('--max_fails', type=int, default=10, help='max API execution failures before episode termination')
 
     # eval settings
-    # parser.add_argument('--subgoals', type=str, help="subgoals to evaluate independently, eg:all or GotoLocation,PickupObject...", default="")
     parser.add_argument('--smooth_nav', dest='smooth_nav', action='store_true', help='smooth nav actions (might be required based on training data)')
     parser.add_argument('--skip_model_unroll_with_expert', action='store_true', help='forward model with expert actions')
     parser.add_argument('--no_teacher_force_unroll_with_expert', action='store_true', help='no teacher forcing with expert')
@@ -47,15 +45,10 @@ if __name__ == '__main__':
     # debug
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--fast_epoch', dest='fast_epoch', action='store_true')
-    parser.add_argument('--human_traj', action='store_true')
 
     # parse arguments
     args = parser.parse_args()
 
-    # eval mode
-    # if args.subgoals:
-    #     eval = EvalSubgoals(args, manager)
-    # else:
     eval = EvalTask(args, manager)
 
     # start threads

@@ -489,8 +489,8 @@ class ThorEnv():
         # sleep(0.5)
         if rand_agent:
             print(f"Random Word Action: {rand_word_action} ", end="\r")
-        # else:
-            # print(f"Word Action: {word_action} ", end="\r")
-            # print(f"Num Action: {num_action} ", end="\r")
+        else:
+            print(f"Word Action: {word_action} ", end="\r")
+            print(f"Num Action: {num_action} ", end="\r")
 
         return success, error, self.last_event.metadata
