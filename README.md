@@ -1,7 +1,19 @@
 # LaNPM Dataset Benchmark
-As robots that follow natural language become more capable and prevalent, we need a benchmark to holistically develop and evaluate their ability to solve long-horizon mobile manipulation tasks in large, diverse environments. Robots must use visual and language understanding, navigation, and manipulation capabilities to tackle this challenge. Existing datasets do not integrate all these aspects, restricting their efficacy as benchmarks. To address this gap, we present the Language, Navigation, Manipulation, Perception (LaNMP) dataset and demonstrate the benefits of integrating these four capabilities and various modalities. LaNMP comprises 574 trajectories across eight simulated and real-world environments for long-horizon room-to-room pick-and-place tasks specified by natural language. Every trajectory consists of over 20 attributes, including RGB-D images, segmentations, and the poses of the robot body, end-effector, and grasped objects. We fine-tuned and tested two models in simulation and on a physical robot to demonstrate its efficacy in development and evaluation. The models perform suboptimally compared to humans across various metrics, indicating significant room for developing better multimodal mobile manipulation models using our benchmark.
+
+<p align="center">
+  <a href="https://lanmpdataset.github.io/">Website</a> |
+  <a href="">arXiv</a> |
+  <a href="">PDF</a> |
+  <a href="https://drive.google.com/drive/folders/1lWeHINYU7r-KAmCeJqIpftR_QWFNfB7D?usp=sharing">Model Checkpoints</a> |
+  <a href="https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0">Dataset</a> |
+  <a href="https://github.com/h2r/LaNPM-Dataset/blob/main/DataCard.md">Model Card</a>
+</p>
+
+##
 
 ![Sequential timesteps of images from sim and real collected robot trajectories along with the natural language command describing the task.](./media/Trajectories-Figure.png "Sim and real trajectories")
+
+As robots that follow natural language become more capable and prevalent, we need a benchmark to holistically develop and evaluate their ability to solve long-horizon mobile manipulation tasks in large, diverse environments. Robots must use visual and language understanding, navigation, and manipulation capabilities to tackle this challenge. Existing datasets do not integrate all these aspects, restricting their efficacy as benchmarks. To address this gap, we present the Language, Navigation, Manipulation, Perception (LaNMP) dataset and demonstrate the benefits of integrating these four capabilities and various modalities. LaNMP comprises 574 trajectories across eight simulated and real-world environments for long-horizon room-to-room pick-and-place tasks specified by natural language. Every trajectory consists of over 20 attributes, including RGB-D images, segmentations, and the poses of the robot body, end-effector, and grasped objects. We fine-tuned and tested two models in simulation and on a physical robot to demonstrate its efficacy in development and evaluation. The models perform suboptimally compared to humans across various metrics, indicating significant room for developing better multimodal mobile manipulation models using our benchmark.
 
 ## Dataset Format
 More detailed dataset information can be found in the dataset card [DataCard.md](https://github.com/h2r/LaNPM-Dataset/blob/main/DataCard.md#lanmp).
@@ -183,9 +195,10 @@ Most relevant files in this repository accept the same set of arguments that are
 
 ### Checkpoint samples
 
-Please find the follow checkpoints samples that can be loaded to the RT-1 model. These can be found on the supplementary Google Drive associated with this project
+Please find the follow checkpoints samples that can be loaded to the RT-1 model. These can be found on the supplementary <a href='https://drive.google.com/drive/folders/1vorYOcqRRnQUqFEl9lzwbPJNb4nC9eZI?usp=drive_link'>Google Drive</a> associated with this project
 * ```sample_checkpoints/pretrained_bridge```: the final checkpoint saved when pretraining the RT-1 model on the Bridge dataset
 * ```sample_checkpoints/task_gen```: the final checkpoint saved after finetuning RT-1 model on the task-wise split for the task generalization experiment
+* ```sample_checkpoints/kfold_cross_val```: the final checkpoints saved after finetuning RT-1 model using k-fold cross validations where each fold represented a held out scene from AI2Thor
 
 ### Additional notes
 
@@ -193,7 +206,42 @@ When running any of the finetuning or pretraining scripts, please ensure the fol
 ```module load cuda/11.8.0-lpttyok```
 ```module load cudnn/8.7.0.84-11.8-lg2dpd5```
 
+### Preliminary
+1. Create a Python virtual environment using Python 3.9.16 using `python3.9 -m venv rt1_env`
+2. Activate the virtual environment using `source rt1_env/bin/activate`
+3. Install and load the **CUDA Toolkit 11.8.0** and **cuDNN 8.7.0**
+4. `cd LaNMP-Dataset/models/main_models/rt1`
+5. Load necessary libraries using `pip install -e .` or directly activate the saved `rt1_env` folder using `source rt1_env/bin/activate` (if Python 3.9 is loaded onto your system)
 
+### Running Pre-Training 
+1. `cd LaNMP-Dataset/models/main_models/rt1`
+2. Open `main.py` and modify the `load-checkpoint` argument to `None` (since we are pretraining from initialization)
+3. Ensure the `checkpoint-dir` argument is a known and valid local path (where checkpoints during pretraining will be saved at the `checkpoint-freq`)
+4. Set all other arguments in `main.py'
+5. Navigate to `LaNMP-Dataset/models/main_models/rt1/rt1_pytorch/tokenizers/action_tokenizer.py`
+6. Ensure the `action_order` and `action_space` in lines 61 and 62 of `action_tokenizer.py` fetch from `bridge_keys` defined in line 56
+7. Run `python3 main.py` with all arguments input as required
+8. Checkpoints for pretraining should be saved chronologically (by step number) in the `checkpoint-dir` directory
+
+   
+### Running Fine-Tuning
+1. `cd LaNMP-Dataset/models/main_models/rt1`
+2. Open `main_ft.py` and modify the `load-checkpoint` argument to the checkpoint path generated from pretraining or the path where the pretrained checkpoint (from Google Drive) is saved
+3. Ensure the `checkpoint-dir` argument is a known and valid local path (where checkpoints during finetuning will be saved at the `checkpoint-freq`)
+4. Set all other arguments in `main_ft.py' (particularly `split-type` defines the type of experiment to be run i.e. k-fold across scenes, task generalization or diversity ablations)
+5. Navigate to `LaNMP-Dataset/models/main_models/rt1/rt1_pytorch/tokenizers/action_tokenizer.py`
+6. Ensure the `action_order` and `action_space` in lines 61 and 62 of `action_tokenizer.py` fetch from `lanmp_keys` defined in line 56
+7. Run `python3 main_ft.py` with all arguments input as required
+8. Checkpoints for pretraining should be saved chronologically (by step number) in the `checkpoint-dir` directory
+
+### Running Inference (on AI2Thor)
+1. `cd LaNMP-Dataset/models/main_models/rt1`
+2. Open `main_ft_eval.py` and modify the `checkpoint-path` argument to the checkpoint path from pretraining, finetuning or one of the pre-saved checkpoints (from Google Drive)
+4. Set all other arguments in `main_ft_eval.py' (particularly `split-type` defines the type of experiment to be run i.e. k-fold across scenes, task generalization or diversity ablations)
+5. Navigate to `LaNMP-Dataset/models/main_models/rt1/rt1_pytorch/tokenizers/action_tokenizer.py`
+6. Ensure the `action_order` and `action_space` in lines 61 and 62 of `action_tokenizer.py` fetch from `lanmp_keys` defined in line 56
+7. Run `python3 main_ft_eval.py` with all arguments input as required
+8. Evaluation loss logs should be reported on weights and biases as well as printed (mean ± std dev) on the terminal
 
 ## ALFRED Seq2Seq
 The ALFRED Seq2Seq model from the paper ["ALFRED A Benchmark for Interpreting Grounded Instructions for Everyday Tasks"](https://openaccess.thecvf.com/content_CVPR_2020/papers/Shridhar_ALFRED_A_Benchmark_for_Interpreting_Grounded_Instructions_for_Everyday_Tasks_CVPR_2020_paper.pdf) by _Shridhar et al._ was modified and fine-tuned on LaNMP.
