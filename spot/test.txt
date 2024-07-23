@@ -1,1 +1,0 @@
-TypeError: Object of type DoubleValue is not JSON serializable

@@ -1,9 +1,11 @@
 # LaNPM Dataset Benchmark
 
 <p align="center">
+  Under Review 
+  <br>
   <a href="https://lanmpdataset.github.io/">Website</a> |
-  <a href="">arXiv</a> |
-  <a href="">PDF</a> |
+  <a href="">arXiv (Coming Soon)</a> |
+  <a href="">RSS24 Workshop Paper</a> |
   <a href="https://drive.google.com/drive/folders/1lWeHINYU7r-KAmCeJqIpftR_QWFNfB7D?usp=sharing">Model Checkpoints</a> |
   <a href="https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0">Dataset</a> |
   <a href="https://github.com/h2r/LaNPM-Dataset/blob/main/DataCard.md">Model Card</a>
@@ -135,9 +137,29 @@ The detailed metadata can be found in the dataset card.
 ## Running Data Collection
 
 ### Simulation
+1. ```cd collect_sim```
+2. ```python install -r sim_reqs.txt```
+3. ```cd custom_ai2thor_lib_code```
+4. Move the files to the ai2thor library folder in the virtual environment
+5. Collect data ```python mani.py --scene "<scene number>" --command "<natural language command>"```.
+Use the following keys to move in the simulator:
+* WASD: moving the robot base
+* J/L: rotate the robot left/right
+* I/K: moving the robot head up/down
+* G: grasp
+* R: release
+* Up arrow/down arrow: move robot shoulder up/down
+* 7/4: move end-effector left/right
+* 8/5 move end-effector up/down
+* 9/6 move end-effector forward/backward
+* Q: end collection and save data
+* CTRL+C: restart collection without saving
 
 ### Real (Spot)
-
+1. ```cd collect_real```
+2. ```conda create --name <env> --file spot_env.txt```
+3. Create a map using ```python record_env_graph.py```. See [this](https://dev.bostondynamics.com/python/examples/graph_nav_command_line/readme#recording-service-command-line) for more details on how to record the map.
+4. Collect data using the map ```python collect_spot_data.py -u <map folder> -t "<natural language command>"```
 
 ## RT-1
 The RT-1 model from the paper ["RT-1: Robotics Transformer for Real-World Control at Scale"](https://www.roboticsproceedings.org/rss19/p025.pdf) by _Brohan et al._ was modified and fine-tuned on LaNMP. This model was trained and run on an NVIDIA 3090 GPU.
