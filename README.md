@@ -136,7 +136,7 @@ The detailed metadata can be found in the dataset card.
 
 ## Running Data Collection
 
-### Simulation
+### Simulation (AI2THOR)
 1. ```cd collect_sim```
 2. ```python install -r sim_reqs.txt```
 3. ```cd custom_ai2thor_lib_code```
