@@ -126,6 +126,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+test/
 
 # Spyder project settings
 .spyderproject
@@ -155,3 +156,4 @@ models/main_models/run_rt1_main.sh
 models/main_models/rt1_ft_env
 /modespot/
 Trajectories/
+sim_commands.npy
