@@ -14,14 +14,10 @@ from rt1_pytorch.rt1_policy import RT1Policy
 from tqdm import tqdm
 from lanmp_dataloader.rt1_dataloader import DatasetManager, DataLoader
 import gc
+import json
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--datasets",
-        type=list,
-        default=["fractal20220817_data"],
-    )
     parser.add_argument(
         "--train-split",
         type=str,
@@ -57,6 +53,12 @@ def parse_args():
         type=str,
         default="cuda",
         help="device to use for training",
+    )
+    parser.add_argument(
+        "--val_loss_dir",
+        type=str,
+        default="val_losses/kfold",
+        help="directory to save validation losses",
     )
     parser.add_argument(
         "--checkpoint-path",
@@ -193,9 +195,8 @@ def main():
 
     print("Evaluating...")
 
-
+    best_val_loss  = np.inf
     for idx, checkpoint_file in enumerate(list(sorted(os.listdir(args.checkpoint_path), key=extract_train_step))):
-
         print(f'Evaluating file: {idx} of {len(os.listdir(args.checkpoint_path))}')
         total_train_steps = int(checkpoint_file.split('_')[1])
         total_val_steps = 0
@@ -226,9 +227,8 @@ def main():
         print(f"FiLM-EfficientNet+TokenLearner params: {tokenizer_params}")
 
 
-
         for batch, val_batch in enumerate(val_dataloader):
-            
+
             batch_steps = val_batch[0].shape[0]
 
             print(f'Section {batch+1} of {len(val_dataloader)}')
@@ -274,6 +274,19 @@ def main():
             print(f"Eval loss Step {total_train_steps}: {total_eval_loss/total_eval_count}")
         else:
             print(f"Eval loss Step {total_train_steps}: {total_eval_loss/total_eval_count}")
+            val_dic = {}
+            eval_loss = total_eval_loss/total_eval_count
+            if eval_loss < best_val_loss:
+                best_val_loss = eval_loss
+                val_dic['best_val_loss'] = eval_loss
+            else:
+                val_dic['best_val_loss'] = best_val_loss
+            val_dic['curr_val_loss'] = eval_loss
+            val_dic['checkpoint_name'] = checkpoint_file
+
+        os.makedirs(f'{args.val_loss_dir}/{checkpoint_file}', exist_ok=True)
+        with open(f'{args.val_loss_dir}/{checkpoint_file}/val_loss.json', 'w') as json_file:
+            json.dump(val_dic, json_file, indent=4)
 
 if __name__ == "__main__":
     main()
