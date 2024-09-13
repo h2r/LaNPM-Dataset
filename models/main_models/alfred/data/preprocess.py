@@ -6,7 +6,7 @@ import copy
 import progressbar
 from vocab import Vocab
 from model.seq2seq import Module as model
-from models.utils.data_utils import split_data, env_folds, task_gen, div, remove_spaces_and_lower
+from models.utils.data_utils import split_data, env_folds, task_gen, div, remove_spaces_and_lower, cluster
 import h5py
 import numpy as np
 
@@ -61,6 +61,8 @@ class Dataset(object):
             train_keys, test_keys = task_gen(self.args.data)
         elif self.args.splits_folds == 'div':
             train_keys, test_keys = div(self.args.data, div_runs['train_envs'], div_runs['test_env'])
+        elif self.args.splits_folds == 'cluster':
+            train_keys, test_keys = cluster(self.args.data, low_div=self.args.low_div)
         else:
             train_keys, test_keys = env_folds(self.args.data, folds['train_envs'], folds['test_envs'])
         split_keys_dict = {'train':train_keys, 'test':test_keys}
@@ -150,7 +152,7 @@ class Dataset(object):
                 self.max_vals[i] = actions[i]
             if actions[i] < self.min_vals[i]:
                 self.min_vals[i] = actions[i]
-    
+
     def get_deltas(self, state_body, state_ee, next_state_body, next_state_ee):
         state_body_delta = np.subtract(next_state_body, state_body)
         state_ee_delta = np.subtract(next_state_ee, state_ee)
@@ -179,9 +181,9 @@ class Dataset(object):
                 state_body = traj_json_dict['steps'][0]['state_body']
                 state_ee = traj_json_dict['steps'][0]['state_ee']
                 # action_high = traj_json_dict['steps'][0]['action']
-                
-                # grasp_drop = self.grasp_drop['NoOP'] 
-                # up_down = self.up_down['NoOP'] 
+
+                # grasp_drop = self.grasp_drop['NoOP']
+                # up_down = self.up_down['NoOP']
                 # if action_high == 'PickupObject':
                 #     grasp_drop = self.grasp_drop['PickupObject']
                 # elif action_high == 'ReleaseObject':
@@ -214,8 +216,8 @@ class Dataset(object):
                             mode = self.mode['look']
                         elif action_high in ['PickupObject', 'ReleaseObject']:
                             mode = self.mode['ee']
-                        
-                        grasp_drop = self.grasp_drop['NoOp'] 
+
+                        grasp_drop = self.grasp_drop['NoOp']
                         up_down = self.up_down['NoOp']
                         base = self.base['NoOp']
                         arm = [0]*3 #noop index
@@ -245,9 +247,9 @@ class Dataset(object):
 
                 if traj is None:
                     self.find_min_max(state_body, state_ee)
-                
+
                 if not self.args.class_mode and traj is not None: #regression
-                    # TODO normalization here 
+                    # TODO normalization here
                     traj['num']['action_low'].append(
                         {'state_body': state_body, 'state_ee': state_ee, 'grasp_drop': grasp_drop, 'up_down': up_down}
                     )
@@ -263,7 +265,7 @@ class Dataset(object):
                             if bin_indx == len(self.bins[i]):
                                 bin_indx = len(self.bins[i])-1
                             final_action_indices.append(int(bin_indx-1)) #subtract since digitize returns 1-based indexing
-                        
+
                         #final_action_indices [mode, base_action, yaw, xee, yee, zee, grasp_drop, lookup_lookdown]
                         nonlocal rotate
                         nonlocal arm
@@ -280,8 +282,8 @@ class Dataset(object):
                         if i != len(traj_steps)-1:
                             get_indices()
                     else:
-                        get_indices()        
-                        
+                        get_indices()
+
             if traj is not None:
                 #append end/stop action index of bins
                 traj['num']['action_low'].append(

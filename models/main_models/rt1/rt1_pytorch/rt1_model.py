@@ -38,7 +38,7 @@ class RT1Model(nn.Module):
         arch: str = "efficientnet_b3",
         tokens_per_action=11,
         action_bins=256,
-        num_layers=4,
+        num_layers=4, #8
         num_heads=8,
         feed_forward_size=512,
         dropout_rate=0.1,

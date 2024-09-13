@@ -24,7 +24,8 @@ if __name__ == '__main__':
     parser.add_argument('--splits', help='json file containing train/val/test splits', default='data/splits/splits.json')
     parser.add_argument('--folds', help='json file containing train/test env folds', default='data/splits/env_folds.json')
     parser.add_argument('--div_runs', help='json file containing train/test env div', default='data/splits/div_runs.json')
-    parser.add_argument('--splits_folds', help='splits or folds', default='div')
+    parser.add_argument('--splits_folds', help='splits or folds', default='splits')
+    parser.add_argument('--low_div', help='low diversity if true, else high', action='store_true')
     parser.add_argument('--split_keys', help='json file containing split trajectories', default='data/splits/split_keys.json')
     parser.add_argument('--preprocess', help='store preprocessed data to json files', action='store_true')
     parser.add_argument('--save_every_epoch', help='save model after every epoch (warning: consumes a lot of space)', action='store_true')
@@ -40,7 +41,7 @@ if __name__ == '__main__':
 
 
     # hyper parameters
-    parser.add_argument('--batch', help='batch size', default=8, type=int) #the number of trajs in a batch. 
+    parser.add_argument('--batch', help='batch size', default=8, type=int) #the number of trajs in a batch.
     parser.add_argument('--epoch', help='number of epochs', default=20, type=int)
     parser.add_argument('--lr', help='optimizer learning rate', default=1e-4, type=float)
     parser.add_argument('--decay_epoch', help='num epoch to adjust learning rate', default=10, type=int)
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     # debugging
     parser.add_argument('--fast_epoch', help='fast epoch during debugging', action='store_true')
     parser.add_argument('--dataset_fraction', help='use fraction of the dataset for debugging (0 indicates full size)', default=0, type=float)
-    
+
     # args and init
     args = parser.parse_args()
     args.dout = args.dout.format(**vars(args))
@@ -100,7 +101,7 @@ if __name__ == '__main__':
     # preprocess and save
     if args.preprocess:
         print("\nPreprocessing dataset and saving to %s folders ... This will take a while. Do this once as required." % args.pp_folder)
-        dataset = Dataset(args, None) 
+        dataset = Dataset(args, None)
         dataset.preprocess_splits(splits, folds, div_runs)
         vocab = torch.load(os.path.join(args.dout, "%s.vocab" % args.pp_folder))
     else:

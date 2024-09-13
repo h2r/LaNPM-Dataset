@@ -18,6 +18,12 @@ import json
 import sys
 from copy import copy
 import random
+from sklearn.metrics import davies_bouldin_score
+from sklearn.metrics import silhouette_score
+from sklearn.cluster import AgglomerativeClustering, DBSCAN
+from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
+from collections import defaultdict
 
 sys.path.append('..')
 
@@ -26,6 +32,114 @@ DATASET_PATH = '/oscar/data/stellex/shared/lanmp/sim_dataset.hdf5'
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
 '''
+
+def cluster(hdf5_path, low_div):
+    random.seed(3)
+    model = SentenceTransformer("all-mpnet-base-v2") # all-MiniLM-L6-v2, all-MiniLM-L12-v2, all-distilroberta-v1, sentence-t5-base, all-mpnet-base-v2
+
+    if not os.path.exists("sim_commands.npy") or not os.path.exists("command_key_dict.json"):
+        commands=[]
+        command_key_dict = {}
+        # Open the HDF5 file
+        with h5py.File(hdf5_path, 'r') as hdf_file:
+            # Iterate through each trajectory group
+            for key,(trajectory_name, trajectory_group) in zip(hdf_file.keys() ,hdf_file.items()):
+                # Iterate through each timestep group within the trajectory
+                for timestep_name, timestep_group in trajectory_group.items():
+                    # Read and decode the JSON metadata
+                    metadata = json.loads(timestep_group.attrs['metadata'])
+                    commands.append(metadata['nl_command'])
+                    command_key_dict[metadata['nl_command']] = key
+                    break
+
+        np.save("sim_commands.npy", commands)
+        with open('command_key_dict.json', 'w') as f:
+            json.dump(command_key_dict, f)
+    else:
+        commands = np.load('sim_commands.npy', allow_pickle=True).tolist()
+        with open('command_key_dict.json', 'r') as file:
+            command_key_dict = json.load(file)
+
+    # Convert the commands to embeddings
+    embeddings = model.encode(commands)
+
+    # Compute the cosine similarity matrix
+    # sim_mat = cosine_similarity(embeddings)
+    # print(sim_mat)
+
+    if not os.path.exists("cluster_dict.json"):
+        # Apply Agglomerative Clustering
+        clustering = AgglomerativeClustering(n_clusters=None, metric='cosine', linkage='average', distance_threshold=0.3)
+        clusters = clustering.fit_predict(embeddings)
+
+        # Calculate the silhouette score
+        silhouette_avg = silhouette_score(embeddings, clusters, metric='cosine')
+        print(f'Silhouette Score: {silhouette_avg}')
+
+        # Calculate the Davies-Bouldin index
+        db_index = davies_bouldin_score(embeddings, clusters)
+        print(f'Davies-Bouldin Index: {db_index}')
+
+        # Create a defaultdict with lists as default values
+        cluster_dict = defaultdict(list)
+
+        # Populate the dictionary
+        for string, cluster_id in zip(commands, clusters):
+            cluster_dict[int(cluster_id)].append(string)
+
+        cluster_dict = dict(cluster_dict)
+
+        #save dict
+        with open('cluster_dict.json', 'w') as f:
+            json.dump(cluster_dict, f)
+    else:
+        with open('cluster_dict.json', 'r') as file:
+            cluster_dict = json.load(file)
+    # Find the cluster with the longest list
+    sorted_clusters = sorted(cluster_dict, key=lambda k: len(cluster_dict[k]), reverse=True)
+
+    if low_div:
+        start = 0
+        end = 10
+    else: # high div
+        start = 14
+        end = 106
+
+    # tot = 0
+    train_keys = []
+    if low_div:
+        for i in range(start,end):
+            # print(f"{len(cluster_dict[sorted_clusters[i]])} elements.")
+            command_lst = cluster_dict[sorted_clusters[i]]
+            for cmd in command_lst:
+                key = command_key_dict[cmd]
+                train_keys.append(key)
+            # tot += len(cluster_dict[sorted_clusters[i]])
+        #print(f'Total: {tot}')
+        num_elements_to_pick = len(train_keys) - 2
+        train_keys = random.sample(train_keys, num_elements_to_pick)
+    else:
+        for i in range(start,end):
+            # print(f"{len(cluster_dict[sorted_clusters[i]])} elements.")
+            command_lst = cluster_dict[sorted_clusters[i]]
+            for cmd in command_lst:
+                key = command_key_dict[cmd]
+                train_keys.append(key)
+            # tot += len(cluster_dict[sorted_clusters[i]])
+        #print(f'Total: {tot}')
+        # num_elements_to_pick = len(train_keys) - 
+        # train_keys = random.sample(train_keys, num_elements_to_pick)
+    test_keys = []
+    for i in range(10,14): #test
+        command_lst = cluster_dict[sorted_clusters[i]]
+        for cmd in command_lst:
+            key = command_key_dict[cmd]
+            test_keys.append(key)
+    num_elements_to_pick = len(test_keys) - 5
+    test_keys = random.sample(test_keys, num_elements_to_pick)
+
+    return train_keys, test_keys
+
 
 def split_data(hdf5_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
     with h5py.File(hdf5_path, 'r') as hdf_file:
@@ -54,7 +168,6 @@ def split_data(hdf5_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
         return train_keys, val_keys, test_keys
 
 def split_by_scene(hdf5_path):
-
     #mapping which keys are relevant to specific scenes
     scene_to_keys = {}
 
@@ -78,7 +191,63 @@ def split_by_scene(hdf5_path):
 
     return scene_to_keys
 
+def low_high_scene(hdf5_path, train_runs, test_run):
+    np.random.seed(420)
+    test_trajs = []
+    scene1 = []
+    scene2 = []
+    scene3 = []
+    scene4 = []
+    div_by_two = 52
+    div_by_three = 26 #31
+    div_by_four = 26
+    with h5py.File(hdf5_path, 'r') as hdf_file:
+        # Iterate over each group in the HDF5 file, each group represents a trajectory
+        for trajectory_name in hdf_file:
+            trajectory_group = hdf_file[trajectory_name]
 
+            # Get the first group name from sorted keys
+            first_timestep_name = sorted(trajectory_group.keys())[0]
+            first_timestep_group = trajectory_group[first_timestep_name]
+
+            # Read JSON data from the 'metadata' attribute of the first timestep
+            if 'metadata' in first_timestep_group.attrs:
+                json_data = json.loads(first_timestep_group.attrs['metadata'])
+                if json_data['scene'] == test_run:
+                    test_trajs.append(trajectory_name)
+                elif json_data['scene'] == 'FloorPlan_Train8_1':
+                    scene1.append(trajectory_name)
+                elif json_data['scene'] == 'FloorPlan_Train12_3':
+                    scene2.append(trajectory_name)
+                elif json_data['scene'] == 'FloorPlan_Train5_1':
+                    scene3.append(trajectory_name)
+                else:
+                    scene4.append(trajectory_name)
+    
+    if len(train_runs) == 1:
+        train_trajs = np.array(scene4)
+    elif len(train_runs) == 2:
+        train_trajs = np.concatenate([
+            np.random.choice(scene1, size=div_by_two, replace=False),
+            np.random.choice(scene2, size=div_by_two, replace=False),
+        ])
+    elif len(train_runs) == 3:
+        train_trajs = np.concatenate([
+            np.random.choice(scene1, size=div_by_three, replace=False),
+            np.random.choice(scene2, size=div_by_three, replace=False),
+            np.random.choice(scene3, size=div_by_three-1, replace=False)
+        ])
+    elif len(train_runs) == 4:
+        train_trajs = np.concatenate([
+            np.random.choice(scene1, size=div_by_four, replace=False),
+            np.random.choice(scene2, size=div_by_four, replace=False),
+            np.random.choice(scene3, size=div_by_four, replace=False),
+            np.random.choice(scene4, size=div_by_four, replace=False)
+
+        ])
+    
+    test_trajs = np.random.choice(test_trajs, size=20, replace=False)
+    return train_trajs.tolist(), test_trajs.tolist()
 
 def sort_folders(test_string):
     return list(map(int, re.findall(r'\d+', test_string)))[0]
@@ -88,8 +257,7 @@ class DatasetManager(object):
     '''
     NOTE: kwargs should contain a dictionary with keys {'train_split' : x, 'val_split': y, 'test_split':z} where x+y+z = 1
     '''
-    def __init__(self, val_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100):
-
+    def __init__(self, val_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
         assert( train_split + val_split + test_split == 1.0, 'Error: train, val and test split do not sum to 1.0')
 
         
@@ -104,15 +272,14 @@ class DatasetManager(object):
         self.scenes = list(sorted(list(self.scene_to_keys.keys())))
 
         assert( split_style in ['k_fold_scene', 'task_split', 'diversity_ablation'], "Error: input split_style is invalid")
-
         if split_style == 'k_fold_scene':
-            assert( val_scene < len(self.scenes), "Error: input scene is out of index space")
+            assert(int(val_scene) < len(self.scenes), "Error: input scene is out of index space")
             train_keys = []
             for x in range(0, len(self.scenes)):
-                if x!=val_scene:
+                if x!=int(val_scene):
                     train_keys += self.scene_to_keys[self.scenes[x]]  
 
-            val_keys = self.scene_to_keys[self.scenes[val_scene]]
+            val_keys = self.scene_to_keys[self.scenes[int(val_scene)]]
             test_keys = None
 
         elif split_style == 'task_split':
@@ -140,7 +307,6 @@ class DatasetManager(object):
             print('Validation Keys: ', val_keys)
 
         elif split_style == 'diversity_ablation':
-
             assert(diversity_scenes < len(self.scene_to_keys.keys()), "Error: number of train scenes for diversity ablations cannot be {}".format(len(self.scene_to_keys.keys())))
 
             ordered_scenes = []; ordered_trajs = []
@@ -150,7 +316,6 @@ class DatasetManager(object):
                 ordered_scenes.append(scene)
                 ordered_trajs.append(len(traj))
             
-
             ordered_index = sorted(range(0, len(ordered_trajs)), key = lambda x: ordered_trajs[x])
 
             ordered_trajs = list(sorted(ordered_trajs))
@@ -172,6 +337,14 @@ class DatasetManager(object):
 
                 random_scene = random.sample(other_scenes[:diversity_scenes], 1)[0]
                 train_keys += random.sample(self.scene_to_keys[random_scene], max_trajectories-len(train_keys))
+
+        elif split_style == 'low_high_scene':
+            with open('lanmp_dataloader/div_runs.json', 'r') as file:
+                div_runs = json.load(file)
+            train_keys, val_keys = low_high_scene(DATASET_PATH, div_runs['train_envs'], div_runs['test_env'])
+
+        elif split_style == 'cluster':
+            train_keys, val_keys = cluster(DATASET_PATH, low_div=low_div)
 
 
         if 'attribute_limits.json' not in os.listdir('./lanmp_dataloader'):
