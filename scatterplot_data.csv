@@ -1,0 +1,25 @@
+﻿Name ,Real_sim,NL,Nav,Manip,Percep,Num_scenes,Num_tasks
+LaNMP,2,1,1,1,1,30,574
+RT-1,2,1,1,1,1,2,700
+Collab,1,1,0,1,1,28,1582
+CALVIN,1,1,0,1,1,4,35
+GVCCI,1,1,0,1,1,2,528
+LA-TaskGrasp,1,1,0,1,1,1,53
+RoboSet,1,1,0,1,1,11,38
+AlphaBlock,2,1,0,1,1,1,35
+VIMA,1,1,0,1,1,1,17
+RFST,2,1,0,1,1,2,9
+DROID,1,1,0,1,1,564,86
+Dobb-E,1,1,0,1,1,10,109
+DAA,1,1,0,1,1,1,1104
+NatSGD,2,1,0,1,1,1,1143
+Talk  the Walk,1,1,1,0,1,1,10310
+ALFRED,1,1,1,0,1,120,25743
+TEACh,1,1,1,0,1,109,3047
+Room-to-Room,1,1,1,0,1,90,22000
+Room-Across-Room,1,1,1,0,1,90,126000
+QUARD,2,1,1,0,1,2,7
+Mobile ALOHA,1,0,1,1,1,1,7
+MoMaRT,1,0,1,1,1,1,5
+Conq House,1,1,1,1,1,2,139
+BRMData,1,0,1,1,1,1,10
