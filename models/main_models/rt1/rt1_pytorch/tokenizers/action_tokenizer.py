@@ -55,11 +55,12 @@ class RT1ActionTokenizer:
         # filter the action keys
         lanmp_keys = ['terminate_episode', 'pickup_release', 'body_position_delta', 'body_yaw_delta','body_pitch_delta','arm_position_delta','control_mode']
         bridge_keys =  ['terminate_episode','world_vector', 'open_gripper', "rotation_delta"]
+        fractal_keys = ['terminate_episode', 'gripper_closedness_action', 'world_vector', 'base_displacement_vertical_rotation', 'rotation_delta','base_displacement_vector',]
         jaco_keys =  ['terminate_episode','world_vector', 'gripper_closedness_action']
 
         #NOTE: change both lines below to the specific dataset keys
-        action_order  = lanmp_keys #bridge_keys #jaco_keys
-        action_space =  {key: action_space[key] for key in lanmp_keys if key in set(action_space.keys())}
+        action_order  = fractal_keys #bridge_keys #jaco_keys #lanmp_keys 
+        action_space =  {key: action_space[key] for key in fractal_keys if key in set(action_space.keys())}
         self._action_space = action_space
         if action_order is None:
             self._action_order = list(action_space.keys())

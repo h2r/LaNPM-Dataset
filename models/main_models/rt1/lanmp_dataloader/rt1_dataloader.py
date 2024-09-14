@@ -710,7 +710,7 @@ class RT1Dataset(Dataset):
 
 
 
-        #build the dictionary for each sequence
+        #build the dictionary for each trajectory
         while end <= len(traj_steps) and not terminate:
 
             '''
@@ -727,7 +727,8 @@ class RT1Dataset(Dataset):
             pickup_releases = []
             body_pitches = []
             control_modes = []
-
+            
+            #6 step window
             for i in range(start, end):
 
                 #visual observation
@@ -836,7 +837,7 @@ class RT1Dataset(Dataset):
 
             all_pad_lengths.append(0 if not end >= len(traj_steps) else padding_length)
             
-
+            #move the window by 6
             start += 6
             end = min(end + 6, len(traj_steps))
 
@@ -875,7 +876,7 @@ class RT1Dataset(Dataset):
 
 
 
-        #build the dictionary for each sequence
+        #build the dictionary for each trajectory
         while end < len(traj_steps):
 
             '''

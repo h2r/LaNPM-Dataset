@@ -11,6 +11,7 @@ from torch.optim import Adam
 from tqdm import tqdm
 from data import create_dataset
 from rt1_pytorch.rt1_policy import RT1Policy
+import json
 
 
 def parse_args():
@@ -18,7 +19,7 @@ def parse_args():
     parser.add_argument(
         "--datasets",
         type=list,
-        default=['fractal20220817_data'],
+        default=["fractal20220817_data"],
     )
     parser.add_argument(
         "--train-split",
@@ -73,6 +74,12 @@ def parse_args():
         type=str,
         default="cuda",
         help="device to use for training",
+    )
+    parser.add_argument(
+        "--val_loss_dir",
+        type=str,
+        default="val_losses/kfold",
+        help="directory to save validation losses",
     )
     parser.add_argument(
         "--eval-freq",
@@ -135,14 +142,10 @@ def main():
     # )
 
     observation_space = gym.spaces.Dict(
-        image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
+        image=gym.spaces.Box(low=0, high=255, shape=(256, 320, 3)),
         context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
     )
     action_space = gym.spaces.Dict(
-        world_vector=gym.spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float32),
-        base_displacement_vertical_rotation=gym.spaces.Box(
-            low=-np.pi / 2.0, high=np.pi / 2.0, shape=(1,), dtype=np.float32
-        ), 
         gripper_closedness_action=gym.spaces.Box(
            low=-1.0, high=1.0, shape=(1,), dtype=np.float32
         ),
@@ -156,6 +159,10 @@ def main():
         rotation_delta=gym.spaces.Box(
             low=-np.pi / 2.0, high=np.pi / 2.0, shape=(3,), dtype=np.float32
         ),
+        base_displacement_vertical_rotation=gym.spaces.Box(
+            low=-np.pi / 2.0, high=np.pi / 2.0, shape=(1,), dtype=np.float32
+        ),
+        world_vector=gym.spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float32),
     )
 
     print("Building policy...")
@@ -192,6 +199,7 @@ def main():
     print("Training...")
     num_batches = 0
     
+    best_val_loss  = np.inf
     for batch in tqdm(train_dataset):
         
         policy.model.train()
@@ -225,6 +233,7 @@ def main():
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
         if args.eval_freq and num_batches % args.eval_freq == 0:
             print("Evaluating...")
             policy.model.eval()
@@ -242,7 +251,20 @@ def main():
                     step=num_batches * args.train_batch_size,
                 )
             else:
+                val_dic = {}
                 print(f"Eval loss Batch {num_batches}: {eval_loss}")
+                if eval_loss < best_val_loss:
+                    best_val_loss = eval_loss
+                    val_dic['best_val_loss'] = eval_loss
+                else:
+                    val_dic['best_val_loss'] = best_val_loss
+                val_dic['curr_val_loss'] = eval_loss
+        
+        
+            os.makedirs(args.val_loss_dir, exist_ok=True)
+            with open(f'{args.val_loss_dir}/val_loss_batch_{num_batches}.json', 'w') as json_file:
+                json.dump(val_dic, json_file, indent=4)
+
         if args.checkpoint_freq and num_batches % args.checkpoint_freq == 0:
             checkpoint_path = (
                 f"{args.checkpoint_dir}/checkpoint_"
