@@ -62,7 +62,6 @@ __pycache__/
 /models/main_models/alfred/data/splits/split_keys_discrete_relative_task_div_low_5.json
 /models/main_models/alfred/data/vis_feats/*
 !/models/main_models/alfred/data/vis_feats/.gitkeep
-/dataset/*
 !/dataset/.gitkeep
 
 # Byte-compiled / optimized / DLL files
@@ -208,3 +207,4 @@ models/main_models/rt1_ft_env
 /modespot/
 Trajectories/
 sim_commands.npy
+run/rt1/*
