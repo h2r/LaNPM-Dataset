@@ -22,4 +22,4 @@ LOAD_CHECKPOINT='/oscar/scratch/ajaafar/rt1_pretrain_ckpts/checkpoint_389844_los
 VAL_LOSS_DIR='val_losses/fractal_ft'
 
 
-python main_ft.py --split-type "$SPLIT_TYPE" --epochs "$EPOCHS" --checkpoint-dir "$CHECKPOINT_DIR" --eval-freq "$EVAL_FREQ" --load-checkpoint "$LOAD_CHECKPOINT" --val_loss_dir "$VAL_LOSS_DIR" --wandb --lr-scheduler
+python main_ft.py --split-type "$SPLIT_TYPE" --epochs "$EPOCHS" --checkpoint-dir "$CHECKPOINT_DIR" --eval-freq "$EVAL_FREQ" --load-checkpoint "$LOAD_CHECKPOINT" --val_loss_dir "$VAL_LOSS_DIR" --wandb --lr_sched

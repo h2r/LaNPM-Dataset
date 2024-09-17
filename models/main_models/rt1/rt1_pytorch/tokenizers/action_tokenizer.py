@@ -59,8 +59,8 @@ class RT1ActionTokenizer:
         jaco_keys =  ['terminate_episode','world_vector', 'gripper_closedness_action']
 
         #NOTE: change both lines below to the specific dataset keys
-        action_order  = fractal_keys  #bridge_keys #jaco_keys, fractal_keys, lanmp_keys
-        action_space =  {key: action_space[key] for key in fractal_keys if key in set(action_space.keys())}
+        action_order  = lanmp_keys  #bridge_keys #jaco_keys, fractal_keys, lanmp_keys
+        action_space =  {key: action_space[key] for key in lanmp_keys if key in set(action_space.keys())}
         self._action_space = action_space
         if action_order is None:
             self._action_order = list(action_space.keys())

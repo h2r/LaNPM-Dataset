@@ -45,7 +45,7 @@ def parse_args():
         help="learning rate",
     )
     parser.add_argument(
-         "--lr-scheduler",
+         "--lr_sched",
         action="store_true",
         help="use exponential scheduling for the learning rate",
         default=False,
@@ -231,7 +231,8 @@ def main():
     
     policy.model.train()
     optimizer = Adam(policy.model.parameters(), lr=args.lr)
-    scheduler = ExponentialLR(optimizer, gamma=args.gamma)
+    if args.lr_sched:
+        scheduler = ExponentialLR(optimizer, gamma=args.gamma)
 
     #NOTE: has to be Not None because of raw instruction input
     
@@ -327,7 +328,7 @@ def main():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                if args.lr-scheduler:
+                if args.lr_sched:
                     scheduler.step()
                 observations = {}; actions = {}
 
@@ -341,8 +342,6 @@ def main():
                     total_eval_loss = 0
                     total_eval_loss_std = 0
                     total_eval_count = 0
-                    
-
 
                     print("Evaluating...")
                     for batch, val_batch in enumerate(val_dataloader):
@@ -360,29 +359,28 @@ def main():
                             total_val_steps += val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)].shape[0]
                             total_eval_count += val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)].shape[0]
                             
-                            try:
+                            with torch.no_grad():
                                 res = get_text_embedding(val_batch[1][idx : min(idx + args.eval_subbatch, batch_steps_val)])
-                            except:
-                                breakpoint()
-                            observations = {
-                                "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                "context": res,
-                            }
+                                
+                                observations = {
+                                    "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    "context": res,
+                                }
 
 
-                            actions = {
-                                'terminate_episode': val_batch[2][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                'pickup_release': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                'body_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                'body_yaw_delta': val_batch[5][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                'body_pitch_delta': val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                'arm_position_delta': val_batch[7][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                'control_mode': val_batch[8][idx : min(idx + args.eval_subbatch, batch_steps_val)]
-                            }
-                            
-                            padding = val_batch[9][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                actions = {
+                                    'terminate_episode': val_batch[2][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'pickup_release': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'body_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'body_yaw_delta': val_batch[5][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'body_pitch_delta': val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'arm_position_delta': val_batch[7][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'control_mode': val_batch[8][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                }
+                                
+                                padding = val_batch[9][idx : min(idx + args.eval_subbatch, batch_steps_val)]
 
-                            eval_loss, eval_loss_std = policy.loss(observations, actions)
+                                eval_loss, eval_loss_std = policy.loss(observations, actions)
                             
                             
                             total_eval_loss += eval_loss.item()*observations['image'].shape[0]
@@ -393,7 +391,15 @@ def main():
                             {"eval_loss": total_eval_loss/total_eval_count, "eval_loss_std": np.sqrt(total_eval_loss_std/total_eval_count)},
                             step=total_train_steps,
                         )
-                        print(f"Eval loss Batch {num_batches}: {total_eval_loss/total_eval_count}")
+                        val_dic = {}
+                        eval_loss = total_eval_loss/total_eval_count
+                        print(f"Eval loss Batch {num_batches}: {eval_loss}")
+                        if eval_loss < best_val_loss:
+                            best_val_loss = eval_loss
+                            val_dic['best_val_loss'] = eval_loss
+                        else:
+                            val_dic['best_val_loss'] = best_val_loss
+                        val_dic['curr_val_loss'] = eval_loss
                     else:
                         val_dic = {}
                         eval_loss = total_eval_loss/total_eval_count
