@@ -8,6 +8,7 @@ import torch
 import wandb
 from sentence_transformers import SentenceTransformer
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ExponentialLR
 import tensorflow_hub as hub 
 from data import create_dataset
 from rt1_pytorch.rt1_policy import RT1Policy
@@ -15,6 +16,7 @@ from tqdm import tqdm
 from lanmp_dataloader.rt1_dataloader import DatasetManager, DataLoader
 import gc
 import json
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -43,6 +45,18 @@ def parse_args():
         help="learning rate",
     )
     parser.add_argument(
+         "--lr-scheduler",
+        action="store_true",
+        help="use exponential scheduling for the learning rate",
+        default=False,
+    )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        default=0.95,
+        help="exponential scheduler step size",
+    )
+    parser.add_argument(
         "--train-batch-size",
         type=int,
         default=3,
@@ -55,10 +69,12 @@ def parse_args():
         help="eval batch size",
     )
     parser.add_argument(
-        "--trajectory-length",
-        type=int,
-        default=6,
-        help="number of frames per trajectory",
+        "--train-subbatch",
+        default=8,
+    )
+    parser.add_argument(
+        "--eval-subbatch",
+        default=8,
     )
     parser.add_argument(
         "--sentence-transformer",
@@ -99,7 +115,7 @@ def parse_args():
     parser.add_argument(
         "--load-checkpoint",
         type=str,
-        default='/oscar/data/stellex/shared/rt1-checkpoints/checkpoints/bridge/checkpoint_14400_loss_70.621.pt', #NOTE: include the path to load the checkpoint here
+        default='/oscar/data/stellex/shared/rt1-checkpoints/checkpoints/bridge/checkpoint_14400_loss_70.621.pt',
         help="checkpoint to load from; defaults to None",
     )
     parser.add_argument(
@@ -131,14 +147,6 @@ def parse_args():
         "--max-diversity-trajectories",
         default = 100,
     )
-    parser.add_argument(
-        "--train-subbatch",
-        default=8,
-    )
-    parser.add_argument(
-        "--eval-subbatch",
-        default=5,
-    )
     return parser.parse_args()
 
 
@@ -149,7 +157,7 @@ def main():
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     if args.wandb:
-        wandb.init(project="rt1-data-diversity-v1", config=vars(args))
+        wandb.init(project="rt1-ft", config=vars(args))
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
@@ -223,6 +231,7 @@ def main():
     
     policy.model.train()
     optimizer = Adam(policy.model.parameters(), lr=args.lr)
+    scheduler = ExponentialLR(optimizer, gamma=args.gamma)
 
     #NOTE: has to be Not None because of raw instruction input
     
@@ -269,7 +278,6 @@ def main():
     total_train_steps = 0
     total_val_steps = 0
 
-    
     
     best_val_loss  = np.inf
     for epoch in range(args.epochs):
@@ -319,6 +327,8 @@ def main():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                if args.lr-scheduler:
+                    scheduler.step()
                 observations = {}; actions = {}
 
                 
@@ -404,8 +414,8 @@ def main():
                 if args.checkpoint_freq and num_batches % args.checkpoint_freq == 0:
                     checkpoint_path = (
                         f"{args.checkpoint_dir}/checkpoint_"
-                        + f"{total_train_steps}"
-                        + f"_loss_{loss.item():.3f}.pt"
+                        + f"{num_batches}"
+                        + f".pt"
                     )
                     torch.save(policy.model.state_dict(), checkpoint_path)
                     print(f"Saved checkpoint to {checkpoint_path}")

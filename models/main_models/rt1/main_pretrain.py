@@ -133,13 +133,13 @@ def main():
         batch_size=args.train_batch_size,
         num_epochs=args.epochs,
     )
-    # eval_dataset = create_dataset(
-    #     datasets=args.datasets,
-    #     split=args.eval_split,
-    #     trajectory_length=args.trajectory_length,
-    #     batch_size=args.eval_batch_size,
-    #     num_epochs=args.epochs,
-    # )
+    eval_dataset = create_dataset(
+        datasets=args.datasets,
+        split=args.eval_split,
+        trajectory_length=args.trajectory_length,
+        batch_size=args.eval_batch_size,
+        num_epochs=args.epochs,
+    )
 
     observation_space = gym.spaces.Dict(
         image=gym.spaces.Box(low=0, high=255, shape=(256, 320, 3)),
@@ -221,15 +221,16 @@ def main():
         
         try:
             loss, loss_std = policy.loss(observations, actions)
-        except:
+        except Exception as e:
             print('-------------LOSS COMPUTATION FAILED!!!--------')
+            print(f'Error type: {type(e).__name__}')
+            print(f'Error message: {e}')
             continue
 
         if args.wandb:
             wandb.log({"loss": loss.item(), "loss_std": loss_std.item()}, step=num_batches * args.train_batch_size)
-            print(f"Train loss Batch {num_batches}: {loss.item()}")
-        else:
-            print(f"Train loss Batch {num_batches}: {loss.item()}")
+        print(f"Train loss Batch {num_batches}: {loss.item()}")
+        
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -237,28 +238,28 @@ def main():
         if args.eval_freq and num_batches % args.eval_freq == 0:
             print("Evaluating...")
             policy.model.eval()
-            batch = next(eval_dataset)
-            observations = {
-                "image": batch["observation"]["image"],
-                "context": get_text_embedding(batch["observation"]),
-            }
-            actions = batch["action"]
-            eval_loss, eval_loss_std = policy.loss(observations, actions)
+            with torch.no_grad():
+                batch = next(eval_dataset)
+                observations = {
+                    "image": batch["observation"]["image"],
+                    "context": get_text_embedding(batch["observation"]),
+                }
+                actions = batch["action"]
+                eval_loss, eval_loss_std = policy.loss(observations, actions)
             eval_loss = eval_loss.item()
-            if args.wandb:
-                wandb.log(
-                    {"eval_loss": eval_loss, "eval_loss_std": eval_loss_std.item()},
-                    step=num_batches * args.train_batch_size,
-                )
+
+            wandb.log(
+                {"eval_loss": eval_loss, "eval_loss_std": eval_loss_std.item()},
+                step=num_batches * args.train_batch_size,
+            )
+            val_dic = {}
+            print(f"Eval loss Batch {num_batches}: {eval_loss}")
+            if eval_loss < best_val_loss:
+                best_val_loss = eval_loss
+                val_dic['best_val_loss'] = eval_loss
             else:
-                val_dic = {}
-                print(f"Eval loss Batch {num_batches}: {eval_loss}")
-                if eval_loss < best_val_loss:
-                    best_val_loss = eval_loss
-                    val_dic['best_val_loss'] = eval_loss
-                else:
-                    val_dic['best_val_loss'] = best_val_loss
-                val_dic['curr_val_loss'] = eval_loss
+                val_dic['best_val_loss'] = best_val_loss
+            val_dic['curr_val_loss'] = eval_loss
         
         
             os.makedirs(args.val_loss_dir, exist_ok=True)
@@ -269,7 +270,7 @@ def main():
             checkpoint_path = (
                 f"{args.checkpoint_dir}/checkpoint_"
                 + f"{num_batches}"
-                + f"_loss_{loss.item():.3f}.pt"
+                + f".pt"
             )
             torch.save(policy.model.state_dict(), checkpoint_path)
             print(f"Saved checkpoint to {checkpoint_path}")

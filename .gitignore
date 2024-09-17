@@ -3,7 +3,7 @@
 /web/*
 __pycache__/
 
-#ALFRED Model
+#S2S
 /models/main_models/alfred/pretrained/*
 !/models/main_models/alfred/pretrained/.gitkeep
 /models/main_models/alfred/exp/*
@@ -64,6 +64,13 @@ __pycache__/
 !/models/main_models/alfred/data/vis_feats/.gitkeep
 /dataset/*
 !/dataset/.gitkeep
+
+#RT-1
+models/main_models/rt1/wandb/
+models/main_models/rt1_dataset/*
+models/main_models/rt1/traj_rollouts/*
+models/main_models/rt1/checkpoints/*
+models/main_models/rt1/val_losses/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -197,14 +204,13 @@ dmypy.json
 .pyre/
 
 # Extras
-models/main_models/rt1/checkpoints/*
 models/main_models/datasets/*
-models/main_models/rt1/val_losses/*
-models/main_models/wandb/
-models/main_models/rt1_dataset/*
-models/main_models/rt1/traj_rollouts/*
 models/main_models/run_rt1_main.sh
 models/main_models/rt1_ft_env
 /modespot/
 Trajectories/
 sim_commands.npy
+run/rt1/ft_outputs/*
+run/rt1/pretrain_outputs/*
+run/rt1/finetune.sbatch
+run/rt1/pretrain.sbatch
