@@ -219,15 +219,22 @@ def main():
     )
     
     # Freeze all layers except the last one
-    for name, param in policy.model.named_parameters():
-        if "to_logits" not in name:
-            param.requires_grad = False
-        else:
-            param.requires_grad = True
+    unfrozen_keywords = [
+    "action_encoder", "transformer.encoder.layers.0", "transformer.encoder.layers.1", 
+    "transformer.encoder.layers.2", "transformer.encoder.layers.3", 
+    "transformer.decoder.layers.0", "transformer.decoder.layers.1", 
+    "transformer.decoder.layers.2", "transformer.decoder.layers.3", 
+    "transformer.encoder.norm", "transformer.decoder.norm", "to_logits"
+    ]
 
-    # Verify that only the last layer is trainable
-    # for name, param in policy.model.named_parameters():
-    #     print(f"{name}: {param.requires_grad}")
+    # Freeze all parameters except those containing the keywords
+    for name, param in policy.model.named_parameters():
+        if any(keyword in name for keyword in unfrozen_keywords):
+            param.requires_grad = True
+            # print(f"Unfrozen: {name}")
+        else:
+            param.requires_grad = False
+            print(f"Frozen: {name}")   
     
     policy.model.train()
     optimizer = Adam(policy.model.parameters(), lr=args.lr)
