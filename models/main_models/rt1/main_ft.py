@@ -45,10 +45,21 @@ def parse_args():
         help="learning rate",
     )
     parser.add_argument(
-         "--lr_sched",
-        action="store_true",
-        help="use exponential scheduling for the learning rate",
-        default=False,
+        "--lr_sched",
+        default = None,
+        choices = ['exponential', 'plateau'],
+    )
+    parser.add_argument(
+        "--factor",
+        type=float,
+        default=0.95,
+        help="plateau scheduler reduction factor",
+    )
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default= 25,
+        help="plateau scheduler batch patience",
     )
     parser.add_argument(
         "--gamma",
@@ -97,8 +108,8 @@ def parse_args():
     parser.add_argument(
         "--checkpoint-freq",
         type=int,
-        default=100,
-        help="checkpoint frequency in number of batches; defaults to None",
+        default=0,
+        help="checkpoint frequency in number of batches; defaults to None. If 0, will save at every best validation",
     )
     parser.add_argument(
         "--checkpoint-dir",
@@ -153,6 +164,8 @@ def parse_args():
 def main():
 
     args = parse_args()
+    args.eval_subbatch = int(args.eval_subbatch)
+    args.train_subbatch = int(args.train_subbatch)
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
@@ -335,7 +348,7 @@ def main():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                if args.lr_sched:
+                if args.lr_sched == "exponential":
                     scheduler.step()
                 observations = {}; actions = {}
 
@@ -351,12 +364,13 @@ def main():
                     total_eval_count = 0
 
                     print("Evaluating...")
+                    # batches
                     for batch, val_batch in enumerate(val_dataloader):
                         
                         batch_steps_val = val_batch[0].shape[0]
 
                         print(f'Section {batch+1} of {len(val_dataloader)}')
-
+                        # subbatches
                         for idx in tqdm(range(0, batch_steps_val, args.eval_subbatch)):
 
                             
@@ -387,36 +401,50 @@ def main():
                                 
                                 padding = val_batch[9][idx : min(idx + args.eval_subbatch, batch_steps_val)]
 
-                                eval_loss, eval_loss_std = policy.loss(observations, actions)
+                                eval_loss, eval_loss_std = policy.loss(observations, actions) #subbatch eval loss
                             
                             
                             total_eval_loss += eval_loss.item()*observations['image'].shape[0]
                             total_eval_loss_std += np.power(eval_loss_std.item(), 2)*observations['image'].shape[0]
                     
+                    avg_eval_loss = total_eval_loss / total_eval_count
+                    avg_eval_loss_std = np.sqrt(total_eval_loss_std / total_eval_count)
+
+                    if args.lr_sched == "plateau":
+                        scheduler.step(avg_eval_loss)
+
                     if args.wandb:
                         wandb.log(
-                            {"eval_loss": total_eval_loss/total_eval_count, "eval_loss_std": np.sqrt(total_eval_loss_std/total_eval_count)},
+                            {"eval_loss": avg_eval_loss, "eval_loss_std": avg_eval_loss_std},
                             step=total_train_steps,
                         )
                         val_dic = {}
-                        eval_loss = total_eval_loss/total_eval_count
-                        print(f"Eval loss Batch {num_batches}: {eval_loss}")
-                        if eval_loss < best_val_loss:
-                            best_val_loss = eval_loss
-                            val_dic['best_val_loss'] = eval_loss
+                        print(f"Eval loss Batch {num_batches}: {avg_eval_loss}")
+                        if avg_eval_loss < best_val_loss:
+                            best_val_loss = avg_eval_loss
+                            val_dic['best_val_loss'] = avg_eval_loss
+
+                            if args.checkpoint_freq == 0:
+                                checkpoint_path = f"{args.checkpoint_dir}/checkpoint_best.pt"
+                                torch.save(policy.model.state_dict(), checkpoint_path)
+                                print(f"Saved checkpoint to {checkpoint_path}")
                         else:
                             val_dic['best_val_loss'] = best_val_loss
-                        val_dic['curr_val_loss'] = eval_loss
+                        val_dic['curr_val_loss'] = avg_eval_loss
                     else:
                         val_dic = {}
-                        eval_loss = total_eval_loss/total_eval_count
-                        print(f"Eval loss Batch {num_batches}: {eval_loss}")
-                        if eval_loss < best_val_loss:
-                            best_val_loss = eval_loss
-                            val_dic['best_val_loss'] = eval_loss
+                        print(f"Eval loss Batch {num_batches}: {avg_eval_loss}")
+                        if avg_eval_loss < best_val_loss:
+                            best_val_loss = avg_eval_loss
+                            val_dic['best_val_loss'] = avg_eval_loss
+
+                            if args.checkpoint_freq == 0:
+                                checkpoint_path = f"{args.checkpoint_dir}/checkpoint_best.pt"
+                                torch.save(policy.model.state_dict(), checkpoint_path)
+                                print(f"Saved checkpoint to {checkpoint_path}")
                         else:
                             val_dic['best_val_loss'] = best_val_loss
-                        val_dic['curr_val_loss'] = eval_loss
+                        val_dic['curr_val_loss'] = avg_eval_loss
 
 
                     os.makedirs(args.val_loss_dir, exist_ok=True)
@@ -434,7 +462,11 @@ def main():
                     print(f"Saved checkpoint to {checkpoint_path}")
         
         print("FINISHED EPOCH {}".format(epoch+1))
-    print("finished training")
+    
+    checkpoint_path = f"{args.checkpoint_dir}/checkpoint_last.pt"
+    torch.save(policy.model.state_dict(), checkpoint_path)
+    print(f"Saved checkpoint to {checkpoint_path}")
+    print("Finished Training!")
 
 if __name__ == "__main__":
     main()

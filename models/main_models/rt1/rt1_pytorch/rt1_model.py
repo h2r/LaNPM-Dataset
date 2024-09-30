@@ -168,6 +168,7 @@ class RT1Model(nn.Module):
             tokens.shape[1], tokens.shape[1], dtype=torch.bool
         ).tril(0)
         token_mask = ~token_mask
+        token_mask = token_mask.bool()
         token_mask = token_mask.to(self.device)
 
         # encode action_logits to have the same embedding dimension as tokens
@@ -186,8 +187,9 @@ class RT1Model(nn.Module):
         action_mask = torch.kron(
             torch.eye(self.tokens_per_action, self.tokens_per_action, dtype=torch.bool),
             action_mask,
-        )
+        ).bool()
         action_mask = ~action_mask
+        action_mask = action_mask.bool()  # Ensure dtype is torch.bool
         action_mask = action_mask.to(self.device)
 
         # causal mask between tokens and action_logits;
@@ -198,8 +200,9 @@ class RT1Model(nn.Module):
         memory_mask = torch.kron(
             memory_mask,
             torch.ones(self.tokens_per_action, self.num_tokens, dtype=torch.bool),
-        )
+        ).bool()
         memory_mask = ~memory_mask
+        memory__mask = memory_mask.bool()
         memory_mask = memory_mask.to(self.device)
 
         attended_tokens = self.transformer(
