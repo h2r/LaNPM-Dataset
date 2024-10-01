@@ -38,9 +38,9 @@ class RT1Model(nn.Module):
         arch: str = "efficientnet_b3",
         tokens_per_action=11,
         action_bins=256,
-        num_layers=4, #8 changed for ft on bad pretrained, change back
+        num_layers=8,
         num_heads=8,
-        feed_forward_size=256, #512 changed for ft on bad pretrained, change back
+        feed_forward_size=512,
         dropout_rate=0.1,
         time_sequence_length=6,
         embedding_dim=512,

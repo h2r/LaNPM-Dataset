@@ -212,5 +212,10 @@ Trajectories/
 sim_commands.npy
 run/rt1/ft_outputs/*
 run/rt1/pretrain_outputs/*
+run/rt1/run_pretrain2.sh
+run/rt1/run_pretrain3.sh
+run/rt1/run_pretrain4.sh
+run/rt1/run_pretrain5.sh
+run/rt1/run_pretrain6.sh
 run/rt1/finetune.sbatch
 run/rt1/pretrain.sbatch
