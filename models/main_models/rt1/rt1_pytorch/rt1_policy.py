@@ -94,14 +94,18 @@ class RT1Policy:
         self.device = device
         if checkpoint_path is not None:
             print(f"Loading checkpoint from {checkpoint_path}...")
-            self.model.load_state_dict(torch.load(checkpoint_path))
+            state_dict = torch.load(checkpoint_path)
+            load_result = self.model.load_state_dict(state_dict, strict=False)
+            # print("Missing keys:", load_result.missing_keys)
+            # print("Unexpected keys:", load_result.unexpected_keys)
 
     def preprocess(
         self,
         videos: Union[np.ndarray, List[np.ndarray]],
         texts: Union[np.ndarray, List[np.ndarray]],
+        ee_obj_dist: torch.Tensor,
         actions: Optional[Dict] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Preprocesses the given videos, texts, and actions.
 
@@ -110,12 +114,20 @@ class RT1Policy:
               shape: (b, t, c, h, w) or (b, t, h, w, c)
             texts (Union[np.ndarray, List[np.ndarray]]): The input texts to preprocess.
               shape: (b, t, d)
+            ee_obj_dist (torch.Tensor)): The distance between the end-effector and the target object
+                shape: (b, t)
             actions (Optional[Dict]): The input actions to preprocess. Defaults to None.
               shape: (b, t, a)
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing the preprocessed videos, texts, and actions.
         """
+        #added
+        if isinstance(ee_obj_dist, torch.Tensor):
+            ee_obj_dist = ee_obj_dist.to(self.device)
+        else:
+            ee_obj_dist = torch.tensor(ee_obj_dist, device=self.device, dtype=torch.float32)
+
         if isinstance(videos, torch.Tensor):
             videos = videos.to(self.device)
         elif not isinstance(videos, np.ndarray):
@@ -146,27 +158,30 @@ class RT1Policy:
             actions = torch.tensor(actions, device=self.device, dtype=torch.long)
             actions = rearrange(actions, "(b f) ... -> b f ...", b=videos.shape[0])
 
-        return videos, texts, actions
+        return videos, texts, ee_obj_dist, actions #added
 
     def forward(
         self,
         videos: torch.Tensor,
         texts: torch.Tensor,
+        ee_obj_dist: torch.Tensor, #added
         action_logits: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass through the model.
 
         Args:
+
             videos (torch.Tensor): Input videos.
             texts (torch.Tensor): input contexts.
+            ee_obj_dist (torch.Tensor): input distance between end-effector and target object
             action_logits (Optional[torch.Tensor]): Optional input action logits.
 
         Returns:
             action_logits (Tuple[torch.Tensor, torch.Tensor]):
               A tuple containing the sampled actions and the action logits.
         """
-        action_logits = self.model(videos, texts, action_logits)
+        action_logits = self.model(ee_obj_dist, videos, texts, action_logits) #added
         actions = torch.distributions.Categorical(logits=action_logits)
         actions = actions.sample()
         return actions, action_logits
@@ -180,6 +195,7 @@ class RT1Policy:
                 It should have the following keys:
                     - "image" (np.ndarray): The video observations.
                     - "context" (np.ndarray): The context.
+                    - "ee_obj_dist" (torch.Tensor): distance between end-effector and the target object
             target_actions (Dict): A dictionary containing the target actions.
 
         Returns:
@@ -188,14 +204,16 @@ class RT1Policy:
         Raises:
             None
         """
+        ee_obj_dist = observations["ee_obj_dist"] #added
         videos = observations["image"]
         texts = observations["context"]
-        videos, texts, target_actions = self.preprocess(
+        videos, texts, ee_obj_dist, target_actions = self.preprocess( #added
             videos,
             texts,
+            ee_obj_dist,
             target_actions,
         )
-        _, action_logits = self.forward(videos, texts)
+        _, action_logits = self.forward(videos, texts, ee_obj_dist) #added
 
         action_logits = rearrange(action_logits, "b f a d -> (b f a) d")
         target_actions = rearrange(target_actions, "b f a -> (b f a)")
@@ -218,6 +236,7 @@ class RT1Policy:
             observations (Dict): A dictionary containing the observations. It should have the following keys:
                 - "image" (np.ndarray): The video observations.
                 - "context" (np.ndarray): The context.
+                - "ee_obj_dist" (torch.Tensor): distance between end-effector and the target object
 
         Returns:
             Dict[str, np.ndarray]: A dictionary containing the actions. It has the following keys:

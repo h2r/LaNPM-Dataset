@@ -3,6 +3,8 @@ from typing import Optional
 import torch
 from einops import rearrange
 from torch import nn
+#from sklearn.preprocessing import MinMaxScaler
+from numpy import array
 
 from rt1_pytorch.tokenizers.image_tokenizer import RT1ImageTokenizer
 
@@ -71,6 +73,7 @@ class RT1Model(nn.Module):
             None
         """
         super().__init__()
+        self.obj_dist_encoder = nn.Linear(1, embedding_dim, device=device) #added
         self.time_sequence_length = time_sequence_length
         self.action_encoder = nn.Linear(action_bins, embedding_dim, device=device)
         self.image_tokenizer = RT1ImageTokenizer(
@@ -109,6 +112,7 @@ class RT1Model(nn.Module):
 
     def forward(
         self,
+        ee_obj_dist: torch.Tensor, #added
         videos: torch.Tensor,
         texts: Optional[torch.Tensor] = None,
         action_logits: Optional[torch.Tensor] = None,
@@ -117,6 +121,8 @@ class RT1Model(nn.Module):
         Forward pass of the model.
 
         Args:
+            ee_obj_dist (torch.Tensor): The distances between the end-effector and the target object.
+                Shape is (b, f).
             videos (torch.Tensor): The input videos.
               Shape is (b, f, h, w, c) or (b, f, c, h, w).
             texts (Optional[torch.Tensor]): The input text embedding.
@@ -148,6 +154,15 @@ class RT1Model(nn.Module):
         # pack time dimension into batch dimension
         videos = rearrange(videos, "b f ... -> (b f) ...")
         texts = rearrange(texts, "b f d -> (b f) d")
+        
+
+        # normalize the values across each window
+        # ee_obj_dist = torch.tensor(MinMaxScaler().fit_transform(ee_obj_dist.cpu().numpy()), device=self.device)
+        # ee_obj_dist = torch.tensor(array([MinMaxScaler().fit_transform(seq.reshape(-1, 1)).flatten() for seq in ee_obj_dist.cpu().numpy()]), device=ee_obj_dist.device)
+        
+        # Encode the distances
+        ee_obj_dist = rearrange(ee_obj_dist, 'b f -> b f 1') #added
+        ee_obj_dist_token = self.obj_dist_encoder(ee_obj_dist.float())  # Shape: (b, f, embedding_dim) #added
 
         # tokenize images and texts
         tokens = self.image_tokenizer(videos, texts)
@@ -157,33 +172,30 @@ class RT1Model(nn.Module):
 
         # pack time dimension into token dimension
         tokens = rearrange(tokens, "b f c n -> b (f n) c")
-        action_logits = rearrange(action_logits, "b f a d -> b (f a) d")
+
+        tokens = torch.cat([tokens, ee_obj_dist_token], dim=1)  # Concatenates along the sequence dimension #added
 
         # sinusoidal positional embedding
         pos_emb = posemb_sincos_1d(tokens.shape[1], tokens.shape[2], device=self.device)
         tokens = tokens + pos_emb
 
         # causal mask for tokens
-        token_mask = torch.ones(
-            tokens.shape[1], tokens.shape[1], dtype=torch.bool
-        ).tril(0)
+        token_mask = torch.ones(tokens.shape[1], tokens.shape[1], dtype=torch.bool).tril(0)
         token_mask = ~token_mask
         token_mask = token_mask.bool()
         token_mask = token_mask.to(self.device)
 
+        # Rearrange to match the tokens' shape
+        action_logits = rearrange(action_logits, "b f a d -> b (f a) d")
         # encode action_logits to have the same embedding dimension as tokens
         action_tokens = self.action_encoder(action_logits)
 
-        pos_emb = posemb_sincos_1d(
-            action_tokens.shape[1], action_tokens.shape[2], device=self.device
-        )
+        pos_emb = posemb_sincos_1d(action_tokens.shape[1], action_tokens.shape[2], device=self.device)
         action_tokens = action_tokens + pos_emb
 
         # action mask: do not let action_logits attend to previous action_logits,
         # a_t is independent of a_{t-1} given pi and s_t
-        action_mask = torch.ones(
-            self.time_sequence_length, self.time_sequence_length, dtype=torch.bool
-        ).tril(0)
+        action_mask = torch.ones(self.time_sequence_length, self.time_sequence_length, dtype=torch.bool).tril(0)
         action_mask = torch.kron(
             torch.eye(self.tokens_per_action, self.tokens_per_action, dtype=torch.bool),
             action_mask,
@@ -194,12 +206,10 @@ class RT1Model(nn.Module):
 
         # causal mask between tokens and action_logits;
         # a_t attends to s_t' for all t'<=t
-        memory_mask = torch.ones(
-            self.time_sequence_length, self.time_sequence_length, dtype=torch.bool
-        ).tril(0)
+        memory_mask = torch.ones(self.time_sequence_length, self.time_sequence_length, dtype=torch.bool).tril(0)
         memory_mask = torch.kron(
             memory_mask,
-            torch.ones(self.tokens_per_action, self.num_tokens, dtype=torch.bool),
+            torch.ones(self.tokens_per_action, self.num_tokens+1, dtype=torch.bool), #added
         ).bool()
         memory_mask = ~memory_mask
         memory__mask = memory_mask.bool()

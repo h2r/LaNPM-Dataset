@@ -188,6 +188,7 @@ def main():
     observation_space = gym.spaces.Dict(
         image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
         context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
+        ee_obj_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32) #added
     )
 
     action_space = gym.spaces.Dict(
@@ -305,12 +306,11 @@ def main():
         print("STARTING EPOCH {}".format(epoch+1))
         
         for batch, train_batch in enumerate(train_dataloader):
-            
             batch_steps = train_batch[0].shape[0]
 
             for idx in range(0, batch_steps, int(args.train_subbatch)):
                 
-                policy.model.train()
+                policy.model.train() #put into training mode
                 
                 num_batches += 1
                 
@@ -318,9 +318,11 @@ def main():
                     res = get_text_embedding(train_batch[1][idx : min(idx + int(args.train_subbatch), batch_steps)])
                 except:
                     breakpoint()
+                
                 observations = {
                     "image": train_batch[0][idx : min(idx + int(args.train_subbatch), batch_steps)],
                     "context": res,
+                    "ee_obj_dist": train_batch[9][idx : min(idx + int(args.train_subbatch), batch_steps)] #added
                 }
 
                 actions = {
@@ -333,7 +335,7 @@ def main():
                     'control_mode': train_batch[8][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 }
 
-                padding = train_batch[9][idx : min(idx + int(args.train_subbatch), batch_steps)]
+                padding = train_batch[10][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 total_train_steps += batch_steps
 
                 
@@ -386,6 +388,7 @@ def main():
                                 observations = {
                                     "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
                                     "context": res,
+                                    "ee_obj_dist": val_batch[9][idx : min(idx + int(args.eval_subbatch), batch_steps_val)] #added
                                 }
 
 
@@ -399,7 +402,7 @@ def main():
                                     'control_mode': val_batch[8][idx : min(idx + args.eval_subbatch, batch_steps_val)]
                                 }
                                 
-                                padding = val_batch[9][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                padding = val_batch[10][idx : min(idx + args.eval_subbatch, batch_steps_val)]
 
                                 eval_loss, eval_loss_std = policy.loss(observations, actions) #subbatch eval loss
                             
