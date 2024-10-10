@@ -188,7 +188,8 @@ def main():
     observation_space = gym.spaces.Dict(
         image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
         context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
-        ee_obj_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32) #added
+        ee_obj_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32), #added
+        goal_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32) #added2
     )
 
     action_space = gym.spaces.Dict(
@@ -322,7 +323,8 @@ def main():
                 observations = {
                     "image": train_batch[0][idx : min(idx + int(args.train_subbatch), batch_steps)],
                     "context": res,
-                    "ee_obj_dist": train_batch[9][idx : min(idx + int(args.train_subbatch), batch_steps)] #added
+                    "ee_obj_dist": train_batch[9][idx : min(idx + int(args.train_subbatch), batch_steps)], #added
+                    "goal_dist": train_batch[10][idx : min(idx + int(args.train_subbatch), batch_steps)] #added2
                 }
 
                 actions = {
@@ -335,10 +337,9 @@ def main():
                     'control_mode': train_batch[8][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 }
 
-                padding = train_batch[10][idx : min(idx + int(args.train_subbatch), batch_steps)]
+                padding = train_batch[11][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 total_train_steps += batch_steps
 
-                
                 loss, loss_std = policy.loss(observations, actions)
 
                 if args.wandb:
@@ -388,7 +389,8 @@ def main():
                                 observations = {
                                     "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
                                     "context": res,
-                                    "ee_obj_dist": val_batch[9][idx : min(idx + int(args.eval_subbatch), batch_steps_val)] #added
+                                    "ee_obj_dist": val_batch[9][idx : min(idx + int(args.eval_subbatch), batch_steps_val)], #added
+                                    "goal_dist": val_batch[10][idx : min(idx + int(args.eval_subbatch), batch_steps_val)] #added2
                                 }
 
 
@@ -402,7 +404,7 @@ def main():
                                     'control_mode': val_batch[8][idx : min(idx + args.eval_subbatch, batch_steps_val)]
                                 }
                                 
-                                padding = val_batch[10][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                padding = val_batch[11][idx : min(idx + args.eval_subbatch, batch_steps_val)]
 
                                 eval_loss, eval_loss_std = policy.loss(observations, actions) #subbatch eval loss
                             
