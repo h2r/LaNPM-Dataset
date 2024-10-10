@@ -74,6 +74,7 @@ class RT1Model(nn.Module):
         """
         super().__init__()
         self.obj_dist_encoder = nn.Linear(1, embedding_dim, device=device) #added
+        self.goal_dist_encoder = nn.Linear(1, embedding_dim, device=device) #added2
         self.time_sequence_length = time_sequence_length
         self.action_encoder = nn.Linear(action_bins, embedding_dim, device=device)
         self.image_tokenizer = RT1ImageTokenizer(
@@ -113,6 +114,7 @@ class RT1Model(nn.Module):
     def forward(
         self,
         ee_obj_dist: torch.Tensor, #added
+        goal_dist: torch.Tensor, #added2
         videos: torch.Tensor,
         texts: Optional[torch.Tensor] = None,
         action_logits: Optional[torch.Tensor] = None,
@@ -122,6 +124,8 @@ class RT1Model(nn.Module):
 
         Args:
             ee_obj_dist (torch.Tensor): The distances between the end-effector and the target object.
+                Shape is (b, f).
+            goal_dist (torch.Tensor): The distances between the base and the goal.
                 Shape is (b, f).
             videos (torch.Tensor): The input videos.
               Shape is (b, f, h, w, c) or (b, f, c, h, w).
@@ -156,13 +160,17 @@ class RT1Model(nn.Module):
         texts = rearrange(texts, "b f d -> (b f) d")
         
 
-        # normalize the values across each window
+        # normalize the ee to obj dist values across each window
         # ee_obj_dist = torch.tensor(MinMaxScaler().fit_transform(ee_obj_dist.cpu().numpy()), device=self.device)
         # ee_obj_dist = torch.tensor(array([MinMaxScaler().fit_transform(seq.reshape(-1, 1)).flatten() for seq in ee_obj_dist.cpu().numpy()]), device=ee_obj_dist.device)
         
-        # Encode the distances
+        # Encode the ee to obj distances
         ee_obj_dist = rearrange(ee_obj_dist, 'b f -> b f 1') #added
         ee_obj_dist_token = self.obj_dist_encoder(ee_obj_dist.float())  # Shape: (b, f, embedding_dim) #added
+
+        # Encode the goal to obj distances
+        goal_dist = rearrange(goal_dist, 'b f -> b f 1') #added2
+        goal_dist_token = self.goal_dist_encoder(goal_dist.float())  # Shape: (b, f, embedding_dim) #added2
 
         # tokenize images and texts
         tokens = self.image_tokenizer(videos, texts)
@@ -173,7 +181,7 @@ class RT1Model(nn.Module):
         # pack time dimension into token dimension
         tokens = rearrange(tokens, "b f c n -> b (f n) c")
 
-        tokens = torch.cat([tokens, ee_obj_dist_token], dim=1)  # Concatenates along the sequence dimension #added
+        tokens = torch.cat([tokens, ee_obj_dist_token, goal_dist_token], dim=1)  # Concatenates along the sequence dimension #added, added2
 
         # sinusoidal positional embedding
         pos_emb = posemb_sincos_1d(tokens.shape[1], tokens.shape[2], device=self.device)
@@ -209,7 +217,7 @@ class RT1Model(nn.Module):
         memory_mask = torch.ones(self.time_sequence_length, self.time_sequence_length, dtype=torch.bool).tril(0)
         memory_mask = torch.kron(
             memory_mask,
-            torch.ones(self.tokens_per_action, self.num_tokens+1, dtype=torch.bool), #added
+            torch.ones(self.tokens_per_action, self.num_tokens+2, dtype=torch.bool), #added, added2
         ).bool()
         memory_mask = ~memory_mask
         memory__mask = memory_mask.bool()

@@ -14,8 +14,8 @@ cd ../../models/main_models/rt1
 SPLIT_TYPE='k_fold_scene'
 # EVAL_SCENE=4
 # LOW_DIV='--low_div' $LOW_DIV
-EPOCHS=20
-CHECKPOINT_DIR='/mnt/ahmed/rt1/ft_ckpt_dist2'
+EPOCHS=15
+CHECKPOINT_DIR='/mnt/ahmed/rt1/ft_ckpt_dist2_3'
 EVAL_FREQ=50
 CHECKPOINT_FREQ=0
 TRAIN_SUBBATCH=3
@@ -23,11 +23,11 @@ EVAL_SUBBATCH=3
 TRAIN_BATCH=3
 EVAL_BATCH=3
 LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
-VAL_LOSS_DIR='val_losses/rt1_ft_dist2'
+VAL_LOSS_DIR='val_losses/rt1_ft_dist2_3'
 LR=1e-4
 LR_SCHED="plateau"
-GAMMA=0.999
-FACTOR=0.5
+GAMMA=0.75
+FACTOR=0.999
 PATIENCE=1
 
 

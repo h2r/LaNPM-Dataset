@@ -694,6 +694,7 @@ class RT1Dataset(Dataset):
         all_is_terminal = []
         all_pickup_release = []
         all_ee_obj_dists = [] #added
+        all_goal_dists = [] #added2
         all_body_position_deltas = []
         all_body_yaw_deltas = []
         all_body_pitches = []
@@ -714,6 +715,7 @@ class RT1Dataset(Dataset):
             image_obs = []
             nl_commands = []
             ee_obj_dists = [] #added
+            goal_dists = [] #added2
             body_position_deltas = []
             body_yaw_deltas = []
             arm_position_deltas = []
@@ -748,6 +750,7 @@ class RT1Dataset(Dataset):
                     body_pitch = self.get_head_pitch(next_metadata['steps'][0]['action'])
                     control_mode = self.get_mode(next_metadata['steps'][0]['action'])
                     ee_obj_dist = next_metadata['steps'][0]['curr_ee_to_target_obj_dist'] #added
+                    goal_dist = next_metadata['steps'][0]['curr_base_to_goal_dist'] #added2
                 else:
                     #body position, body yaw, arm positon -- for last step
                     body_position_delta = np.array([0.0, 0.0, 0.0])
@@ -760,6 +763,7 @@ class RT1Dataset(Dataset):
                     body_pitch = self.get_head_pitch(None)
                     control_mode = self.get_mode('stop')
                     ee_obj_dist = float(-1) #added
+                    goal_dist = float(-1) #added2
 
                 body_position_deltas.append(body_position_delta)
                 body_yaw_deltas.append(body_yaw_delta)
@@ -769,6 +773,7 @@ class RT1Dataset(Dataset):
                 body_pitches.append(body_pitch)
                 control_modes.append(control_mode)
                 ee_obj_dists.append(ee_obj_dist) #added
+                goal_dists.append(goal_dist) #added2
 
             #check for remainder and pad data with extra
             if end >= len(traj_steps) and padding_length > 0:
@@ -786,6 +791,7 @@ class RT1Dataset(Dataset):
                     body_pitches.append(0.0)
                     control_modes.append(0.0)
                     ee_obj_dists.append(float(-1)) #added
+                    goal_dists.append(float(-1)) #added2
                 
                 terminate = True
             elif end >= len(traj_steps):
@@ -823,6 +829,7 @@ class RT1Dataset(Dataset):
             all_is_terminal.append(np.stack(terminate_episodes))
             all_pickup_release.append(np.stack(pickup_releases))
             all_ee_obj_dists.append(np.stack(ee_obj_dists)) #added
+            all_goal_dists.append(np.stack(goal_dists)) #added2
             all_body_position_deltas.append(body_position_deltas)
             all_body_yaw_deltas.append(body_yaw_deltas)
             all_body_pitches.append(np.stack(body_pitches))
@@ -835,8 +842,7 @@ class RT1Dataset(Dataset):
             start += 6
             end = min(end + 6, len(traj_steps))
 
-
-        return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_pickup_release), np.stack(all_body_position_deltas), np.stack(all_body_yaw_deltas), np.stack(all_body_pitches), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_ee_obj_dists), np.stack(all_pad_lengths)
+        return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_pickup_release), np.stack(all_body_position_deltas), np.stack(all_body_yaw_deltas), np.stack(all_body_pitches), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_ee_obj_dists), np.stack(all_goal_dists), np.stack(all_pad_lengths) #added, added2
 
 
 if __name__ == '__main__':
