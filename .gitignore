@@ -3,6 +3,9 @@
 /web/*
 __pycache__/
 
+
+/collect_sim/commands_scenes.json
+
 #ALFRED Model
 /models/main_models/alfred/pretrained/*
 !/models/main_models/alfred/pretrained/.gitkeep
