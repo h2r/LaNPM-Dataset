@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description='Process a trajectory file path.')
 
 parser.add_argument('--traj_path', type=str, required=True, help='Path to the trajectory file')
 parser.add_argument('--scene', type=str, required=True, help='sim scene')
+parser.add_argument('--slow', action='store_true', help='makes replay slower')
 
 args = parser.parse_args()
 
@@ -68,6 +69,7 @@ def take_action(state_action):
     move = 0.2
     a = None
     word_action = state_action['action']
+    print(word_action)
     # print(f'word_action: {word_action}')
     if word_action in ['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']:
         # global_coord_agent = self.last_event.metadata['agent']['position']
@@ -97,7 +99,7 @@ def take_action(state_action):
         a = dict(action=word_action, degrees=diff, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
     elif word_action in ['MoveArmBase']:
         prev_ee_y = last_event.metadata["arm"]["joints"][3]['position']['y']
-        curr_ee_y = state_action['state_ee'][1]
+        curr_ee_y = state_action['global_state_ee'][1]
         diff = curr_ee_y - prev_ee_y
         # print(f'prev_ee_y: ', prev_ee_y)
         # print(f'curr_ee_y: ', curr_ee_y)
@@ -108,17 +110,21 @@ def take_action(state_action):
             i -= incr
         a = dict(action="MoveArmBase",y=i,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
     elif word_action in ['MoveArm']:
-        a = dict(action='MoveArm',position=dict(x=state_action['state_ee'][0], y=state_action['state_ee'][1], z=state_action['state_ee'][2]),coordinateSpace="world",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+        a = dict(action='MoveArm',position=dict(x=state_action['global_state_ee'][0], y=state_action['global_state_ee'][1], z=state_action['global_state_ee'][2]),coordinateSpace="world",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
 
-    # sleep(0.35) #for debugging/movement analysis
     # if a['action'] == 'Teleport' and word_action in ['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']:
         # breakpoint()
     
     try:
-        event = controller.step(a)
+        if word_action == "LookDown":
+            event = controller.step(a)
+            event = controller.step(a)
+        else:
+            event = controller.step(a)
     except:
         breakpoint()
-    sleep(0.5)
+    if args.slow:
+        sleep(0.33)
     success = event.metadata['lastActionSuccess']
     error = event.metadata['errorMessage']
     last_event = event
@@ -150,20 +156,20 @@ def process_json_files(main_dir):
                     # Open and process the JSON file
                     with open(json_file_path, 'r') as json_file:
                         data = json.load(json_file)
+                        breakpoint()
 
                         # Loop through the 'steps' and extract 'action', 'state_body', and 'state_ee'
                         for step in data.get("steps", []):
                             action = step.get("action")
-                            state_body = step.get("state_body")
-                            state_ee = step.get("state_ee")
+                            state_body = step.get("global_state_body")
+                            state_ee = step.get("global_state_ee")
 
                             state_action = {}
                             state_action['action'] = action
-                            state_action['state_body'] = state_body[:3]
+                            state_action['global_state_body'] = state_body[:3]
                             state_action['body_yaw'] = state_body[-1]
-                            state_action['state_ee'] = state_ee[:3]
+                            state_action['global_state_ee'] = state_ee[:3]
 
-                           
                             take_action(state_action)
 
 
@@ -182,6 +188,7 @@ def unzip_file():
 
     # Unzip the file
     with zipfile.ZipFile(TRAJ_PATH, 'r') as zip_ref:
+        print("Unzipping...")
         zip_ref.extractall(extract_to_dir)
         print(f"Extracted all files to {extract_to_dir}")
 

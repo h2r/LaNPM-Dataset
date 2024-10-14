@@ -211,3 +211,4 @@ models/main_models/rt1_ft_env
 /modespot/
 Trajectories/
 sim_commands.npy
+collect_sim/x.py

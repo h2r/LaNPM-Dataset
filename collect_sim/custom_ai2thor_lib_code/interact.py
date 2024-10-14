@@ -130,7 +130,7 @@ class InteractiveControllerPrompt(object):
         command_message = u"Enter a Command: Move \u2190\u2191\u2192\u2193, Rotate/Look Shift + \u2190\u2191\u2192\u2193, Quit 'q' or Ctrl-C"
         # print(command_message) #commented out by ahmed
         
-        get_data_obj.gather_data(controller.last_event) #added by ahmed, adds the starting spawn data
+        get_data_obj.gather_data(controller.last_event, command) #added by ahmed, adds the starting spawn data
         controller.step(action="SetHandSphereRadius", radius=0.1) #added by ahmed
         global i,x,y,z
         event = controller.step(action="MoveArmBase", y=i,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
@@ -180,7 +180,7 @@ class InteractiveControllerPrompt(object):
                 k+=1
                 event = controller.step(a)
             event = controller.step(a)
-            get_data_obj.gather_data(event) #added by ahmed
+            get_data_obj.gather_data(event, command) #added by ahmed
 
 
             visible_objects = []
