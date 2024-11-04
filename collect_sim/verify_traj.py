@@ -5,6 +5,7 @@ import zipfile
 import ai2thor
 from ai2thor.controller import Controller
 from time import sleep
+import shutil
 
 
 parser = argparse.ArgumentParser(description='Process a trajectory file path.')
@@ -17,7 +18,7 @@ args = parser.parse_args()
 
 TRAJ_PATH = args.traj_path
 SCENE = args.scene
-DIR_EXTRACT = "/home/ahmedjaafar/LaNPM-Dataset/collect_sim"
+DIR_EXTRACT = "/mnt/ahmed/new_sim_data/files/12_3"
 
 
 controller = None
@@ -140,6 +141,7 @@ def process_json_files(main_dir):
     sorted_folders = sorted(folders, key=lambda x: int(x.split('_')[1]))
 
     j=0
+    k=0
     for folder in sorted_folders:
         if j==0:
             j+=1
@@ -156,7 +158,12 @@ def process_json_files(main_dir):
                     # Open and process the JSON file
                     with open(json_file_path, 'r') as json_file:
                         data = json.load(json_file)
-                        breakpoint()
+                        if k == 0:
+                            print(data['target_obj'])
+                            print(data['nl_command'])
+                            sleep(1)
+                        k+=1
+                        # breakpoint()
 
                         # Loop through the 'steps' and extract 'action', 'state_body', and 'state_ee'
                         for step in data.get("steps", []):
@@ -171,6 +178,10 @@ def process_json_files(main_dir):
                             state_action['global_state_ee'] = state_ee[:3]
 
                             take_action(state_action)
+
+    shutil.rmtree(os.path.splitext(TRAJ_PATH)[0])
+    print('Deleted extracted directory!')
+
 
 
 def unzip_file():
@@ -193,8 +204,8 @@ def unzip_file():
         print(f"Extracted all files to {extract_to_dir}")
 
     # Delete the zip file after extraction
-    os.remove(TRAJ_PATH)
-    print(f"Deleted the zip file: {TRAJ_PATH}")
+    # os.remove(TRAJ_PATH)
+    # print(f"Deleted the zip file: {TRAJ_PATH}")
 
 
 if __name__ == "__main__":
