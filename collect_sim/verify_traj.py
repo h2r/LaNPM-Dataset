@@ -18,7 +18,7 @@ args = parser.parse_args()
 
 TRAJ_PATH = args.traj_path
 SCENE = args.scene
-DIR_EXTRACT = "/mnt/ahmed/new_sim_data/files/12_3"
+DIR_EXTRACT = "/mnt/ahmed/new_sim_data/files/1_3"
 
 
 controller = None
