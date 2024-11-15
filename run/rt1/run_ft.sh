@@ -3,7 +3,7 @@
 set -e
 set -u
 
-source /mnt/miniconda3/etc/profile.d/conda.sh
+source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.sh
 conda activate rt1
 
 # module load cuda/11.8.0-lpttyok
@@ -15,19 +15,20 @@ SPLIT_TYPE='k_fold_scene'
 # EVAL_SCENE=4
 # LOW_DIV='--low_div' $LOW_DIV
 EPOCHS=15
-CHECKPOINT_DIR='/mnt/ahmed/rt1/ft_ckpt_dist2_3'
+CHECKPOINT_DIR='/users/ajaafar/data/ajaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/rt1_ft_dist2_11'
 EVAL_FREQ=50
 CHECKPOINT_FREQ=0
-TRAIN_SUBBATCH=3
-EVAL_SUBBATCH=3
+TRAIN_SUBBATCH=38
+EVAL_SUBBATCH=38
 TRAIN_BATCH=3
 EVAL_BATCH=3
-LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
-VAL_LOSS_DIR='val_losses/rt1_ft_dist2_3'
+LOAD_CHECKPOINT='/oscar/scratch/ajaafar/rt1_pretrain_ckpts10/checkpoint_best.pt'
+# LOAD_CHECKPOINT="/users/ajaafar/data/ajaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/rt1_ft_dist2_4/checkpoint_best.pt"
+VAL_LOSS_DIR='val_losses/rt1_ft_dist2_11'
 LR=1e-4
-LR_SCHED="plateau"
-GAMMA=0.75
-FACTOR=0.999
+LR_SCHED='plateau'
+GAMMA=0.999
+FACTOR=0.05
 PATIENCE=1
 
 

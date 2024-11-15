@@ -465,13 +465,14 @@ def main():
                     )
                     torch.save(policy.model.state_dict(), checkpoint_path)
                     print(f"Saved checkpoint to {checkpoint_path}")
+
+            checkpoint_path = f"{args.checkpoint_dir}/checkpoint_latest_batch.pt"
+            torch.save(policy.model.state_dict(), checkpoint_path)
+            print(f"Saved batch checkpoint to {checkpoint_path}")
         
         print("FINISHED EPOCH {}".format(epoch+1))
     
-    checkpoint_path = f"{args.checkpoint_dir}/checkpoint_last.pt"
-    torch.save(policy.model.state_dict(), checkpoint_path)
-    print(f"Saved checkpoint to {checkpoint_path}")
-    print("Finished Training!")
+    print("FINISHED TRAINING!")
 
 if __name__ == "__main__":
     main()
