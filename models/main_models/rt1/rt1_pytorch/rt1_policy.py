@@ -256,12 +256,14 @@ class RT1Policy:
             Dict[str, np.ndarray]: A dictionary containing the actions. It has the following keys:
                 - "actions" (np.ndarray): The actions performed based on the observations.
         """
-        breakpoint() #TODO: see if this function is ever used somewhere. during training and validation it's not
+        
         videos = observations["image"]
         texts = observations["context"]
-        videos, texts, _ = self.preprocess(videos, texts)
+        ee_obj_dist = observations['ee_obj_dist'] #added
+        goal_dist = observations['goal_dist'] #added2
+        videos, texts, ee_obj_dist, goal_dist, _ = self.preprocess(videos, texts, ee_obj_dist, goal_dist) #added, added2
         with torch.no_grad():
-            actions, _ = self.forward(videos, texts)
+            actions, _ = self.forward(videos, texts, ee_obj_dist, goal_dist) #added, added2
         actions = actions.detach().cpu().numpy()
         actions = self.action_tokenizer.detokenize(actions)
         actions = tree.map_structure(lambda a: a[:, -1], actions)

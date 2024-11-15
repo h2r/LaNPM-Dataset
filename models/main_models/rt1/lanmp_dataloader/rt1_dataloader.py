@@ -27,7 +27,8 @@ from collections import defaultdict
 
 sys.path.append('..')
 
-DATASET_PATH = '/oscar/data/stellex/shared/lanmp/sim_dataset_new.hdf5'
+#DATASET_PATH = '/mnt/ahmed/sim_dataset_new.hdf5'
+DATASET_PATH = "/oscar/data/stellex/shared/lanmp/sim_dataset_new.hdf5"
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
