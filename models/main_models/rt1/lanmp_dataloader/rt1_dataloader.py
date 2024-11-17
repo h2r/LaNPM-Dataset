@@ -27,7 +27,7 @@ from collections import defaultdict
 
 sys.path.append('..')
 
-DATASET_PATH = '/oscar/data/stellex/shared/lanmp/sim_dataset.hdf5'
+DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
@@ -350,7 +350,6 @@ class DatasetManager(object):
         if 'attribute_limits.json' not in os.listdir('./lanmp_dataloader'):
             body_pose_lim, body_orientation_lim, end_effector_pose_lim = self.determine_min_max_range([train_keys, val_keys, test_keys])
         else:
-
             with open('./lanmp_dataloader/attribute_limits.json') as f:
                 attribute_limits = json.load(f)
             body_pose_lim, body_orientation_lim, end_effector_pose_lim = attribute_limits[0], attribute_limits[1], attribute_limits[2]
@@ -393,16 +392,16 @@ class DatasetManager(object):
 
                         step_metadata = json.loads(traj_group[traj_steps[j]].attrs['metadata'])
 
-                        body_x = step_metadata['steps'][0]['state_body'][0]
-                        body_y = step_metadata['steps'][0]['state_body'][1]
-                        body_z = step_metadata['steps'][0]['state_body'][2]
+                        body_x = step_metadata['steps'][0]['global_state_body'][0]
+                        body_y = step_metadata['steps'][0]['global_state_body'][1]
+                        body_z = step_metadata['steps'][0]['global_state_body'][2]
                         
-                        body_yaw = step_metadata['steps'][0]['state_body'][3]
+                        body_yaw = step_metadata['steps'][0]['global_state_body'][3]
                         
 
-                        ee_x = step_metadata['steps'][0]['state_ee'][0]
-                        ee_y = step_metadata['steps'][0]['state_ee'][1]
-                        ee_z = step_metadata['steps'][0]['state_ee'][2]
+                        ee_x = step_metadata['steps'][0]['global_state_ee'][0]
+                        ee_y = step_metadata['steps'][0]['global_state_ee'][1]
+                        ee_z = step_metadata['steps'][0]['global_state_ee'][2]
 
 
 
@@ -507,9 +506,6 @@ class RT1Dataset(Dataset):
 
 
     def make_data_discrete(self, dictionary):
-
-        
-           
         #body x, y, z coordinate
         dictionary['body_position_deltas'][:,0] = 1 + (dictionary['body_position_deltas'][:,0] - self.body_pose_lim['min_x'])/ (self.body_pose_lim['max_x'] - self.body_pose_lim['min_x'] ) * self.num_bins
         dictionary['body_position_deltas'][:,0] = dictionary['body_position_deltas'][:,0].astype(int)
@@ -677,7 +673,6 @@ class RT1Dataset(Dataset):
     def __getitem__(self, idx):
         
         # pdb.set_trace()
-        
         traj_group = self.hdf[self.dataset_keys[idx]]
         
         traj_steps = list(traj_group.keys())
@@ -746,9 +741,9 @@ class RT1Dataset(Dataset):
                     next_metadata = json.loads(traj_group[traj_steps[i+1]].attrs['metadata'])
                 
                     #body position, body yaw, arm position
-                    body_position_delta = np.array(next_metadata['steps'][0]['state_body'][:3])-np.array(current_metadata['steps'][0]['state_body'][:3])
-                    body_yaw_delta = next_metadata['steps'][0]['state_body'][3] - current_metadata['steps'][0]['state_body'][3]
-                    arm_position_delta = np.array(next_metadata['steps'][0]['state_ee'][:3]) - np.array(current_metadata['steps'][0]['state_ee'][:3])
+                    body_position_delta = np.array(next_metadata['steps'][0]['global_state_body'][:3])-np.array(current_metadata['steps'][0]['global_state_body'][:3])
+                    body_yaw_delta = next_metadata['steps'][0]['global_state_body'][3] - current_metadata['steps'][0]['global_state_body'][3]
+                    arm_position_delta = np.array(next_metadata['steps'][0]['global_state_ee'][:3]) - np.array(current_metadata['steps'][0]['global_state_ee'][:3])
 
                     #terminate episode / pick up release / body pitch / mode
                     terminate_episode = int(i == len(traj_steps)-1)
