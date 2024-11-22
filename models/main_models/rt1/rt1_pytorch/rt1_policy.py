@@ -131,7 +131,6 @@ class RT1Policy:
         if not isinstance(texts, torch.Tensor):
             texts = torch.tensor(texts, device=self.device, dtype=torch.float32)
 
-        
         if actions is not None:
             actions = {
                 k: np.stack(v, axis=0) if not (isinstance(v, np.ndarray)) else v
@@ -228,6 +227,7 @@ class RT1Policy:
         videos, texts, _ = self.preprocess(videos, texts)
         with torch.no_grad():
             actions, _ = self.forward(videos, texts)
+        breakpoint()
         actions = actions.detach().cpu().numpy()
         actions = self.action_tokenizer.detokenize(actions)
         actions = tree.map_structure(lambda a: a[:, -1], actions)

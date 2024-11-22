@@ -36,7 +36,7 @@ class RT1Model(nn.Module):
     def __init__(
         self,
         arch: str = "efficientnet_b3",
-        tokens_per_action=11,
+        tokens_per_action=6,
         action_bins=256,
         num_layers=8,
         num_heads=8,

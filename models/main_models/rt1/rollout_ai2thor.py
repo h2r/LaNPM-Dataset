@@ -58,7 +58,7 @@ def parse_args():
     )
     parser.add_argument(
         "--eval-scene",
-        default=2,
+        default=4,
         help = "scene used as validation during k-fold cross validation",
     )
     parser.add_argument(
@@ -267,6 +267,7 @@ def main():
             pickup_release = val_dataloader.dataset.detokenize_pickup_release(generated_action_tokens['pickup_release'][0])
             body_pitch = val_dataloader.dataset.detokenize_head_pitch(generated_action_tokens['body_pitch_delta'][0])
             curr_mode = val_dataloader.dataset.detokenize_mode(generated_action_tokens['control_mode'][0])
+            print(curr_mode)
 
             
             
@@ -304,6 +305,7 @@ def main():
                 'arm_position_delta': arm_position_delta,
                 'arm_position': curr_arm_coordinate
             }
+            # breakpoint()
             success, error, event = ai2thor_env.step(curr_action, step_args)
 
             time.sleep(0.25)

@@ -53,7 +53,7 @@ class RT1ActionTokenizer:
         self._action_bins = action_bins
         
         # filter the action keys
-        lanmp_keys = ['terminate_episode', 'pickup_release', 'body_position_delta', 'body_yaw_delta','body_pitch_delta','arm_position_delta','control_mode']
+        lanmp_keys = ['terminate_episode', 'body_yaw_delta','arm_position_delta','control_mode']
         bridge_keys =  ['terminate_episode','world_vector', 'open_gripper', "rotation_delta"]
         fractal_keys = ['terminate_episode', 'gripper_closedness_action', 'world_vector', 'base_displacement_vertical_rotation', 'rotation_delta','base_displacement_vector',]
         jaco_keys =  ['terminate_episode','world_vector', 'gripper_closedness_action']

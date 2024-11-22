@@ -199,18 +199,18 @@ def main():
             dtype=int
         ),
 
-        body_pitch_delta = gym.spaces.Discrete(3),
+        # body_pitch_delta = gym.spaces.Discrete(3),
 
         terminate_episode=gym.spaces.Discrete(2),
 
-        pickup_release = gym.spaces.Discrete(3),
+        # pickup_release = gym.spaces.Discrete(3),
 
-        body_position_delta = gym.spaces.Box(
-            low = 0,
-            high = 255,
-            shape = (3,),
-            dtype = np.int32
-        ),
+        # body_position_delta = gym.spaces.Box(
+        #     low = 0,
+        #     high = 255,
+        #     shape = (3,),
+        #     dtype = np.int32
+        # ),
 
         arm_position_delta = gym.spaces.Box(
             low = 0,
@@ -219,7 +219,7 @@ def main():
             dtype = np.int32
         ),
 
-        control_mode = gym.spaces.Discrete(7),
+        control_mode = gym.spaces.Discrete(12),
        
     )
 
@@ -322,18 +322,17 @@ def main():
                     "image": train_batch[0][idx : min(idx + int(args.train_subbatch), batch_steps)],
                     "context": res,
                 }
-
                 actions = {
                     'terminate_episode': train_batch[2][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    'pickup_release': train_batch[3][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    'body_position_delta': train_batch[4][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    'body_yaw_delta': train_batch[5][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    'body_pitch_delta': train_batch[6][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    'arm_position_delta': train_batch[7][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    'control_mode': train_batch[8][idx : min(idx + int(args.train_subbatch), batch_steps)]
+                    # 'pickup_release': train_batch[3][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                    # 'body_position_delta': train_batch[4][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                    'body_yaw_delta': train_batch[3][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                    # 'body_pitch_delta': train_batch[6][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                    'arm_position_delta': train_batch[4][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                    'control_mode': train_batch[5][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 }
 
-                padding = train_batch[9][idx : min(idx + int(args.train_subbatch), batch_steps)]
+                padding = train_batch[6][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 total_train_steps += batch_steps
 
                 
@@ -391,15 +390,15 @@ def main():
 
                                 actions = {
                                     'terminate_episode': val_batch[2][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    'pickup_release': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    'body_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    'body_yaw_delta': val_batch[5][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    'body_pitch_delta': val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    'arm_position_delta': val_batch[7][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    'control_mode': val_batch[8][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                    # 'pickup_release': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    # 'body_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'body_yaw_delta': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    # 'body_pitch_delta': val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'arm_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                    'control_mode': val_batch[5][idx : min(idx + args.eval_subbatch, batch_steps_val)]
                                 }
                                 
-                                padding = val_batch[9][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                padding = val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)]
 
                                 eval_loss, eval_loss_std = policy.loss(observations, actions) #subbatch eval loss
                             

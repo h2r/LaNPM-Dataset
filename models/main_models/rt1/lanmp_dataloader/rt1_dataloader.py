@@ -27,7 +27,8 @@ from collections import defaultdict
 
 sys.path.append('..')
 
-DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
+DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
+# DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
@@ -479,14 +480,7 @@ class DatasetManager(object):
 
 
 
-
-
-
-
-
 class RT1Dataset(Dataset):
-
-    
 
     def __init__(self, data_split_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim, tokenize_action=True):
 
@@ -507,17 +501,17 @@ class RT1Dataset(Dataset):
 
     def make_data_discrete(self, dictionary):
         #body x, y, z coordinate
-        dictionary['body_position_deltas'][:,0] = 1 + (dictionary['body_position_deltas'][:,0] - self.body_pose_lim['min_x'])/ (self.body_pose_lim['max_x'] - self.body_pose_lim['min_x'] ) * self.num_bins
-        dictionary['body_position_deltas'][:,0] = dictionary['body_position_deltas'][:,0].astype(int)
+        # dictionary['body_position_deltas'][:,0] = 1 + (dictionary['body_position_deltas'][:,0] - self.body_pose_lim['min_x'])/ (self.body_pose_lim['max_x'] - self.body_pose_lim['min_x'] ) * self.num_bins
+        # dictionary['body_position_deltas'][:,0] = dictionary['body_position_deltas'][:,0].astype(int)
         
-        if self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] > 0:
-            dictionary['body_position_deltas'][:,1] = 1 + (dictionary['body_position_deltas'][:,1] - self.body_pose_lim['min_y'])/(self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] ) * self.num_bins  
-        else:
-            dictionary['body_position_deltas'][:,1].fill(0)
-        dictionary['body_position_deltas'][:,1] = dictionary['body_position_deltas'][:,1].astype(int)
+        # if self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] > 0:
+        #     dictionary['body_position_deltas'][:,1] = 1 + (dictionary['body_position_deltas'][:,1] - self.body_pose_lim['min_y'])/(self.body_pose_lim['max_y'] - self.body_pose_lim['min_y'] ) * self.num_bins  
+        # else:
+        #     dictionary['body_position_deltas'][:,1].fill(0)
+        # dictionary['body_position_deltas'][:,1] = dictionary['body_position_deltas'][:,1].astype(int)
         
-        dictionary['body_position_deltas'][:,2] = 1 + (dictionary['body_position_deltas'][:,2] - self.body_pose_lim['min_z'])/ (self.body_pose_lim['max_z'] - self.body_pose_lim['min_z'] ) * self.num_bins
-        dictionary['body_position_deltas'][:,2] = dictionary['body_position_deltas'][:,2].astype(int)
+        # dictionary['body_position_deltas'][:,2] = 1 + (dictionary['body_position_deltas'][:,2] - self.body_pose_lim['min_z'])/ (self.body_pose_lim['max_z'] - self.body_pose_lim['min_z'] ) * self.num_bins
+        # dictionary['body_position_deltas'][:,2] = dictionary['body_position_deltas'][:,2].astype(int)
 
         #body yaw and pitch
         dictionary['body_yaw_deltas'] = 1 + (dictionary['body_yaw_deltas'] - self.body_orientation_lim['min_yaw']) / (self.body_orientation_lim['max_yaw'] - self.body_orientation_lim['min_yaw']) * self.num_bins
@@ -537,7 +531,7 @@ class RT1Dataset(Dataset):
         if 1.0 in dictionary['terminate_episode']:
             terminate_idx = np.where(np.array(dictionary['terminate_episode'])>0)[0][0]
 
-            dictionary['body_position_deltas'][terminate_idx:,:].fill(0)
+            # dictionary['body_position_deltas'][terminate_idx:,:].fill(0)
             dictionary['body_yaw_deltas'][terminate_idx:].fill(0)
             dictionary['arm_position_deltas'][terminate_idx:,:].fill(0)
 
@@ -597,16 +591,16 @@ class RT1Dataset(Dataset):
             dictionary['arm_position'][1] = 0
             dictionary['arm_position'][2] = 0
         
-    def get_head_pitch(self, action):
+    # def get_head_pitch(self, action):
 
-        value = 0
+    #     value = 0
 
-        if action == 'LookDown':
-            value = 1
-        elif action == 'LookUp':
-            value = 2
+    #     if action == 'LookDown':
+    #         value = 1
+    #     elif action == 'LookUp':
+    #         value = 2
 
-        return value
+    #     return value
     
     def detokenize_head_pitch(self, token):
 
@@ -614,24 +608,46 @@ class RT1Dataset(Dataset):
 
         return tokenization_dict[token]
 
-    def get_mode(self, action):
-
-        #mode: (0) stop, (1) body, (2) yaw,  (3) manipulation, (4) grasping, (5) head pitch
-        
+    def get_mode(self, action):        
         value = None
+
+        # if action == 'stop':
+        #     value = 0
+        # elif action in set( ['LookDown', 'LookUp']):
+        #     value = 5
+        # elif action in set(['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']):
+        #     value = 1
+        # elif action in set(['PickupObject', 'ReleaseObject']):
+        #     value = 4
+        # elif action in set(['MoveArm', 'MoveArmBase']):
+        #     value = 3
+        # elif action  == 'RotateAgent':
+        #     value = 2
 
         if action == 'stop':
             value = 0
-        elif action in set( ['LookDown', 'LookUp']):
-            value = 5
-        elif action in set(['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']):
+        elif action == 'MoveAhead':
             value = 1
-        elif action in set(['PickupObject', 'ReleaseObject']):
-            value = 4
-        elif action in set(['MoveArm', 'MoveArmBase']):
-            value = 3
-        elif action  == 'RotateAgent':
+        elif action == 'MoveRight':
             value = 2
+        elif action == 'MoveLeft':
+            value = 3
+        elif action == 'MoveBack':
+            value = 4
+        elif action == 'LookDown':
+            value = 5
+        elif action == 'LookUp':
+            value = 6
+        elif action == 'PickupObject':
+            value = 7
+        elif action == 'ReleaseObject':
+            value = 8
+        elif action == 'MoveArm':
+            value = 9
+        elif action == 'MoveArmBase':
+            value = 10
+        elif action == 'RotateAgent':
+            value = 11
         
         assert(type(value)==int, 'Get Mode didn\'t return an int')
         return value
@@ -654,16 +670,16 @@ class RT1Dataset(Dataset):
             return detokenized_mode
 
 
-    def get_pickup_release(self, action):
+    # def get_pickup_release(self, action):
 
-        if action == 'PickupObject':
-            value = 1
-        elif action == 'ReleaseObject':
-            value = 2
-        else: 
-            value = 0
+    #     if action == 'PickupObject':
+    #         value = 1
+    #     elif action == 'ReleaseObject':
+    #         value = 2
+    #     else: 
+    #         value = 0
         
-        return value
+    #     return value
 
     def detokenize_pickup_release(self, token):
 
@@ -694,10 +710,11 @@ class RT1Dataset(Dataset):
         all_image_obs = []
         all_nl_commands = []
         all_is_terminal = []
-        all_pickup_release = []
-        all_body_position_deltas = []
+        # all_pickup_release = []
+        # all_body_position_deltas = []
+        all_base = []
         all_body_yaw_deltas = []
-        all_body_pitches = []
+        # all_body_pitches = []
         all_arm_position_deltas = []
         all_control_mode = []
 
@@ -715,12 +732,13 @@ class RT1Dataset(Dataset):
             '''
             image_obs = []
             nl_commands = []
-            body_position_deltas = []
+            # body_position_deltas = []
+            base = []
             body_yaw_deltas = []
             arm_position_deltas = []
             terminate_episodes = []
-            pickup_releases = []
-            body_pitches = []
+            # pickup_releases = []
+            # body_pitches = []
             control_modes = []
             
             #6 step window
@@ -741,34 +759,34 @@ class RT1Dataset(Dataset):
                     next_metadata = json.loads(traj_group[traj_steps[i+1]].attrs['metadata'])
                 
                     #body position, body yaw, arm position
-                    body_position_delta = np.array(next_metadata['steps'][0]['global_state_body'][:3])-np.array(current_metadata['steps'][0]['global_state_body'][:3])
+                    # body_position_delta = np.array(next_metadata['steps'][0]['global_state_body'][:3])-np.array(current_metadata['steps'][0]['global_state_body'][:3])
                     body_yaw_delta = next_metadata['steps'][0]['global_state_body'][3] - current_metadata['steps'][0]['global_state_body'][3]
                     arm_position_delta = np.array(next_metadata['steps'][0]['global_state_ee'][:3]) - np.array(current_metadata['steps'][0]['global_state_ee'][:3])
 
                     #terminate episode / pick up release / body pitch / mode
                     terminate_episode = int(i == len(traj_steps)-1)
-                    pickup_release = self.get_pickup_release(next_metadata['steps'][0]['action'])
-                    body_pitch = self.get_head_pitch(next_metadata['steps'][0]['action'])
+                    # pickup_release = self.get_pickup_release(next_metadata['steps'][0]['action'])
+                    # body_pitch = self.get_head_pitch(next_metadata['steps'][0]['action'])
                     control_mode = self.get_mode(next_metadata['steps'][0]['action'])
                 else:
 
                     #body position, body yaw, arm positon -- for last step
-                    body_position_delta = np.array([0.0, 0.0, 0.0])
+                    # body_position_delta = np.array([0.0, 0.0, 0.0])
                     body_yaw_delta = 0.0
                     arm_position_delta = np.array([0.0, 0.0, 0.0])
 
                     #is terminal / pick up release / body pitch / mode -- for last step
                     terminate_episode = int(i == len(traj_steps)-1)
-                    pickup_release = self.get_pickup_release(None)
-                    body_pitch = self.get_head_pitch(None)
+                    # pickup_release = self.get_pickup_release(None)
+                    # body_pitch = self.get_head_pitch(None)
                     control_mode = self.get_mode('stop')
 
-                body_position_deltas.append(body_position_delta)
+                # body_position_deltas.append(body_position_delta)
                 body_yaw_deltas.append(body_yaw_delta)
                 arm_position_deltas.append(arm_position_delta)
                 terminate_episodes.append(terminate_episode)
-                pickup_releases.append(pickup_release)
-                body_pitches.append(body_pitch)
+                # pickup_releases.append(pickup_release)
+                # body_pitches.append(body_pitch)
                 control_modes.append(control_mode)
 
             
@@ -781,12 +799,12 @@ class RT1Dataset(Dataset):
                     image_obs.append(ith_obs)
                     nl_commands.append(nl_command)
 
-                    body_position_deltas.append(np.array([0.0, 0.0, 0.0]))
+                    # body_position_deltas.append(np.array([0.0, 0.0, 0.0]))
                     body_yaw_deltas.append(0.0)
                     arm_position_deltas.append(np.array([0.0, 0.0, 0.0]))
                     terminate_episodes.append(0)
-                    pickup_releases.append(0.0)
-                    body_pitches.append(0.0)
+                    # pickup_releases.append(0.0)
+                    # body_pitches.append(0.0)
                     control_modes.append(0.0)
                 
                 terminate = True
@@ -796,14 +814,14 @@ class RT1Dataset(Dataset):
 
 
             #pre-process and discretize numerical data 
-            body_position_deltas = np.stack(body_position_deltas)
+            # body_position_deltas = np.stack(body_position_deltas)
             body_yaw_deltas = np.stack(body_yaw_deltas)
             arm_position_deltas = np.stack(arm_position_deltas)
             
             if self.tokenize_action:
                 
                 tokenized_actions = {
-                    'body_position_deltas': body_position_deltas,
+                    # 'body_position_deltas': body_position_deltas,
                     'body_yaw_deltas': body_yaw_deltas,
                     'arm_position_deltas': arm_position_deltas,
                     'terminate_episode': terminate_episodes
@@ -811,22 +829,20 @@ class RT1Dataset(Dataset):
                 
                 tokenized_actions = self.make_data_discrete(tokenized_actions)
                 
-                body_position_deltas = tokenized_actions['body_position_deltas']
+                # body_position_deltas = tokenized_actions['body_position_deltas']
                 
                 body_yaw_deltas = np.expand_dims(tokenized_actions['body_yaw_deltas'], axis=1)
                 
                 arm_position_deltas = tokenized_actions['arm_position_deltas']
                 
 
-            
-
             all_image_obs.append(np.stack(image_obs))
             all_nl_commands.append(np.stack(nl_commands))
             all_is_terminal.append(np.stack(terminate_episodes))
-            all_pickup_release.append(np.stack(pickup_releases))
-            all_body_position_deltas.append(body_position_deltas)
+            # all_pickup_release.append(np.stack(pickup_releases))
+            # all_body_position_deltas.append(body_position_deltas)
             all_body_yaw_deltas.append(body_yaw_deltas)
-            all_body_pitches.append(np.stack(body_pitches))
+            # all_body_pitches.append(np.stack(body_pitches))
             all_arm_position_deltas.append(arm_position_deltas)
             all_control_mode.append(np.stack(control_modes))
 
@@ -835,11 +851,8 @@ class RT1Dataset(Dataset):
             #move the window by 6
             start += 6
             end = min(end + 6, len(traj_steps))
-
-
             
-        
-        return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_pickup_release), np.stack(all_body_position_deltas), np.stack(all_body_yaw_deltas), np.stack(all_body_pitches), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_pad_lengths)
+        return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_body_yaw_deltas), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_pad_lengths)
 
 
 
