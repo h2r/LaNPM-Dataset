@@ -68,6 +68,11 @@ __pycache__/
 /dataset/*
 !/dataset/.gitkeep
 
+# SPOC model
+/models/main_models/spoc-robot-training/tmp_log/
+/models/main_models/spoc-robot-training/training/offline/outputs/
+/models/main_models/spoc-robot-training/src/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
