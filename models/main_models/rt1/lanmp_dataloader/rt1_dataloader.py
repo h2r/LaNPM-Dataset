@@ -1,6 +1,5 @@
 import os
 import sys
-
 import torch
 from torchvision.io import read_image
 from torch.utils.data import Dataset
@@ -24,6 +23,8 @@ from sklearn.cluster import AgglomerativeClustering, DBSCAN
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from collections import defaultdict
+
+np.random.seed(42)
 
 sys.path.append('..')
 
@@ -141,7 +142,6 @@ def cluster(hdf5_path, low_div):
 
     return train_keys, test_keys
 
-
 def split_data(hdf5_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
     with h5py.File(hdf5_path, 'r') as hdf_file:
         # Assuming trajectories or data units are top-level groups in the HDF5 file
@@ -157,15 +157,15 @@ def split_data(hdf5_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
         val_end = train_end + int(val_ratio * total_items)
         
         # Split the indices
-        train_indices = indices[:train_end]
-        val_indices = indices[train_end:val_end]
-        test_indices = indices[val_end:]
+        train_indices = indices[:train_end+1]
+        val_indices = indices[train_end+1:val_end+1]
+        test_indices = indices[val_end+1:]
         
         # Convert indices back to keys (assuming order in keys list is stable and matches original order)
         train_keys = [keys[i] for i in train_indices]
         val_keys = [keys[i] for i in val_indices]
         test_keys = [keys[i] for i in test_indices]
-        
+
         return train_keys, val_keys, test_keys
 
 def split_by_scene(hdf5_path):
@@ -258,11 +258,11 @@ class DatasetManager(object):
     '''
     NOTE: kwargs should contain a dictionary with keys {'train_split' : x, 'val_split': y, 'test_split':z} where x+y+z = 1
     '''
-    def __init__(self, val_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
+    def __init__(self, test_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
         assert( train_split + val_split + test_split == 1.0, 'Error: train, val and test split do not sum to 1.0')
 
         
-        #train_keys, val_keys, test_keys = split_data(DATASET_PATH, train_split, val_split, test_split)
+        # train_keys, val_keys, test_keys = split_data(DATASET_PATH, train_split, val_split, test_split)
         if 'scene_to_keys.json' not in os.listdir('./lanmp_dataloader'):
             self.scene_to_keys = split_by_scene(DATASET_PATH)
         else:
@@ -274,14 +274,28 @@ class DatasetManager(object):
 
         assert( split_style in ['k_fold_scene', 'task_split', 'diversity_ablation'], "Error: input split_style is invalid")
         if split_style == 'k_fold_scene':
-            assert(int(val_scene) < len(self.scenes), "Error: input scene is out of index space")
-            train_keys = []
-            for x in range(0, len(self.scenes)):
-                if x!=int(val_scene):
-                    train_keys += self.scene_to_keys[self.scenes[x]]  
+            assert(int(test_scene) < len(self.scenes), "Error: input test scene is out of index space")
 
-            val_keys = self.scene_to_keys[self.scenes[int(val_scene)]]
-            test_keys = None
+            train_keys = []
+            val_keys = []
+
+            # Iterate through all scenes except the test scene
+            for x in range(len(self.scenes)):
+                if x != int(test_scene):
+                    scene_keys = self.scene_to_keys[self.scenes[x]]
+                    np.random.shuffle(scene_keys)
+                    # Stratified split: use 80% for training and 20% for validation
+                    split_idx = int(0.8 * len(scene_keys))
+                    train_keys += scene_keys[:split_idx]
+                    val_keys += scene_keys[split_idx:]
+
+            # The test set is assigned manually based on the test_scene input
+            test_keys = self.scene_to_keys[self.scenes[int(test_scene)]]
+
+            # Ensure no overlap between train, val, and test sets
+            assert(len(set(train_keys) & set(val_keys)) == 0), "Error: Train and Val sets overlap"
+            assert(len(set(train_keys) & set(test_keys)) == 0), "Error: Train and Test sets overlap"
+            assert(len(set(val_keys) & set(test_keys)) == 0), "Error: Val and Test sets overlap"
 
         elif split_style == 'task_split':
 
@@ -301,8 +315,6 @@ class DatasetManager(object):
 
                 print('Train Perc: ', len(train_keys) / (len(train_keys) + len(val_keys)))
             
-            # val_keys = ['data_13:02:17', 'data_19:58:40', 'data_15:50:55', 'data_16:22:44', 'data_15:40:22', 'data_17:08:14', 'data_15:37:13', 'data_18:38:30', 'data_13:56:07', 'data_15:22:59', 'data_13:33:54', 'data_13:18:11', 'data_19:36:17', 'data_14:38:16', 'data_13:04:13', 'data_12:04:43', 'data_16:37:57', 'data_15:38:38', 'data_16:40:44', 'data_17:59:00', 'data_20:57:07', 'data_16:03:52', 'data_16:40:36', 'data_19:31:51', 'data_16:45:24', 'data_21:09:57', 'data_17:26:17', 'data_15:01:27', 'data_14:02:16', 'data_13:29:09', 'data_14:22:29', 'data_16:43:00', 'data_13:46:04', 'data_15:13:04', 'data_16:45:58', 'data_13:33:29', 'data_17:17:50', 'data_11:19:28', 'data_17:45:27', 'data_16:00:55', 'data_15:03:19', 'data_16:06:05', 'data_16:02:46', 'data_17:41:00', 'data_17:35:45', 'data_14:05:06', 'data_18:22:47', 'data_17:02:46', 'data_15:08:23', 'data_16:15:15', 'data_19:00:23', 'data_11:50:57', 'data_15:19:33', 'data_14:52:27', 'data_16:58:53', 'data_11:44:50', 'data_16:10:21', 'data_13:10:05', 'data_17:48:24', 'data_18:09:10', 'data_18:01:35', 'data_13:34:59', 'data_12:48:23', 'data_22:17:48', 'data_16:57:05', 'data_16:49:20', 'data_17:51:34', 'data_12:54:21', 'data_16:23:48', 'data_14:24:32', 'data_16:18:35', 'data_14:26:22', 'data_16:11:06', 'data_11:58:17', 'data_17:13:00', 'data_19:34:02', 'data_13:29:42', 'data_17:20:01', 'data_15:20:09', 'data_16:53:34', 'data_15:25:56']
-
             print('Train Keys: ', len(train_keys))
             print('Validation Keys: ', len(val_keys))
             print('Validation Keys: ', val_keys)

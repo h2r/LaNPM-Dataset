@@ -136,9 +136,9 @@ def parse_args():
         default=False,
     )
     parser.add_argument(
-        "--eval-scene",
-        default=4,
-        help = "scene used as validation during k-fold cross validation",
+        "--test-scene",
+        default=1,
+        help = "scene used as held-out test during k-fold cross",
     )
     parser.add_argument(
         "--split-type",
@@ -176,7 +176,7 @@ def main():
 
     print("Loading dataset...")
 
-    dataset_manager = DatasetManager(args.eval_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories, low_div=args.low_div)
+    dataset_manager = DatasetManager(args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories, low_div=args.low_div)
     
     if args.wandb and args.split_type == 'diversity_ablation':
         wandb.log({"task_keys": dataset_manager.train_dataset.dataset_keys})
