@@ -301,23 +301,24 @@ class DatasetManager(object):
 
             train_keys = []
             val_keys = []
+            test_keys = []
 
             for scene in self.scenes:
                 
                 scene_keys = copy(self.scene_to_keys[scene])
                 np.random.shuffle(scene_keys)
 
-                
-                split_idx = int(len(scene_keys)*(train_split + 0.5*val_split))
+                split_idx = int(len(scene_keys)*(train_split))
+                split_idx2 = int(len(scene_keys)*(train_split+val_split))
 
                 train_keys += scene_keys[:split_idx]
-                val_keys += scene_keys[split_idx:]
-
-                print('Train Perc: ', len(train_keys) / (len(train_keys) + len(val_keys)))
+                val_keys += scene_keys[split_idx:split_idx2]
+                test_keys += scene_keys[split_idx2:]
             
-            print('Train Keys: ', len(train_keys))
-            print('Validation Keys: ', len(val_keys))
-            print('Validation Keys: ', val_keys)
+            # Ensure no overlap between train, val, and test sets
+            assert(len(set(train_keys) & set(val_keys)) == 0), "Error: Train and Val sets overlap"
+            assert(len(set(train_keys) & set(test_keys)) == 0), "Error: Train and Test sets overlap"
+            assert(len(set(val_keys) & set(test_keys)) == 0), "Error: Val and Test sets overlap"
 
         elif split_style == 'diversity_ablation':
             assert(diversity_scenes < len(self.scene_to_keys.keys()), "Error: number of train scenes for diversity ablations cannot be {}".format(len(self.scene_to_keys.keys())))

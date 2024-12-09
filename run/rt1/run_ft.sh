@@ -13,7 +13,7 @@ module load cudnn/8.7.0.84-11.8-lg2dpd5
 
 cd ../../models/main_models/rt1
 
-SPLIT_TYPE='k_fold_scene'
+SPLIT_TYPE='task_split'
 TEST_SCENE=1
 # LOW_DIV='--low_div' $LOW_DIV
 EPOCHS=15
