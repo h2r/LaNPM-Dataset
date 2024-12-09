@@ -44,7 +44,6 @@ def parse_args():
         default="checkpoints/scene2/checkpoint_299183_loss_152.175.pt", #NOTE: change according to checkpoint file that is to be loaded
         help="directory to save checkpoints",
     )
-
     parser.add_argument(
         "--trajectory-save-path",
         type=str,
@@ -62,14 +61,20 @@ def parse_args():
         default=4,
         help = "scene used as validation during k-fold cross validation",
     )
-    parser.add_argument(
-        "--eval-subbatch",
-        default=1,
-    )
+    # parser.add_argument(
+    #     "--eval-subbatch",
+    #     default=1,
+    # )
     parser.add_argument(
         "--split-type",
         default = 'k_fold_scene',
         choices = ['k_fold_scene', 'task_split', 'diversity_ablation'],
+    )
+    parser.add_argument(
+        "--eval-set",
+        default = 'test',
+        choices = ['train', 'val', 'test'],
+        help = "which of the 3 sets (train, val, held-out test) to use for inference rollouts"
     )
     parser.add_argument(
         "--num-diversity-scenes",
@@ -102,8 +107,10 @@ def main():
     print("Loading dataset...")
     
     dataset_manager = DatasetManager(args.eval_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
-    val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
     train_dataloader = DataLoader(dataset_manager.train_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
+    val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
+    test_dataloader = DataLoader(dataset_manager.test_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
+
 
     observation_space = gym.spaces.Dict(
         image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
@@ -267,7 +274,15 @@ def main():
     print_val = True
     
     controller = None
-    for task in tqdm(train_dataloader.dataset.dataset_keys[370:]):
+
+    if args.eval_set == "train":
+        iterable_keys = train_dataloader.dataset.dataset_keys
+    elif args.eval_set == "val":
+        iterable_keys = val_dataloader.dataset.dataset_keys
+    else:
+        iterable_keys = test_dataloader.dataset.dataset_keys
+
+    for task in tqdm(iterable_keys):
         #skip tasks that trajectory already generated for
         if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
             continue

@@ -3,13 +3,13 @@
 set -e
 set -u
 
-# source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.sh
-source /mnt/miniconda3/etc/profile.d/conda.sh
+source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.sh
+# source /mnt/miniconda3/etc/profile.d/conda.sh
 
 conda activate rt1
 
-# module load cuda/11.8.0-lpttyok
-# module load cudnn/8.7.0.84-11.8-lg2dpd5
+module load cuda/11.8.0-lpttyok
+module load cudnn/8.7.0.84-11.8-lg2dpd5
 
 cd ../../models/main_models/rt1
 
@@ -17,10 +17,10 @@ SPLIT_TYPE='k_fold_scene'
 TEST_SCENE=1
 # LOW_DIV='--low_div' $LOW_DIV
 EPOCHS=15
-# LOAD_CHECKPOINT='/users/ajaafar/data/shared/lanmp/pretrained_rt1_ckpt/checkpoint_best.pt'
-# CHECKPOINT_DIR='/users/ajaafar/data/ajaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/foo'
-LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
-CHECKPOINT_DIR='/home/ahmedjaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/rt1-nodist-scene-discrete1'
+LOAD_CHECKPOINT='/users/ajaafar/data/shared/lanmp/pretrained_rt1_ckpt/checkpoint_best.pt'
+CHECKPOINT_DIR='/users/ajaafar/data/ajaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/foo'
+# LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
+# CHECKPOINT_DIR='/home/ahmedjaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/rt1-nodist-scene-discrete1'
 VAL_LOSS_DIR='val_losses/new_data/rt1-nodist-scene-discrete1'
 EVAL_FREQ=50
 CHECKPOINT_FREQ=0

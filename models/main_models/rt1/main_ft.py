@@ -21,18 +21,6 @@ import json
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--train-split",
-        type=str,
-        default="train[:-1000]",
-        help="use e.g. train[:100] for the first 100 episodes",
-    )
-    parser.add_argument(
-        "--eval-split",
-        type=str,
-        default="train[-1000:]",
-        help="use e.g. eval[:100] for the first 100 episodes",
-    )
-    parser.add_argument(
         "--epochs",
         type=int,
         default=4,

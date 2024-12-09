@@ -24,12 +24,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from collections import defaultdict
 
-np.random.seed(42)
+np.random.seed(47)
 
 sys.path.append('..')
 
-DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
-# DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
+# DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
+DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
@@ -305,7 +305,7 @@ class DatasetManager(object):
             for scene in self.scenes:
                 
                 scene_keys = copy(self.scene_to_keys[scene])
-                random.shuffle(scene_keys)
+                np.random.shuffle(scene_keys)
 
                 
                 split_idx = int(len(scene_keys)*(train_split + 0.5*val_split))
@@ -369,7 +369,7 @@ class DatasetManager(object):
 
         self.train_dataset = RT1Dataset(train_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
         self.val_dataset = RT1Dataset(val_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
-        # self.test_dataset = RT1Dataset(test_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
+        self.test_dataset = RT1Dataset(test_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
 
     def determine_min_max_range(self, data_subset_keys):
 
@@ -489,8 +489,6 @@ class DatasetManager(object):
         
         return collated_batch
                     
-
-
 
 class RT1Dataset(Dataset):
 
