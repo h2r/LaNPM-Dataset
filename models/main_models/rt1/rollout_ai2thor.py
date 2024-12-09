@@ -21,6 +21,7 @@ from ai2thor_env import ThorEnv
 import pickle
 import time
 from tqdm import tqdm
+from ai2thor.controller import Controller
 
 
 def parse_args():
@@ -102,7 +103,7 @@ def main():
     
     dataset_manager = DatasetManager(args.eval_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
     val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
-    
+    train_dataloader = DataLoader(dataset_manager.train_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
 
     observation_space = gym.spaces.Dict(
         image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
@@ -118,18 +119,7 @@ def main():
             dtype=int
         ),
 
-        body_pitch_delta = gym.spaces.Discrete(3),
-
         terminate_episode=gym.spaces.Discrete(2),
-
-        pickup_release = gym.spaces.Discrete(3),
-
-        body_position_delta = gym.spaces.Box(
-            low = 0,
-            high = 255,
-            shape = (3,),
-            dtype = np.int32
-        ),
 
         arm_position_delta = gym.spaces.Box(
             low = 0,
@@ -138,7 +128,7 @@ def main():
             dtype = np.int32
         ),
 
-        control_mode = gym.spaces.Discrete(7),
+        control_mode = gym.spaces.Discrete(12),
        
     )
 
@@ -150,8 +140,6 @@ def main():
         if args.sentence_transformer
         else hub.load("https://tfhub.dev/google/universal-sentence-encoder/4") 
     )
-    
-    
    
 
     def get_text_embedding(observation: Dict):
@@ -171,7 +159,87 @@ def main():
             embedded_observation = np.stack(embedded_observation, axis=1)
             return embedded_observation
 
+    def start_reset(scene, controller):
+        print("Starting ThorEnv...")
+        if controller is not None:
+            controller.stop()
+            del controller
+        controller = Controller(
+            agentMode="arm",
+            massThreshold=None,
+            scene=scene,
+            visibilityDistance=1.5,
+            gridSize=0.25,
+            snapToGrid= False,
+            renderDepthImage=False,
+            renderInstanceSegmentation=False,
+            width= 1280,
+            height= 720,
+            fieldOfView=60
+        )
+        fixedDeltaTime = 0.02
+        incr = 0.025
+        i=0
+        controller.step(action="SetHandSphereRadius", radius=0.1)
+        controller.step(action="MoveArmBase", y=i,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+        last_event = controller.last_event
+        i += incr
+        return controller, last_event, i
     
+    def take_action(state_action, last_event):
+        incr = 0.025
+        x = 0
+        y = 0
+        z = 0
+        fixedDeltaTime = 0.02
+        move = 0.2
+        a = None
+        word_action = state_action['word_action']
+        i = state_action['i']
+        print(word_action)
+        if word_action in ['MoveAhead', 'MoveBack', 'MoveRight', 'MoveLeft']:
+            if word_action == "MoveAhead":
+                a = dict(action="MoveAgent", ahead=move, right=0, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+            elif word_action == "MoveBack":
+                a = dict(action="MoveAgent", ahead=-move, right=0, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+            elif word_action == "MoveRight":
+                a = dict(action="MoveAgent", ahead=0, right=move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+            elif word_action == "MoveLeft":
+                a = dict(action="MoveAgent", ahead=0, right=-move, returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+
+        elif word_action in ['PickupObject','ReleaseObject', 'LookUp', 'LookDown']:
+            a = dict(action = word_action)
+        elif word_action in ['RotateAgent']:
+            # diff = state_action['curr_body_yaw'] - last_event.metadata['agent']['rotation']['y']
+            a = dict(action=word_action, degrees=state_action['body_yaw_delta'], returnToStart=False,speed=1,fixedDeltaTime=fixedDeltaTime)
+        elif word_action in ['MoveArmBase']:
+            prev_ee_y = last_event.metadata["arm"]["joints"][3]['position']['y']
+            curr_ee_y = state_action['arm_position'][1]
+            diff = curr_ee_y - prev_ee_y
+            if diff > 0:
+                i += incr
+            elif diff < 0:
+                i -= incr
+            a = dict(action="MoveArmBase",y=i,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+        elif word_action in ['MoveArm']:
+            a = dict(action='MoveArm',position=dict(x=state_action['arm_position'][0], y=state_action['arm_position'][1], z=state_action['arm_position'][2]),coordinateSpace="world",restrictMovement=False,speed=1,returnToStart=False,fixedDeltaTime=fixedDeltaTime)
+        elif word_action in ['stop']:
+            a = dict(action="Done")
+        try:
+            if word_action == "LookDown":
+                event = controller.step(a)
+                event = controller.step(a)
+            else:
+                event = controller.step(a)
+        except Exception as e:
+            print(e)         
+            breakpoint()
+        
+        time.sleep(0.1)
+        success = event.metadata['lastActionSuccess']
+        error = event.metadata['errorMessage']
+
+        return success, error, event, i
 
 
     print("Loading chosen checkpoint to model...")
@@ -198,18 +266,16 @@ def main():
     
     print_val = True
     
-
-    for task in tqdm(val_dataloader.dataset.dataset_keys):
-        
-
+    controller = None
+    for task in tqdm(train_dataloader.dataset.dataset_keys[370:]):
         #skip tasks that trajectory already generated for
         if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
             continue
         elif print_val:
-            print('START AT: ', val_dataloader.dataset.dataset_keys.index(task))
+            print('START AT: ', train_dataloader.dataset.dataset_keys.index(task))
             print_val = False
 
-        traj_group = val_dataloader.dataset.hdf[task]
+        traj_group = train_dataloader.dataset.hdf[task]
         
         traj_steps = list(traj_group.keys())
 
@@ -222,14 +288,11 @@ def main():
 
         print('TASK: ', traj_json_dict['nl_command'])
 
-        #initialize the AI2Thor environment
-        ai2thor_env = ThorEnv(traj_json_dict['nl_command'])
-        event = ai2thor_env.reset(traj_json_dict['scene'])
-
-        
+        # start/reset THOR env for every trajectory/task
+        controller, last_event, i = start_reset(traj_json_dict['scene'], controller)
 
         #extract the visual observation from initialzed environment
-        curr_image = event.frame
+        curr_image = last_event.frame
         visual_observation = np.expand_dims(np.expand_dims(curr_image, axis=0) , axis=0)
         visual_observation = np.repeat(visual_observation, 6, axis=1)
         
@@ -240,9 +303,7 @@ def main():
         '''
 
         #track the starting coordinates for body, yaw rotation and arm coordinate
-        curr_body_coordinate = np.array(list(event.metadata['agent']['position'].values()))
-        curr_body_yaw = event.metadata['agent']['rotation']['y']
-        curr_arm_coordinate = np.array(list(event.metadata['arm']['handSphereCenter'].values()))
+        curr_arm_coordinate = np.array(list(last_event.metadata["arm"]["joints"][3]['position'].values()))
         agent_holding = np.array([])
         
 
@@ -253,7 +314,7 @@ def main():
         #track data for all steps
         trajectory_data = []
         
-        while (curr_mode != 'stop' or is_terminal) and num_steps < ai2thor_env.max_episode_length:
+        while (curr_mode != 'stop' or is_terminal) and num_steps < 500:
             
             #provide the current observation to the model
             curr_observation = {
@@ -264,65 +325,47 @@ def main():
             generated_action_tokens = rt1_model_policy.act(curr_observation)
 
             #de-tokenize the generated actions from RT1
-            pickup_release = val_dataloader.dataset.detokenize_pickup_release(generated_action_tokens['pickup_release'][0])
-            body_pitch = val_dataloader.dataset.detokenize_head_pitch(generated_action_tokens['body_pitch_delta'][0])
-            curr_mode = val_dataloader.dataset.detokenize_mode(generated_action_tokens['control_mode'][0])
-            print(curr_mode)
-
-            
-            
+            curr_mode = train_dataloader.dataset.detokenize_mode(generated_action_tokens['control_mode'][0])
+            # print(curr_mode)
 
             terminate_episode = generated_action_tokens['terminate_episode'][0]
 
             continuous_variables = {
-                'body_position_delta': generated_action_tokens['body_position_delta'],
                 'body_yaw_delta': generated_action_tokens['body_yaw_delta'],
                 'arm_position_delta': generated_action_tokens['arm_position_delta'],
                 'curr_mode': curr_mode
             }
 
-            continuous_variables = val_dataloader.dataset.detokenize_continuous_data(continuous_variables)
-            body_position_delta = np.squeeze(continuous_variables['body_position_delta'])
+            continuous_variables = train_dataloader.dataset.detokenize_continuous_data(continuous_variables)
             body_yaw_delta = continuous_variables['body_yaw_delta'][0][0]
             arm_position_delta = np.squeeze(continuous_variables['arm_position_delta'])
-
-            curr_action = val_dataloader.dataset.detokenize_action(curr_mode, body_position_delta, body_yaw_delta, arm_position_delta, pickup_release, body_pitch)
-
-
+            curr_action = train_dataloader.dataset.detokenize_action(curr_mode, body_yaw_delta, arm_position_delta)
 
             #update the tracked coordinate data based on model output
-            curr_body_coordinate += body_position_delta
-            curr_body_yaw += body_yaw_delta
             curr_arm_coordinate += arm_position_delta
 
 
             #execute the generated action in the AI2THOR simulator
             step_args = {
-                'xyz_body': curr_body_coordinate,
-                'xyz_body_delta': body_position_delta,
-                'curr_body_yaw': curr_body_yaw,
+                'word_action': curr_action,
                 'body_yaw_delta': body_yaw_delta,
-                'arm_position_delta': arm_position_delta,
-                'arm_position': curr_arm_coordinate
+                'arm_position': curr_arm_coordinate,
+                'i': i
             }
-            # breakpoint()
-            success, error, event = ai2thor_env.step(curr_action, step_args)
 
-            time.sleep(0.25)
-           
+            success, error, last_event, i = take_action(step_args, last_event)
+
             #fetch object holding from simulator; also maybe fetch coordinate of body/arm + yaw from simulator
-            agent_holding = np.array(event.metadata['arm']['heldObjects'])
+            agent_holding = np.array(last_event.metadata['arm']['heldObjects'])
             
             #fetch the new visual observation from the simulator, update the current mode and increment number of steps
-            curr_image = np.expand_dims(np.expand_dims(event.frame, axis=0) , axis=0)
+            curr_image = np.expand_dims(np.expand_dims(last_event.frame, axis=0) , axis=0)
 
             visual_observation = visual_observation[:,1:,:,:,:]
             visual_observation = np.concatenate((visual_observation, curr_image), axis=1)
             num_steps +=1
 
-            curr_body_coordinate = np.array(list(event.metadata['agent']['position'].values()))
-            curr_body_yaw = event.metadata['agent']['rotation']['y']
-            curr_arm_coordinate = np.array(list(event.metadata['arm']['handSphereCenter'].values()))
+            curr_arm_coordinate = np.array(list(last_event.metadata["arm"]["joints"][3]['position'].values()))
             
 
             #add data to the dataframe CSV
@@ -330,39 +373,29 @@ def main():
                 'task': traj_json_dict['nl_command'],
                 'scene': traj_json_dict['scene'],
                 'img': curr_image,
-                'xyz_body': curr_body_coordinate,
-                'xyz_body_delta': body_position_delta,
-                'yaw_body': curr_body_yaw,
                 'yaw_body_delta': body_yaw_delta,
-                'pitch_body': body_pitch,
                 'xyz_ee': curr_arm_coordinate,
                 'xyz_ee_delta': arm_position_delta,
-                'pickup_dropoff': pickup_release,
                 'holding_obj': agent_holding,
                 'control_mode': curr_mode,
                 'action': curr_action,
                 'terminate': terminate_episode,
                 'step': num_steps,
-                'timeout': num_steps >= ai2thor_env.max_episode_length,
+                'timeout': num_steps >=1500,
                 'error': error
             }
             
             trajectory_data.append(step_data)
 
         #save the final event with all metadata: save as a json file dict
-        save_path = os.path.join(args.trajectory_save_path, task)
-        with open(save_path, 'wb') as file:
-            pickle.dump({'trajectory_data': trajectory_data, 'final_state': event.metadata}, file)
+        # save_path = os.path.join(args.trajectory_save_path, task)
+        # with open(save_path, 'wb') as file:
+        #     pickle.dump({'trajectory_data': trajectory_data, 'final_state': last_event.metadata}, file)
 
         #close the old GUI for AI2Thor after trajectory finishes
-        ai2thor_env.controller.stop()
-        time.sleep(0.5)
+        # ai2thor_env.controller.stop()
+        time.sleep(0.25)
 
         
-
-
-    
-   
-
 if __name__ == "__main__":
     main()

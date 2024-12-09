@@ -227,7 +227,7 @@ class RT1Policy:
         videos, texts, _ = self.preprocess(videos, texts)
         with torch.no_grad():
             actions, _ = self.forward(videos, texts)
-        breakpoint()
+            
         actions = actions.detach().cpu().numpy()
         actions = self.action_tokenizer.detokenize(actions)
         actions = tree.map_structure(lambda a: a[:, -1], actions)

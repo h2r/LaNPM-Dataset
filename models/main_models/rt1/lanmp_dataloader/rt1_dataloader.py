@@ -542,18 +542,11 @@ class RT1Dataset(Dataset):
     def detokenize_continuous_data(self, dictionary):
 
         if dictionary['curr_mode'] == 'stop':
-            dictionary['body_position_delta'] = [[0.0, 0.0, 0.0]]
             dictionary['body_yaw_delta'] = [[0.0]]
             dictionary['arm_position_deltas'] = [[0.0, 0.0, 0.0]]
 
         else:
-            dictionary['body_position_delta'][0][0] = (dictionary['body_position_delta'][0][0] - 1) * (self.body_pose_lim['max_x'] - self.body_pose_lim['min_x']) / self.num_bins + self.body_pose_lim['min_x']
-            dictionary['body_position_delta'][0][1] = (dictionary['body_position_delta'][0][1] - 1) * (self.body_pose_lim['max_y'] - self.body_pose_lim['min_y']) / self.num_bins + self.body_pose_lim['min_y']
-            dictionary['body_position_delta'][0][2] = (dictionary['body_position_delta'][0][2] - 1) * (self.body_pose_lim['max_z'] - self.body_pose_lim['min_z']) / self.num_bins + self.body_pose_lim['min_z']
-
             dictionary['body_yaw_delta'][0][0] = (dictionary['body_yaw_delta'][0][0] - 1) * (self.body_orientation_lim['max_yaw'] - self.body_orientation_lim['min_yaw']) / self.num_bins + self.body_orientation_lim['min_yaw']
-
-
             dictionary['arm_position_delta'][0][0] = (dictionary['arm_position_delta'][0][0] - 1) * (self.end_effector_pose_lim['max_x'] - self.end_effector_pose_lim['min_x']) / self.num_bins + self.end_effector_pose_lim['min_x']
             dictionary['arm_position_delta'][0][1] = (dictionary['arm_position_delta'][0][1] - 1) * (self.end_effector_pose_lim['max_y'] - self.end_effector_pose_lim['min_y']) / self.num_bins + self.end_effector_pose_lim['min_y']
             dictionary['arm_position_delta'][0][2] = (dictionary['arm_position_delta'][0][2] - 1) * (self.end_effector_pose_lim['max_z'] - self.end_effector_pose_lim['min_z']) / self.num_bins + self.end_effector_pose_lim['min_z']
@@ -591,22 +584,6 @@ class RT1Dataset(Dataset):
             dictionary['arm_position'][1] = 0
             dictionary['arm_position'][2] = 0
         
-    # def get_head_pitch(self, action):
-
-    #     value = 0
-
-    #     if action == 'LookDown':
-    #         value = 1
-    #     elif action == 'LookUp':
-    #         value = 2
-
-    #     return value
-    
-    def detokenize_head_pitch(self, token):
-
-        tokenization_dict = {0:None, 1:'LookDown', 2:'LookUp'}
-
-        return tokenization_dict[token]
 
     def get_mode(self, action):        
         value = None
@@ -654,38 +631,13 @@ class RT1Dataset(Dataset):
     
     def detokenize_mode(self, token):
 
-        tokenization_dict = {0: 'stop', 1:'MoveAgent', 2:'RotateAgent', 3:'MoveArm', 4:'PickupReleaseObject', 5:'PitchAgent'}
+        tokenization_dict = {0: 'stop', 1:'MoveAhead', 2:'MoveRight', 3:'MoveLeft', 4:'MoveBack', 5:'LookDown', 6:'LookUp', 7:'PickupObject', 8:'ReleaseObject', 9:'MoveArm', 10:'MoveArmBase', 11:'RotateAgent'}
 
         return tokenization_dict[token]
     
-    def detokenize_action(self, detokenized_mode, body_position_delta, body_yaw_delta, arm_position_delta, detokenized_pickup_release, detokenized_head_pitch):
+    def detokenize_action(self, detokenized_mode, body_yaw_delta, arm_position_delta):
+        return detokenized_mode
 
-        
-        if detokenized_mode == 'PickupReleaseObject':
-            return detokenized_pickup_release
-
-        elif detokenized_mode == 'PitchAgent':
-            return detokenized_head_pitch
-        else:
-            return detokenized_mode
-
-
-    # def get_pickup_release(self, action):
-
-    #     if action == 'PickupObject':
-    #         value = 1
-    #     elif action == 'ReleaseObject':
-    #         value = 2
-    #     else: 
-    #         value = 0
-        
-    #     return value
-
-    def detokenize_pickup_release(self, token):
-
-        tokenization_dict = {0:None, 1:'PickupObject', 2:'ReleaseObject'}
-        return tokenization_dict[token]
-    
     def __getitem__(self, idx):
         
         # pdb.set_trace()
@@ -975,8 +927,3 @@ if __name__ == '__main__':
         # print('BATCH {}:'.format(batch))
         # print('Num Steps: {}'.format(sample_batch[0].shape[0]))
         print('Batch {}: '.format(batch), sample_batch[0].shape[0])
-        
-        
-   
-
-   
