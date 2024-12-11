@@ -15,6 +15,7 @@ from rt1_pytorch.tokenizers.action_tokenizer import RT1ActionTokenizer
 class RT1Policy:
     def __init__(
         self,
+        dist: bool,
         observation_space: gym.spaces.Dict,
         action_space: gym.spaces.Dict,
         arch: str = "efficientnet_b3",
@@ -35,6 +36,7 @@ class RT1Policy:
         Initializes an instance of the class.
 
         Args:
+            dist (bool): whether or not there is a distance input. True is there is, False is there isn't.
             observation_space (gym.spaces.Dict): The observation space of the environment.
             action_space (gym.spaces.Dict): The action space of the environment.
             arch (str, optional): The architecture of the model. Defaults to "efficientnet_b3".
@@ -54,6 +56,7 @@ class RT1Policy:
         Returns:
             None
         """
+        self.dist = dist
         self.observation_space = observation_space
         self.action_space = action_space
         self.action_bins = action_bins
@@ -64,6 +67,7 @@ class RT1Policy:
         )
 
         self.model = RT1Model(
+            dist=self.dist,
             arch=arch,
             tokens_per_action=self.action_tokenizer.tokens_per_action,
             action_bins=action_bins,
@@ -94,14 +98,22 @@ class RT1Policy:
         self.device = device
         if checkpoint_path is not None:
             print(f"Loading checkpoint from {checkpoint_path}...")
-            self.model.load_state_dict(torch.load(checkpoint_path))
+            if self.dist:
+                state_dict = torch.load(checkpoint_path)
+                load_result = self.model.load_state_dict(state_dict, strict=False)
+                # print("Missing keys:", load_result.missing_keys)
+                # print("Unexpected keys:", load_result.unexpected_keys)
+            else:
+                self.model.load_state_dict(torch.load(checkpoint_path))
 
     def preprocess(
         self,
         videos: Union[np.ndarray, List[np.ndarray]],
         texts: Union[np.ndarray, List[np.ndarray]],
+        ee_obj_dist: torch.Tensor, #added
+        goal_dist: torch.Tensor, #added2
         actions: Optional[Dict] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]: #added, added2
         """
         Preprocesses the given videos, texts, and actions.
 
@@ -110,12 +122,29 @@ class RT1Policy:
               shape: (b, t, c, h, w) or (b, t, h, w, c)
             texts (Union[np.ndarray, List[np.ndarray]]): The input texts to preprocess.
               shape: (b, t, d)
+            ee_obj_dist (torch.Tensor): The distance between the end-effector and the target object
+                shape: (b, t)
+            goal_dist (torch.Tensor): The distance between the base and the goal
+                shape: (b, t)
             actions (Optional[Dict]): The input actions to preprocess. Defaults to None.
               shape: (b, t, a)
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing the preprocessed videos, texts, and actions.
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing the preprocessed videos, texts, obj dist, goal dist, and actions.
         """
+        if self.dist:
+            #added
+            if isinstance(ee_obj_dist, torch.Tensor):
+                ee_obj_dist = ee_obj_dist.to(self.device)
+            else:
+                ee_obj_dist = torch.tensor(ee_obj_dist, device=self.device, dtype=torch.float32)
+
+            #added2
+            if isinstance(goal_dist, torch.Tensor):
+                goal_dist = goal_dist.to(self.device)
+            else:
+                goal_dist = torch.tensor(goal_dist, device=self.device, dtype=torch.float32)
+
         if isinstance(videos, torch.Tensor):
             videos = videos.to(self.device)
         elif not isinstance(videos, np.ndarray):
@@ -131,6 +160,7 @@ class RT1Policy:
         if not isinstance(texts, torch.Tensor):
             texts = torch.tensor(texts, device=self.device, dtype=torch.float32)
 
+        
         if actions is not None:
             actions = {
                 k: np.stack(v, axis=0) if not (isinstance(v, np.ndarray)) else v
@@ -145,27 +175,35 @@ class RT1Policy:
             actions = torch.tensor(actions, device=self.device, dtype=torch.long)
             actions = rearrange(actions, "(b f) ... -> b f ...", b=videos.shape[0])
 
-        return videos, texts, actions
+        if self.dist:
+            return videos, texts, ee_obj_dist, goal_dist, actions #added, added2
+        else:
+            return videos, texts, actions
 
     def forward(
         self,
         videos: torch.Tensor,
         texts: torch.Tensor,
+        ee_obj_dist: torch.Tensor, #added
+        goal_dist: torch.Tensor, #added2
         action_logits: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass through the model.
 
         Args:
+
             videos (torch.Tensor): Input videos.
             texts (torch.Tensor): input contexts.
+            ee_obj_dist (torch.Tensor): input distance between end-effector and target object
+            goal_dist (torch.Tensor): input distance between base and goal
             action_logits (Optional[torch.Tensor]): Optional input action logits.
 
         Returns:
             action_logits (Tuple[torch.Tensor, torch.Tensor]):
               A tuple containing the sampled actions and the action logits.
         """
-        action_logits = self.model(videos, texts, action_logits)
+        action_logits = self.model(ee_obj_dist, goal_dist, videos, texts, action_logits) #added, added2
         actions = torch.distributions.Categorical(logits=action_logits)
         actions = actions.sample()
         return actions, action_logits
@@ -179,6 +217,8 @@ class RT1Policy:
                 It should have the following keys:
                     - "image" (np.ndarray): The video observations.
                     - "context" (np.ndarray): The context.
+                    - "ee_obj_dist" (torch.Tensor): distance between end-effector and the target object
+                    - "goal_dist" (torch.Tensor): distance between base and the goal
             target_actions (Dict): A dictionary containing the target actions.
 
         Returns:
@@ -187,14 +227,32 @@ class RT1Policy:
         Raises:
             None
         """
+        if self.dist:
+            ee_obj_dist = observations["ee_obj_dist"] #added
+            goal_dist = observations["goal_dist"] #added2
+        else:
+            ee_obj_dist = None
+            goal_dist = None
         videos = observations["image"]
         texts = observations["context"]
-        videos, texts, target_actions = self.preprocess(
-            videos,
-            texts,
-            target_actions,
-        )
-        _, action_logits = self.forward(videos, texts)
+        if self.dist:
+            videos, texts, ee_obj_dist, goal_dist, target_actions = self.preprocess( #added, added2
+                videos,
+                texts,
+                ee_obj_dist, #added
+                goal_dist, #added2
+                target_actions,
+            )
+        else:
+            videos, texts, target_actions = self.preprocess( #added, added2
+                videos,
+                texts,
+                ee_obj_dist, #added
+                goal_dist, #added2
+                target_actions,
+            )
+
+        _, action_logits = self.forward(videos, texts, ee_obj_dist, goal_dist) #added, added2
 
         action_logits = rearrange(action_logits, "b f a d -> (b f a) d")
         target_actions = rearrange(target_actions, "b f a -> (b f a)")
@@ -217,17 +275,31 @@ class RT1Policy:
             observations (Dict): A dictionary containing the observations. It should have the following keys:
                 - "image" (np.ndarray): The video observations.
                 - "context" (np.ndarray): The context.
+                - "ee_obj_dist" (torch.Tensor): distance between end-effector and the target object
+                - "goal_dist" (torch.Tensor): distance between base and the goal
 
         Returns:
             Dict[str, np.ndarray]: A dictionary containing the actions. It has the following keys:
                 - "actions" (np.ndarray): The actions performed based on the observations.
         """
+
+        if self.dist:
+            ee_obj_dist = observations['ee_obj_dist'] #added
+            goal_dist = observations['goal_dist'] #added2
         videos = observations["image"]
         texts = observations["context"]
-        videos, texts, _ = self.preprocess(videos, texts)
+
+        if self.dist:
+            videos, texts, ee_obj_dist, goal_dist, _ = self.preprocess(videos, texts, ee_obj_dist, goal_dist) #added, added2
+        else:
+            videos, texts, _ = self.preprocess(videos, texts, None, None) #added, added2
+        
         with torch.no_grad():
-            actions, _ = self.forward(videos, texts)
-            
+            if self.dist:
+                actions, _ = self.forward(videos, texts, ee_obj_dist, goal_dist) #added, added2
+            else:
+                actions, _ = self.forward(videos, texts, None, None) #added, added2
+
         actions = actions.detach().cpu().numpy()
         actions = self.action_tokenizer.detokenize(actions)
         actions = tree.map_structure(lambda a: a[:, -1], actions)

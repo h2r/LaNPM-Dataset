@@ -146,6 +146,11 @@ def parse_args():
         "--max-diversity-trajectories",
         default = 100,
     )
+    parser.add_argument(
+        "--use-dist",
+        help='use distance input if true, not if false', 
+        action='store_true'
+    )
     return parser.parse_args()
 
 
@@ -164,7 +169,7 @@ def main():
 
     print("Loading dataset...")
 
-    dataset_manager = DatasetManager(args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories, low_div=args.low_div)
+    dataset_manager = DatasetManager(args.use_dist, args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories, low_div=args.low_div)
     
     if args.wandb and args.split_type == 'diversity_ablation':
         wandb.log({"task_keys": dataset_manager.train_dataset.dataset_keys})
@@ -172,11 +177,18 @@ def main():
     train_dataloader = DataLoader(dataset_manager.train_dataset, batch_size=args.train_batch_size, shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches, drop_last = False)
     val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=True, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
     
-
-    observation_space = gym.spaces.Dict(
-        image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
-        context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
-    )
+    if args.use_dist:
+        observation_space = gym.spaces.Dict(
+            image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
+            context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
+            ee_obj_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32), #added
+            goal_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32) #added2
+        )
+    else:
+        observation_space = gym.spaces.Dict(
+            image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
+            context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32)
+        )
 
     action_space = gym.spaces.Dict(
 
@@ -187,18 +199,7 @@ def main():
             dtype=int
         ),
 
-        # body_pitch_delta = gym.spaces.Discrete(3),
-
         terminate_episode=gym.spaces.Discrete(2),
-
-        # pickup_release = gym.spaces.Discrete(3),
-
-        # body_position_delta = gym.spaces.Box(
-        #     low = 0,
-        #     high = 255,
-        #     shape = (3,),
-        #     dtype = np.int32
-        # ),
 
         arm_position_delta = gym.spaces.Box(
             low = 0,
@@ -213,6 +214,7 @@ def main():
 
     print("Building policy...")
     policy = RT1Policy(
+        dist=args.use_dist,
         observation_space=observation_space,
         action_space=action_space,
         device=args.device,
@@ -293,12 +295,11 @@ def main():
         print("STARTING EPOCH {}".format(epoch+1))
         
         for batch, train_batch in enumerate(train_dataloader):
-            
             batch_steps = train_batch[0].shape[0]
 
             for idx in range(0, batch_steps, int(args.train_subbatch)):
                 
-                policy.model.train()
+                policy.model.train() #put into training mode
                 
                 num_batches += 1
                 
@@ -306,24 +307,29 @@ def main():
                     res = get_text_embedding(train_batch[1][idx : min(idx + int(args.train_subbatch), batch_steps)])
                 except:
                     breakpoint()
-                observations = {
-                    "image": train_batch[0][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    "context": res,
-                }
+                
+                if args.use_dist:
+                    observations = {
+                        "image": train_batch[0][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                        "context": res,
+                        "ee_obj_dist": train_batch[6][idx : min(idx + int(args.train_subbatch), batch_steps)], #added
+                        "goal_dist": train_batch[7][idx : min(idx + int(args.train_subbatch), batch_steps)] #added2
+                    }
+                else:
+                    observations = {
+                        "image": train_batch[0][idx : min(idx + int(args.train_subbatch), batch_steps)],
+                        "context": res,
+                    }
                 actions = {
                     'terminate_episode': train_batch[2][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    # 'pickup_release': train_batch[3][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    # 'body_position_delta': train_batch[4][idx : min(idx + int(args.train_subbatch), batch_steps)],
                     'body_yaw_delta': train_batch[3][idx : min(idx + int(args.train_subbatch), batch_steps)],
-                    # 'body_pitch_delta': train_batch[6][idx : min(idx + int(args.train_subbatch), batch_steps)],
                     'arm_position_delta': train_batch[4][idx : min(idx + int(args.train_subbatch), batch_steps)],
                     'control_mode': train_batch[5][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 }
 
-                padding = train_batch[6][idx : min(idx + int(args.train_subbatch), batch_steps)]
+                padding = train_batch[-1][idx : min(idx + int(args.train_subbatch), batch_steps)]
                 total_train_steps += batch_steps
 
-                
                 loss, loss_std = policy.loss(observations, actions)
 
                 if args.wandb:
@@ -370,23 +376,27 @@ def main():
                             with torch.no_grad():
                                 res = get_text_embedding(val_batch[1][idx : min(idx + args.eval_subbatch, batch_steps_val)])
                                 
-                                observations = {
-                                    "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    "context": res,
-                                }
-
+                                if args.use_dist:
+                                    observations = {
+                                        "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                        "context": res,
+                                        "ee_obj_dist": val_batch[6][idx : min(idx + int(args.eval_subbatch), batch_steps_val)], #added
+                                        "goal_dist": val_batch[7][idx : min(idx + int(args.eval_subbatch), batch_steps_val)] #added2
+                                    }
+                                else:
+                                    observations = {
+                                        "image": val_batch[0][idx : min(idx + args.eval_subbatch, batch_steps_val)],
+                                        "context": res,
+                                    }
 
                                 actions = {
                                     'terminate_episode': val_batch[2][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    # 'pickup_release': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    # 'body_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
                                     'body_yaw_delta': val_batch[3][idx : min(idx + args.eval_subbatch, batch_steps_val)],
-                                    # 'body_pitch_delta': val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)],
                                     'arm_position_delta': val_batch[4][idx : min(idx + args.eval_subbatch, batch_steps_val)],
                                     'control_mode': val_batch[5][idx : min(idx + args.eval_subbatch, batch_steps_val)]
                                 }
                                 
-                                padding = val_batch[6][idx : min(idx + args.eval_subbatch, batch_steps_val)]
+                                padding = val_batch[-1][idx : min(idx + args.eval_subbatch, batch_steps_val)]
 
                                 eval_loss, eval_loss_std = policy.loss(observations, actions) #subbatch eval loss
                             

@@ -28,8 +28,8 @@ np.random.seed(47)
 
 sys.path.append('..')
 
-# DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
-DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
+DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
+# DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
@@ -258,7 +258,9 @@ class DatasetManager(object):
     '''
     NOTE: kwargs should contain a dictionary with keys {'train_split' : x, 'val_split': y, 'test_split':z} where x+y+z = 1
     '''
-    def __init__(self, test_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
+    def __init__(self, use_dist, test_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
+        self.use_dist = use_dist
+        
         assert( train_split + val_split + test_split == 1.0, 'Error: train, val and test split do not sum to 1.0')
 
         
@@ -272,7 +274,7 @@ class DatasetManager(object):
 
         self.scenes = list(sorted(list(self.scene_to_keys.keys())))
 
-        assert( split_style in ['k_fold_scene', 'task_split', 'diversity_ablation'], "Error: input split_style is invalid")
+        assert(split_style in ['k_fold_scene', 'task_split', 'diversity_ablation'], "Error: input split_style is invalid")
         if split_style == 'k_fold_scene':
             assert(int(test_scene) < len(self.scenes), "Error: input test scene is out of index space")
 
@@ -368,9 +370,9 @@ class DatasetManager(object):
                 attribute_limits = json.load(f)
             body_pose_lim, body_orientation_lim, end_effector_pose_lim = attribute_limits[0], attribute_limits[1], attribute_limits[2]
 
-        self.train_dataset = RT1Dataset(train_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
-        self.val_dataset = RT1Dataset(val_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
-        self.test_dataset = RT1Dataset(test_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
+        self.train_dataset = RT1Dataset(self.use_dist, train_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
+        self.val_dataset = RT1Dataset(self.use_dist, val_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
+        self.test_dataset = RT1Dataset(self.use_dist, test_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim)
 
     def determine_min_max_range(self, data_subset_keys):
 
@@ -493,10 +495,10 @@ class DatasetManager(object):
 
 class RT1Dataset(Dataset):
 
-    def __init__(self, data_split_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim, tokenize_action=True):
+    def __init__(self, use_dist, data_split_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim, tokenize_action=True):
 
-        #stores the keys in the dataset for the appropriate split (train, validation or test)
-        self.dataset_keys = data_split_keys
+        self.use_dist = use_dist
+        self.dataset_keys = data_split_keys 
         self.body_pose_lim = body_pose_lim
         self.body_orientation_lim = body_orientation_lim
         self.end_effector_pose_lim = end_effector_pose_lim
@@ -651,7 +653,6 @@ class RT1Dataset(Dataset):
 
     def __getitem__(self, idx):
         
-        # pdb.set_trace()
         traj_group = self.hdf[self.dataset_keys[idx]]
         
         traj_steps = list(traj_group.keys())
@@ -673,19 +674,17 @@ class RT1Dataset(Dataset):
         all_image_obs = []
         all_nl_commands = []
         all_is_terminal = []
-        # all_pickup_release = []
-        # all_body_position_deltas = []
         all_base = []
         all_body_yaw_deltas = []
-        # all_body_pitches = []
         all_arm_position_deltas = []
         all_control_mode = []
-
         all_pad_lengths = []
 
+        if self.use_dist:
+            all_ee_obj_dists = [] #added
+            all_goal_dists = [] #added2
 
-
-        #build the dictionary for each trajectory
+        #build the dictionary for each trajectory. the while loop is for 1 trajectory
         while end <= len(traj_steps) and not terminate:
 
             '''
@@ -695,15 +694,16 @@ class RT1Dataset(Dataset):
             '''
             image_obs = []
             nl_commands = []
-            # body_position_deltas = []
             base = []
             body_yaw_deltas = []
             arm_position_deltas = []
             terminate_episodes = []
-            # pickup_releases = []
-            # body_pitches = []
             control_modes = []
-            
+
+            if self.use_dist:
+                ee_obj_dists = [] #added
+                goal_dists = [] #added2
+
             #6 step window
             for i in range(start, end):
 
@@ -715,44 +715,37 @@ class RT1Dataset(Dataset):
                 nl_commands.append(nl_command)
 
                 current_metadata = json.loads(traj_group[traj_steps[i]].attrs['metadata'])
-                
 
                 if i < len(traj_steps)-1:
-
                     next_metadata = json.loads(traj_group[traj_steps[i+1]].attrs['metadata'])
                 
-                    #body position, body yaw, arm position
-                    # body_position_delta = np.array(next_metadata['steps'][0]['global_state_body'][:3])-np.array(current_metadata['steps'][0]['global_state_body'][:3])
                     body_yaw_delta = next_metadata['steps'][0]['global_state_body'][3] - current_metadata['steps'][0]['global_state_body'][3]
                     arm_position_delta = np.array(next_metadata['steps'][0]['global_state_ee'][:3]) - np.array(current_metadata['steps'][0]['global_state_ee'][:3])
 
-                    #terminate episode / pick up release / body pitch / mode
+                    #terminate episode / mode
                     terminate_episode = int(i == len(traj_steps)-1)
-                    # pickup_release = self.get_pickup_release(next_metadata['steps'][0]['action'])
-                    # body_pitch = self.get_head_pitch(next_metadata['steps'][0]['action'])
                     control_mode = self.get_mode(next_metadata['steps'][0]['action'])
+                    if self.use_dist:
+                        ee_obj_dist = next_metadata['steps'][0]['curr_ee_to_target_obj_dist'] #added
+                        goal_dist = next_metadata['steps'][0]['curr_base_to_goal_dist'] #added2
                 else:
-
-                    #body position, body yaw, arm positon -- for last step
-                    # body_position_delta = np.array([0.0, 0.0, 0.0])
                     body_yaw_delta = 0.0
                     arm_position_delta = np.array([0.0, 0.0, 0.0])
 
-                    #is terminal / pick up release / body pitch / mode -- for last step
+                    #is terminal / mode -- for last step
                     terminate_episode = int(i == len(traj_steps)-1)
-                    # pickup_release = self.get_pickup_release(None)
-                    # body_pitch = self.get_head_pitch(None)
                     control_mode = self.get_mode('stop')
+                    if self.use_dist:
+                        ee_obj_dist = float(-1) #added
+                        goal_dist = float(-1) #added2
 
-                # body_position_deltas.append(body_position_delta)
                 body_yaw_deltas.append(body_yaw_delta)
                 arm_position_deltas.append(arm_position_delta)
                 terminate_episodes.append(terminate_episode)
-                # pickup_releases.append(pickup_release)
-                # body_pitches.append(body_pitch)
                 control_modes.append(control_mode)
-
-            
+                if self.use_dist:
+                    ee_obj_dists.append(ee_obj_dist) #added
+                    goal_dists.append(goal_dist) #added2
 
             #check for remainder and pad data with extra
             if end >= len(traj_steps) and padding_length > 0:
@@ -762,13 +755,13 @@ class RT1Dataset(Dataset):
                     image_obs.append(ith_obs)
                     nl_commands.append(nl_command)
 
-                    # body_position_deltas.append(np.array([0.0, 0.0, 0.0]))
                     body_yaw_deltas.append(0.0)
                     arm_position_deltas.append(np.array([0.0, 0.0, 0.0]))
                     terminate_episodes.append(0)
-                    # pickup_releases.append(0.0)
-                    # body_pitches.append(0.0)
                     control_modes.append(0.0)
+                    if self.use_dist:
+                        ee_obj_dists.append(float(-1)) #added
+                        goal_dists.append(float(-1)) #added2
                 
                 terminate = True
             elif end >= len(traj_steps):
@@ -777,23 +770,19 @@ class RT1Dataset(Dataset):
 
 
             #pre-process and discretize numerical data 
-            # body_position_deltas = np.stack(body_position_deltas)
             body_yaw_deltas = np.stack(body_yaw_deltas)
             arm_position_deltas = np.stack(arm_position_deltas)
             
             if self.tokenize_action:
                 
                 tokenized_actions = {
-                    # 'body_position_deltas': body_position_deltas,
                     'body_yaw_deltas': body_yaw_deltas,
                     'arm_position_deltas': arm_position_deltas,
                     'terminate_episode': terminate_episodes
                 }
                 
                 tokenized_actions = self.make_data_discrete(tokenized_actions)
-                
-                # body_position_deltas = tokenized_actions['body_position_deltas']
-                
+                                
                 body_yaw_deltas = np.expand_dims(tokenized_actions['body_yaw_deltas'], axis=1)
                 
                 arm_position_deltas = tokenized_actions['arm_position_deltas']
@@ -802,123 +791,26 @@ class RT1Dataset(Dataset):
             all_image_obs.append(np.stack(image_obs))
             all_nl_commands.append(np.stack(nl_commands))
             all_is_terminal.append(np.stack(terminate_episodes))
-            # all_pickup_release.append(np.stack(pickup_releases))
-            # all_body_position_deltas.append(body_position_deltas)
             all_body_yaw_deltas.append(body_yaw_deltas)
-            # all_body_pitches.append(np.stack(body_pitches))
             all_arm_position_deltas.append(arm_position_deltas)
             all_control_mode.append(np.stack(control_modes))
+
+            if self.use_dist:
+                all_ee_obj_dists.append(np.stack(ee_obj_dists)) #added
+                all_goal_dists.append(np.stack(goal_dists)) #added2
 
             all_pad_lengths.append(0 if not end >= len(traj_steps) else padding_length)
             
             #move the window by 6
             start += 6
             end = min(end + 6, len(traj_steps))
+
+        if self.use_dist:
+            return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_body_yaw_deltas), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_ee_obj_dists), np.stack(all_goal_dists), np.stack(all_pad_lengths), #added, added2
+        else:
+            return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_body_yaw_deltas), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_pad_lengths)
+
             
-        return np.stack(all_image_obs), np.stack(all_nl_commands), np.stack(all_is_terminal), np.stack(all_body_yaw_deltas), np.stack(all_arm_position_deltas), np.stack(all_control_mode), np.stack(all_pad_lengths)
-
-
-
-    def __getitem_old__(self, idx):
-        
-        
-        traj_group = self.hdf[self.dataset_keys[idx]]
-        
-        traj_steps = list(traj_group.keys())
-        traj_steps.sort(key=sort_folders) 
-
-        #extract the NL command
-        json_str = traj_group[traj_steps[0]].attrs['metadata']
-        traj_json_dict = json.loads(json_str)
-        nl_command = traj_json_dict['nl_command']
-
-        start = 0; end = min(len(traj_steps), 6)
-
-        #return list of dictionaries with attributes required for RT1
-        all_image_obs = []
-        all_nl_commands = []
-        all_is_terminal = []
-        all_pickup_release = []
-        all_body_position = []
-        all_body_yaw = []
-        all_body_pitch = []
-        all_arm_position = []
-        all_mode = []
-
-
-
-        #build the dictionary for each trajectory
-        while end < len(traj_steps):
-
-            '''
-                mode: stop, body, yaw, manipulation, grasping, head pitch
-                gripper: (x, y, z, grasp)
-                body: (x, y, yaw, look up/down)
-            '''
-            image_obs = []
-
-            for i in range(start, end):
-                ith_obs = np.array(traj_group[traj_steps[i]]['rgb_{}'.format(i)])
-                
-                image_obs.append(ith_obs)
-            
-            image_obs = np.stack(image_obs)
-            
-            
-            
-            before_end_step_metadata = json.loads(traj_group[traj_steps[end-1]].attrs['metadata'])
-            end_step_metadata = json.loads(traj_group[traj_steps[end]].attrs['metadata'])                
-
-
-
-            dictionary = {
-                'observation': image_obs,
-                'nl_command': nl_command, #DONE
-                'is_terminal': int(end_step_metadata['steps'][0]['action']=='stop'), #DONE
-                'pickup_release': self.get_pickup_release(end_step_metadata['steps'][0]['action']), #DONE
-                'body_position': np.array(end_step_metadata['steps'][0]['state_body'][:3])-np.array(before_end_step_metadata['steps'][0]['state_body'][:3]), #DONE 
-                'body_yaw': end_step_metadata['steps'][0]['state_body'][3] - before_end_step_metadata['steps'][0]['state_body'][3], #DONE
-                'body_pitch': self.get_head_pitch(end_step_metadata['steps'][0]['action']), #DONE
-                'arm_position': np.array(end_step_metadata['steps'][0]['state_ee'][:3]) - np.array(before_end_step_metadata['steps'][0]['state_ee'][:3]), #DONE
-                'mode': self.get_mode(end_step_metadata['steps'][0]['action']) #DONE
-            }
-
-            #pre-process the data dictonary
-            if self.tokenize_action:
-                self.make_data_discrete(dictionary)
-
-
-            all_image_obs.append(dictionary['observation'])
-            all_nl_commands.append(dictionary['nl_command'])
-            all_is_terminal.append(dictionary['is_terminal'])
-            all_pickup_release.append(dictionary['pickup_release'])
-            all_body_position.append(dictionary['body_position'])
-            all_body_yaw.append(dictionary['body_yaw'])
-            all_body_pitch.append(dictionary['body_pitch'])
-            all_arm_position.append(dictionary['arm_position'])
-            all_mode.append(dictionary['mode'])
-            
-
-            start += 1
-            end += 1
-
-        #add the terminal 'stop' step
-        all_image_obs.append(dictionary['observation'])
-        all_nl_commands.append(dictionary['nl_command'])
-        all_is_terminal.append(1)
-        all_pickup_release.append(0)
-        all_body_position.append([0,0,0])
-        all_body_yaw.append(0)
-        all_body_pitch.append(0)
-        all_arm_position.append([0,0,0])
-        all_mode.append(0)
-
-
-
-        
-       
-        return np.stack(all_image_obs), np.stack(all_nl_commands), np.expand_dims(np.stack(all_is_terminal), axis=1), np.expand_dims(np.stack(all_pickup_release), axis=1), np.stack(all_body_position), np.expand_dims(np.stack(all_body_yaw),axis=1), np.expand_dims(np.stack(all_body_pitch), axis=1), np.stack(all_arm_position), np.expand_dims(np.stack(all_mode), axis=1)
-
 
 if __name__ == '__main__':
 
