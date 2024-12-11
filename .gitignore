@@ -207,6 +207,7 @@ dmypy.json
 models/main_models/datasets/*
 models/main_models/run_rt1_main.sh
 models/main_models/rt1_ft_env
+models/main_models/spoc-robot-training
 /modespot/
 Trajectories/
 sim_commands.npy

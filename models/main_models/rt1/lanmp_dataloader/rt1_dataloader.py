@@ -27,8 +27,8 @@ from collections import defaultdict
 
 sys.path.append('..')
 
-#DATASET_PATH = '/mnt/ahmed/sim_dataset_new.hdf5'
-DATASET_PATH = "/oscar/data/stellex/shared/lanmp/sim_dataset_new.hdf5"
+DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
+# DATASET_PATH = "/oscar/data/stellex/shared/lanmp/sim_dataset_new.hdf5"
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
@@ -301,7 +301,6 @@ class DatasetManager(object):
 
                 print('Train Perc: ', len(train_keys) / (len(train_keys) + len(val_keys)))
             
-            val_keys = ['data_13:02:17', 'data_19:58:40', 'data_15:50:55', 'data_16:22:44', 'data_15:40:22', 'data_17:08:14', 'data_15:37:13', 'data_18:38:30', 'data_13:56:07', 'data_15:22:59', 'data_13:33:54', 'data_13:18:11', 'data_19:36:17', 'data_14:38:16', 'data_13:04:13', 'data_12:04:43', 'data_16:37:57', 'data_15:38:38', 'data_16:40:44', 'data_17:59:00', 'data_20:57:07', 'data_16:03:52', 'data_16:40:36', 'data_19:31:51', 'data_16:45:24', 'data_21:09:57', 'data_17:26:17', 'data_15:01:27', 'data_14:02:16', 'data_13:29:09', 'data_14:22:29', 'data_16:43:00', 'data_13:46:04', 'data_15:13:04', 'data_16:45:58', 'data_13:33:29', 'data_17:17:50', 'data_11:19:28', 'data_17:45:27', 'data_16:00:55', 'data_15:03:19', 'data_16:06:05', 'data_16:02:46', 'data_17:41:00', 'data_17:35:45', 'data_14:05:06', 'data_18:22:47', 'data_17:02:46', 'data_15:08:23', 'data_16:15:15', 'data_19:00:23', 'data_11:50:57', 'data_15:19:33', 'data_14:52:27', 'data_16:58:53', 'data_11:44:50', 'data_16:10:21', 'data_13:10:05', 'data_17:48:24', 'data_18:09:10', 'data_18:01:35', 'data_13:34:59', 'data_12:48:23', 'data_22:17:48', 'data_16:57:05', 'data_16:49:20', 'data_17:51:34', 'data_12:54:21', 'data_16:23:48', 'data_14:24:32', 'data_16:18:35', 'data_14:26:22', 'data_16:11:06', 'data_11:58:17', 'data_17:13:00', 'data_19:34:02', 'data_13:29:42', 'data_17:20:01', 'data_15:20:09', 'data_16:53:34', 'data_15:25:56']
             
             print('Train Keys: ', len(train_keys))
             print('Validation Keys: ', len(val_keys))
@@ -486,8 +485,8 @@ class RT1Dataset(Dataset):
     def __init__(self, data_split_keys, body_pose_lim, body_orientation_lim, end_effector_pose_lim, tokenize_action=True):
 
         #stores the keys in the dataset for the appropriate split (train, validation or test)
-        if 'data_20:07:12' in data_split_keys:
-            data_split_keys.remove('data_20:07:12') # TODO: come back and remove this value from the root
+        # if 'data_20:07:12' in data_split_keys:
+        #     data_split_keys.remove('data_20:07:12') # TODO: come back and remove this value from the root
         self.dataset_keys = data_split_keys 
         self.body_pose_lim = body_pose_lim
         self.body_orientation_lim = body_orientation_lim
