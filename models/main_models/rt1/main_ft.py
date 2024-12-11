@@ -158,7 +158,7 @@ def main():
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     if args.wandb:
-        wandb.init(project="rt1-ft-scene-discrete", config=vars(args))
+        wandb.init(project=f"rt1-ft-{args.split_type}-{args.test_scene}", config=vars(args))
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 

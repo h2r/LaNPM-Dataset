@@ -13,25 +13,26 @@ module load cudnn/8.7.0.84-11.8-lg2dpd5
 
 cd ../../models/main_models/rt1
 
+ITER=5
 SPLIT_TYPE='task_split'
-TEST_SCENE=1
+TEST_SCENE=""
 # LOW_DIV='--low_div' $LOW_DIV
-EPOCHS=15
 LOAD_CHECKPOINT='/users/ajaafar/data/shared/lanmp/pretrained_rt1_ckpt/checkpoint_best.pt'
-CHECKPOINT_DIR='/users/ajaafar/data/ajaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/foo'
+CHECKPOINT_DIR='/users/ajaafar/data/ajaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/rt1-nodist-${SPLIT_TYPE}-${TEST_SCENE}-${ITER}'
 # LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
-# CHECKPOINT_DIR='/home/ahmedjaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/rt1-nodist-scene-discrete1'
-VAL_LOSS_DIR='val_losses/new_data/rt1-nodist-scene-discrete1'
+# CHECKPOINT_DIR='/home/ahmedjaafar/LaNMP-Dataset/models/main_models/rt1/checkpoints/new_data/rt1-nodist-scene${TEST_SCENE}'
+VAL_LOSS_DIR='val_losses/new_data/rt1-nodist-${SPLIT_TYPE}-${TEST_SCENE}-${ITER}'
+EPOCHS=30
 EVAL_FREQ=50
 CHECKPOINT_FREQ=0
-TRAIN_BATCH=5
-EVAL_BATCH=5
-TRAIN_SUBBATCH=38
-EVAL_SUBBATCH=38
+TRAIN_BATCH=6
+EVAL_BATCH=6
+TRAIN_SUBBATCH=24
+EVAL_SUBBATCH=24
 LR=1e-4
 LR_SCHED="plateau"
-GAMMA=0.999
-FACTOR=0.5
+GAMMA=0.99
+FACTOR=0.75
 PATIENCE=1
 
 
