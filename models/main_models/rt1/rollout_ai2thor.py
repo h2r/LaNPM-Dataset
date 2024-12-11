@@ -107,6 +107,8 @@ def main():
     observation_space = gym.spaces.Dict(
         image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
         context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
+        ee_obj_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32), #added
+        goal_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32) #added2
     )
 
     action_space = gym.spaces.Dict(
@@ -200,8 +202,6 @@ def main():
     
 
     for task in tqdm(val_dataloader.dataset.dataset_keys):
-        
-
         #skip tasks that trajectory already generated for
         if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
             continue
@@ -246,6 +246,10 @@ def main():
         agent_holding = np.array([])
         
 
+        #extract distances from the environment
+        dist_to_obj = np.linalg.norm( - curr_arm_coordinate)
+        dist_to_goal = np.linalg.norm( - curr_body_coordinate)
+
         #track the total number of steps and the last control mode
         num_steps = 0; curr_mode = None; is_terminal = False
 
@@ -259,6 +263,8 @@ def main():
             curr_observation = {
                 'image': visual_observation,
                 'context': language_command_embedding
+                'ee_obj_dist': ,
+                'goal_dist': ,
             }
             
             generated_action_tokens = rt1_model_policy.act(curr_observation)
@@ -269,8 +275,6 @@ def main():
             curr_mode = val_dataloader.dataset.detokenize_mode(generated_action_tokens['control_mode'][0])
 
             
-            
-
             terminate_episode = generated_action_tokens['terminate_episode'][0]
 
             continuous_variables = {
@@ -286,7 +290,6 @@ def main():
             arm_position_delta = np.squeeze(continuous_variables['arm_position_delta'])
 
             curr_action = val_dataloader.dataset.detokenize_action(curr_mode, body_position_delta, body_yaw_delta, arm_position_delta, pickup_release, body_pitch)
-
 
 
             #update the tracked coordinate data based on model output
