@@ -68,9 +68,7 @@ __pycache__/
 #RT-1
 models/main_models/rt1/wandb/
 models/main_models/rt1_dataset/*
-models/main_models/rt1/traj_rollouts/*
-models/main_models/rt1/checkpoints/*
-models/main_models/rt1/val_losses/*
+models/main_models/rt1/results/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

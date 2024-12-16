@@ -28,8 +28,8 @@ np.random.seed(47)
 
 sys.path.append('..')
 
-DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
-# DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
+# DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
+DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])

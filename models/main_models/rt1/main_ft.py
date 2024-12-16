@@ -151,6 +151,11 @@ def parse_args():
         help='use distance input if true, not if false', 
         action='store_true'
     )
+    parser.add_argument(
+        "--freeze",
+        help='if true, freezes layers to finetune the model, if false trains model from scratch', 
+        action='store_true'
+    )
     return parser.parse_args()
 
 
@@ -162,8 +167,12 @@ def main():
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
+    if args.use_dist:
+        dist = 'dist'
+    else:
+        dist='nodist'
     if args.wandb:
-        wandb.init(project=f"rt1-ft-{args.split_type}-{args.test_scene}", config=vars(args))
+        wandb.init(project=f"rt1-ft-{dist}-{args.split_type}-{args.test_scene}", config=vars(args))
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
@@ -221,23 +230,25 @@ def main():
         checkpoint_path=args.load_checkpoint,
     )
     
-    # Freeze all layers except the last one
-    unfrozen_keywords = [
-    "action_encoder", "transformer.encoder.layers.0", "transformer.encoder.layers.1", 
-    "transformer.encoder.layers.2", "transformer.encoder.layers.3", 
-    "transformer.decoder.layers.0", "transformer.decoder.layers.1", 
-    "transformer.decoder.layers.2", "transformer.decoder.layers.3", 
-    "transformer.encoder.norm", "transformer.decoder.norm", "to_logits"
-    ]
 
-    # Freeze all parameters except those containing the keywords
-    for name, param in policy.model.named_parameters():
-        if any(keyword in name for keyword in unfrozen_keywords):
-            param.requires_grad = True
-            # print(f"Unfrozen: {name}")
-        else:
-            param.requires_grad = False
-            print(f"Frozen: {name}")   
+    if args.freeze:
+        # Freeze all layers except the last one
+        unfrozen_keywords = [
+        "action_encoder", "transformer.encoder.layers.0", "transformer.encoder.layers.1", 
+        "transformer.encoder.layers.2", "transformer.encoder.layers.3", 
+        "transformer.decoder.layers.0", "transformer.decoder.layers.1", 
+        "transformer.decoder.layers.2", "transformer.decoder.layers.3", 
+        "transformer.encoder.norm", "transformer.decoder.norm", "to_logits"
+        ]
+
+        # Freeze all parameters except those containing the keywords
+        for name, param in policy.model.named_parameters():
+            if any(keyword in name for keyword in unfrozen_keywords):
+                param.requires_grad = True
+                # print(f"Unfrozen: {name}")
+            else:
+                param.requires_grad = False
+                print(f"Frozen: {name}")   
     
     policy.model.train()
     optimizer = Adam(policy.model.parameters(), lr=args.lr)
