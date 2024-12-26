@@ -238,7 +238,7 @@ class RT1Model(nn.Module):
         memory_mask = ~memory_mask
         memory__mask = memory_mask.bool()
         memory_mask = memory_mask.to(self.device)
-        
+
         attended_tokens = self.transformer(
             src=tokens,
             src_mask=token_mask,

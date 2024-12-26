@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument(
         "--checkpoint-file-path",
         type=str,
-        default="checkpoints/scene2/checkpoint_299183_loss_152.175.pt", #NOTE: change according to checkpoint file that is to be loaded
+        default="/oscar/data/stellex/ajaafar/LaNMP-Dataset/models/main_models/rt1/results/checkpoints/train_rt1-dist-task_split-scene-HP0/checkpoint_best.pt", #NOTE: change according to checkpoint file that is to be loaded
         help="directory to save checkpoints",
     )
     parser.add_argument(
@@ -302,11 +302,11 @@ def main():
 
     for task in tqdm(iterable_keys):
         #skip tasks that trajectory already rolled out for
-        if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
-            continue
-        elif print_val:
-            print('START AT: ', train_dataloader.dataset.dataset_keys.index(task))
-            print_val = False
+        # if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
+        #     continue
+        # elif print_val:
+        #     print('START AT: ', train_dataloader.dataset.dataset_keys.index(task))
+        #     print_val = False
 
         traj_group = train_dataloader.dataset.hdf[task]
         
@@ -328,12 +328,6 @@ def main():
         curr_image = last_event.frame
         visual_observation = np.expand_dims(np.expand_dims(curr_image, axis=0) , axis=0)
         visual_observation = np.repeat(visual_observation, 6, axis=1)
-        
-        '''
-        OLD OBS FROM DATASET
-        visual_observation = np.expand_dims(np.expand_dims(np.array(traj_group[traj_steps[0]]['rgb_0']), axis=0), axis=0)
-        visual_observation = np.repeat(visual_observation, 6, axis=1)
-        '''
 
         #track the starting coordinates for body, yaw rotation and arm coordinate
         curr_arm_coordinate = np.array(list(last_event.metadata["arm"]["joints"][3]['position'].values()))
@@ -351,15 +345,27 @@ def main():
                 breakpoint() #if this triggers during data collection, the assetId doesn't exist
             return pos
 
-        #extract distances from the environment
-        if args.use_dist:
+        def _get_distances(flag):
             goal_pos = traj_json_dict['goal_pos']
             dist_to_goal = np.linalg.norm(np.array(goal_pos) - curr_base_coordinate)
+            dist_to_goal = np.array([[dist_to_goal]])
+            if flag:
+                dist_to_goal = np.repeat(dist_to_goal, 6, axis=1)
+
 
             all_obj = last_event.metadata["objects"]
             obj_id = traj_json_dict['target_obj']
             obj_pos = _get_target_obj_pos(all_obj, obj_id)
             ee_dist_to_obj = np.linalg.norm(np.array(obj_pos) - curr_arm_coordinate)
+            ee_dist_to_obj = np.array([[ee_dist_to_obj]])
+            if flag:
+                ee_dist_to_obj = np.repeat(ee_dist_to_obj, 6, axis=1)
+            
+            return dist_to_goal, ee_dist_to_obj
+
+        #extract distances from the environment
+        if args.use_dist:
+            dist_to_goal, ee_dist_to_obj = _get_distances(True)
 
 
         #track the total number of steps and the last control mode
@@ -372,7 +378,6 @@ def main():
         while (curr_mode != 'stop' or is_terminal) and num_steps < 500:
             
             #provide the current observation to the model
-
             if args.use_dist:
                 curr_observation = {
                     'image': visual_observation,
@@ -392,7 +397,7 @@ def main():
             curr_mode = train_dataloader.dataset.detokenize_mode(generated_action_tokens['control_mode'][0])
             # print(curr_mode)
 
-            terminate_episode = generated_action_tokens['terminate_episode'][0] #not needed for actual rolling out
+            # terminate_episode = generated_action_tokens['terminate_episode'][0] #not needed for actual rolling out
 
             continuous_variables = {
                 'body_yaw_delta': generated_action_tokens['body_yaw_delta'],
@@ -419,15 +424,27 @@ def main():
 
             success, error, last_event, i = take_action(step_args, last_event)
 
+
+            #fetch new distances from the environment
+            if args.use_dist:
+                new_dist_to_goal, new_ee_dist_to_obj = _get_distances(False)
+                #removes the oldest distances in the window of 6 and adds the latest to replace it
+                dist_to_goal = dist_to_goal[:,1:]
+                dist_to_goal = np.concatenate((new_dist_to_goal, dist_to_goal), axis=1)
+                ee_dist_to_obj = ee_dist_to_obj[:,1:]
+                ee_dist_to_obj = np.concatenate((new_ee_dist_to_obj, ee_dist_to_obj), axis=1)
+
+            
             #fetch object holding from simulator; also maybe fetch coordinate of body/arm + yaw from simulator
             agent_holding = np.array(last_event.metadata['arm']['heldObjects'])
             
             #fetch the new visual observation from the simulator, update the current mode and increment number of steps
             curr_image = np.expand_dims(np.expand_dims(last_event.frame, axis=0) , axis=0)
-            
+
             #removes the oldest observation in the window of 6 and adds the latest to replace it
             visual_observation = visual_observation[:,1:,:,:,:]
             visual_observation = np.concatenate((visual_observation, curr_image), axis=1)
+            
             num_steps +=1
 
             curr_arm_coordinate = np.array(list(last_event.metadata["arm"]["joints"][3]['position'].values()))
@@ -444,7 +461,7 @@ def main():
                 'holding_obj': agent_holding,
                 'control_mode': curr_mode,
                 'action': curr_action,
-                'terminate': terminate_episode,
+                # 'terminate': terminate_episode,
                 'step': num_steps,
                 'timeout': num_steps >=1500,
                 'error': error

@@ -3,8 +3,8 @@
 set -e
 set -u
 
-# source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.sh
-source /mnt/miniconda3/etc/profile.d/conda.sh
+source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.sh
+# source /mnt/miniconda3/etc/profile.d/conda.sh
 
 conda activate rt1
 
@@ -16,8 +16,8 @@ cd ../../models/main_models/rt1
 HP=9
 SPLIT_TYPE="k_fold_scene"
 TEST_SCENE=1
-LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
-# LOAD_CHECKPOINT="/users/ajaafar/data/shared/lanmp/pretrained_rt1_ckpt/checkpoint_best.pt"
+# LOAD_CHECKPOINT='/mnt/ahmed/rt1/pretrain_ckpts/checkpoint_best.pt'
+LOAD_CHECKPOINT="/users/ajaafar/data/shared/lanmp/pretrained_rt1_ckpt/checkpoint_best.pt"
 CHECKPOINT_DIR="results/checkpoints/rt1-nodist-${SPLIT_TYPE}-scene${TEST_SCENE}-HP${HP}"
 VAL_LOSS_DIR="results/val_losses/rt1-nodist-${SPLIT_TYPE}-scene${TEST_SCENE}-HP${HP}"
 EPOCHS=40
@@ -34,4 +34,4 @@ FACTOR=0.999
 PATIENCE=1
 # LOW_DIV='--low_div' $LOW_DIV
 
-python main_ft.py --split-type "$SPLIT_TYPE" --epochs "$EPOCHS" --checkpoint-dir "$CHECKPOINT_DIR" --eval-freq "$EVAL_FREQ" --load-checkpoint "$LOAD_CHECKPOINT" --val_loss_dir "$VAL_LOSS_DIR" --wandb --checkpoint-freq "$CHECKPOINT_FREQ" --train-batch-size "$TRAIN_BATCH" --eval-batch-size "$EVAL_BATCH" --lr "$LR" --lr_sched "$LR_SCHED" --gamma "$GAMMA" --factor "$FACTOR" --patience "$PATIENCE" --train-subbatch "$TRAIN_SUBBATCH" --eval-subbatch "$EVAL_SUBBATCH" --test-scene "$TEST_SCENE" #--freeze
+python main_ft.py --split-type "$SPLIT_TYPE" --epochs "$EPOCHS" --checkpoint-dir "$CHECKPOINT_DIR" --eval-freq "$EVAL_FREQ" --load-checkpoint "$LOAD_CHECKPOINT" --val_loss_dir "$VAL_LOSS_DIR" --wandb --checkpoint-freq "$CHECKPOINT_FREQ" --train-batch-size "$TRAIN_BATCH" --eval-batch-size "$EVAL_BATCH" --lr "$LR" --lr_sched "$LR_SCHED" --gamma "$GAMMA" --factor "$FACTOR" --patience "$PATIENCE" --train-subbatch "$TRAIN_SUBBATCH" --eval-subbatch "$EVAL_SUBBATCH" --test-scene "$TEST_SCENE" --use-dist #--freeze
