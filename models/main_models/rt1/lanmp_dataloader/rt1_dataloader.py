@@ -28,8 +28,8 @@ np.random.seed(47)
 
 sys.path.append('..')
 
-# DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
-DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
+DATASET_PATH = '/mnt/ahmed/lanmp_dataset_newest.hdf5'
+# DATASET_PATH = '/oscar/data/stellex/shared/lanmp/lanmp_dataset_newest.hdf5'
 
 '''
 train_keys, val_keys, test_keys = split_data(self.args.data, splits['train'], splits['val'], splits['test'])
@@ -316,6 +316,81 @@ class DatasetManager(object):
                 train_keys += scene_keys[:split_idx]
                 val_keys += scene_keys[split_idx:split_idx2]
                 test_keys += scene_keys[split_idx2:]
+
+
+
+####################################################################################
+            # import pickle
+            # import cv2
+            # from skimage.transform import resize
+            # import matplotlib.pyplot as plt
+
+            # hdf = h5py.File(DATASET_PATH, 'r')
+            # keys = train_keys + val_keys + test_keys
+
+            # final_arr = []
+            # for key in tqdm(keys):
+            #     traj_group = hdf[key]
+            #     traj_steps = list(traj_group.keys())
+            #     traj_steps.sort(key=sort_folders) 
+
+            #     next_discrete_actions = []
+            #     for i in range(len(traj_steps)):
+            #         json_str = traj_group[traj_steps[i]].attrs['metadata']
+            #         traj_json_dict = json.loads(json_str)
+            #         discrete_action = traj_json_dict['steps'][0]['action']
+            #         next_discrete_actions.append(discrete_action)
+            #     next_discrete_actions = next_discrete_actions[1:]                        
+
+            #     traj_arr = []
+            #     for i in range(len(traj_steps)):
+            #         step_arr = []
+
+            #         json_str = traj_group[traj_steps[i]].attrs['metadata']
+            #         traj_json_dict = json.loads(json_str)
+            #         nl_command = traj_json_dict['nl_command']
+            #         scene = traj_json_dict['scene']
+            #         rgb = np.array(traj_group[traj_steps[i]]['rgb_{}'.format(i)])
+            #         rgb = cv2.resize(rgb, (224, 224), interpolation=cv2.INTER_AREA)
+             
+            #         if i == len(traj_steps) -1 :
+            #             discrete_action = "Done"
+            #             continuous_actions = (
+            #                 [0.0,0.0,0.0] # [x,y,z] deltas of each for base (recommend: don't use)
+            #                 + [0.0] # [yaw] delta of the rotation in degrees
+            #                 + [0.0,0.0,0.0] # [x,y,z] deltas of each for end-effector
+            #             )
+            #         else:
+            #             discrete_action = next_discrete_actions[i]
+            #             continuous_actions = (
+            #                 traj_json_dict['steps'][0]['delta_global_state_body'][:3] # [x,y,z] deltas of each for base (recommend: don't use)
+            #                 + [traj_json_dict['steps'][0]['delta_global_state_body'][-1]] # [yaw] delta of the rotation in degrees
+            #                 + traj_json_dict['steps'][0]['delta_global_state_ee'][:3] # [x,y,z] deltas of each for end-effector
+            #             )
+                    
+            #         step_arr.append(scene)
+            #         step_arr.append(nl_command)
+            #         step_arr.append(rgb)
+            #         step_arr.append(discrete_action)
+            #         step_arr.append(continuous_actions)
+                
+            #         traj_arr.append(step_arr)
+
+            #     final_arr.append(traj_arr)
+            
+            # chunk_size = 100
+            # num_chunks = len(final_arr) // chunk_size + (1 if len(final_arr) % chunk_size != 0 else 0)
+            # breakpoint()
+            # # Loop through and save each chunk
+            # for i in range(num_chunks):
+            #     start_index = i * chunk_size
+            #     end_index = start_index + chunk_size
+            #     chunk = final_arr[start_index:end_index]
+            #     with open(f'/mnt/ahmed/lambda_dataset_chunk_{i}.pkl', 'wb') as file:
+            #         pickle.dump(chunk, file)
+            # breakpoint()
+
+######################################################################################
             
             # Ensure no overlap between train, val, and test sets
             assert(len(set(train_keys) & set(val_keys)) == 0), "Error: Train and Val sets overlap"
@@ -812,21 +887,21 @@ class RT1Dataset(Dataset):
 
             
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
    
-    dataset_manager = DatasetManager(0, 0.8, 0.1, 0.1)
+#     dataset_manager = DatasetManager(0, 0.8, 0.1, 0.1)
 
-    dataloader = DataLoader(dataset_manager.train_dataset, batch_size=3,
-                        shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches)
+#     dataloader = DataLoader(dataset_manager.train_dataset, batch_size=3,
+#                         shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches)
 
-    val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size=2,
-                        shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches)
+#     val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size=2,
+#                         shuffle=True, num_workers=0, collate_fn= dataset_manager.collate_batches)
 
     
     
-    for batch, sample_batch in enumerate(dataloader):
+#     for batch, sample_batch in enumerate(dataloader):
         
-        # print('BATCH {}:'.format(batch))
-        # print('Num Steps: {}'.format(sample_batch[0].shape[0]))
-        print('Batch {}: '.format(batch), sample_batch[0].shape[0])
+#         # print('BATCH {}:'.format(batch))
+#         # print('Num Steps: {}'.format(sample_batch[0].shape[0]))
+#         print('Batch {}: '.format(batch), sample_batch[0].shape[0])

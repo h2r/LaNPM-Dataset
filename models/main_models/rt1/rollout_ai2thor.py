@@ -343,7 +343,7 @@ def main():
             curr_mode = train_dataloader.dataset.detokenize_mode(generated_action_tokens['control_mode'][0])
             # print(curr_mode)
 
-            terminate_episode = generated_action_tokens['terminate_episode'][0]
+            terminate_episode = generated_action_tokens['terminate_episode'][0] #not needed for actual rolling out
 
             continuous_variables = {
                 'body_yaw_delta': generated_action_tokens['body_yaw_delta'],
