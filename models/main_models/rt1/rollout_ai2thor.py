@@ -59,12 +59,8 @@ def parse_args():
     parser.add_argument(
         "--eval-scene",
         default=4,
-        help = "scene used as validation during k-fold cross validation",
+        help = "scene used as held-out test scene during k-fold cross validation",
     )
-    # parser.add_argument(
-    #     "--eval-subbatch",
-    #     default=1,
-    # )
     parser.add_argument(
         "--split-type",
         default = 'k_fold_scene',
@@ -90,14 +86,27 @@ def parse_args():
         default=3,
         help="eval batch size",
     )
+    parser.add_argument(
+        "--use-dist",
+        help='use distance input if true, not if false', 
+        action='store_true'
+    )
     return parser.parse_args()
 
 
 def main():
+    with open("../../../collect_sim/cmd_id_dic.json", "r") as json_file:
+        cmd_id_dic = json.load(json_file)
+
     args = parse_args()
 
+    if args.use_dist:
+        dist = 'dist'
+    else:
+        dist='nodist'
     if args.wandb:
-        wandb.init(project="rt1-rollout-data", config=vars(args))
+        wandb.init(project=f"rt1-rollout-{dist}-{args.split_type}-{args.test_scene}", config=vars(args))
+
 
     os.makedirs(args.trajectory_save_path, exist_ok=True)
 
@@ -107,15 +116,23 @@ def main():
     print("Loading dataset...")
     
     dataset_manager = DatasetManager(args.eval_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
+    
     train_dataloader = DataLoader(dataset_manager.train_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
     val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
     test_dataloader = DataLoader(dataset_manager.test_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
 
-
-    observation_space = gym.spaces.Dict(
-        image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
-        context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
-    )
+    if args.use_dist:
+        observation_space = gym.spaces.Dict(
+            image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
+            context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
+            ee_obj_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32), #added
+            goal_dist=gym.spaces.Box(low=float(-1), high=np.inf, shape=(512,), dtype=np.float32) #added2
+        )
+    else:
+        observation_space = gym.spaces.Dict(
+            image=gym.spaces.Box(low=0, high=255, shape=(128, 128, 3)),
+            context=gym.spaces.Box(low=0.0, high=1.0, shape=(512,), dtype=np.float32),
+        )
 
     action_space = gym.spaces.Dict(
 
@@ -251,6 +268,7 @@ def main():
 
     print("Loading chosen checkpoint to model...")
     rt1_model_policy = RT1Policy(
+        dist=args.use_dist,
         observation_space=observation_space,
         action_space=action_space,
         device=args.device,
@@ -283,7 +301,7 @@ def main():
         iterable_keys = test_dataloader.dataset.dataset_keys
 
     for task in tqdm(iterable_keys):
-        #skip tasks that trajectory already generated for
+        #skip tasks that trajectory already rolled out for
         if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
             continue
         elif print_val:
@@ -294,12 +312,12 @@ def main():
         
         traj_steps = list(traj_group.keys())
 
-        #extract the NL command
         json_str = traj_group[traj_steps[0]].attrs['metadata']
         traj_json_dict = json.loads(json_str)
+
+        #extract the NL command
         language_command_embedding = get_text_embedding(np.array([[traj_json_dict['nl_command']]]))
         language_command_embedding = np.repeat(language_command_embedding, 6, axis=1)
-
 
         print('TASK: ', traj_json_dict['nl_command'])
 
@@ -320,7 +338,29 @@ def main():
         #track the starting coordinates for body, yaw rotation and arm coordinate
         curr_arm_coordinate = np.array(list(last_event.metadata["arm"]["joints"][3]['position'].values()))
         agent_holding = np.array([])
-        
+
+        curr_base_coordinate = np.array(list(last_event.metadata["agent"]['position'].values()))
+
+        def _get_target_obj_pos(all_objs, obj_id):
+            pos = []
+            dic = {}
+            for obj_dic in all_objs:
+                if obj_dic['name'] == obj_id:
+                    pos = list(obj_dic['position'].values())
+            if not pos:
+                breakpoint() #if this triggers during data collection, the assetId doesn't exist
+            return pos
+
+        #extract distances from the environment
+        if args.use_dist:
+            goal_pos = traj_json_dict['goal_pos']
+            dist_to_goal = np.linalg.norm(np.array(goal_pos) - curr_base_coordinate)
+
+            all_obj = last_event.metadata["objects"]
+            obj_id = traj_json_dict['target_obj']
+            obj_pos = _get_target_obj_pos(all_obj, obj_id)
+            ee_dist_to_obj = np.linalg.norm(np.array(obj_pos) - curr_arm_coordinate)
+
 
         #track the total number of steps and the last control mode
         num_steps = 0; curr_mode = None; is_terminal = False
@@ -332,10 +372,19 @@ def main():
         while (curr_mode != 'stop' or is_terminal) and num_steps < 500:
             
             #provide the current observation to the model
-            curr_observation = {
-                'image': visual_observation,
-                'context': language_command_embedding
-            }
+
+            if args.use_dist:
+                curr_observation = {
+                    'image': visual_observation,
+                    'context': language_command_embedding,
+                    'goal_dist': dist_to_goal,
+                    'ee_obj_dist': ee_dist_to_obj
+                }
+            else:
+                curr_observation = {
+                    'image': visual_observation,
+                    'context': language_command_embedding
+                }
             
             generated_action_tokens = rt1_model_policy.act(curr_observation)
 
@@ -375,7 +424,8 @@ def main():
             
             #fetch the new visual observation from the simulator, update the current mode and increment number of steps
             curr_image = np.expand_dims(np.expand_dims(last_event.frame, axis=0) , axis=0)
-
+            
+            #removes the oldest observation in the window of 6 and adds the latest to replace it
             visual_observation = visual_observation[:,1:,:,:,:]
             visual_observation = np.concatenate((visual_observation, curr_image), axis=1)
             num_steps +=1
