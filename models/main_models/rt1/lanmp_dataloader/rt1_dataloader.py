@@ -318,7 +318,6 @@ class DatasetManager(object):
                 test_keys += scene_keys[split_idx2:]
 
 
-
 ####################################################################################
             # import pickle
             # import cv2

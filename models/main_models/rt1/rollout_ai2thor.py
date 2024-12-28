@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument(
         "--checkpoint-file-path",
         type=str,
-        default="/oscar/data/stellex/ajaafar/LaNMP-Dataset/models/main_models/rt1/results/checkpoints/train_rt1-dist-task_split-scene-HP0/checkpoint_best.pt", #NOTE: change according to checkpoint file that is to be loaded
+        default="/oscar/data/stellex/ajaafar/LaNMP-Dataset/models/main_models/rt1/results/checkpoints/train_rt1-nodist-k_fold_scene-scene4-HP2/checkpoint_best.pt", #NOTE: change according to checkpoint file that is to be loaded
         help="directory to save checkpoints",
     )
     parser.add_argument(
@@ -57,8 +57,8 @@ def parse_args():
         default=False,
     )
     parser.add_argument(
-        "--eval-scene",
-        default=4,
+        "--test-scene",
+        default=None,
         help = "scene used as held-out test scene during k-fold cross validation",
     )
     parser.add_argument(
@@ -115,7 +115,7 @@ def main():
 
     print("Loading dataset...")
     
-    dataset_manager = DatasetManager(args.eval_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
+    dataset_manager = DatasetManager(args.use_dist, args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
     
     train_dataloader = DataLoader(dataset_manager.train_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
     val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
@@ -288,9 +288,7 @@ def main():
 
 
     print('Creating pandas dataframe for trajectories...')
-    
-    print_val = True
-    
+        
     controller = None
 
     if args.eval_set == "train":
@@ -300,13 +298,20 @@ def main():
     else:
         iterable_keys = test_dataloader.dataset.dataset_keys
 
-    for task in tqdm(iterable_keys):
-        #skip tasks that trajectory already rolled out for
-        # if os.path.isfile(os.path.join(args.trajectory_save_path, task)):
-        #     continue
-        # elif print_val:
-        #     print('START AT: ', train_dataloader.dataset.dataset_keys.index(task))
-        #     print_val = False
+    results_path = f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/results.csv'
+    if os.path.isfile(results_path):
+        results_df = pd.read_csv(results_path)
+    else:
+        results_df = pd.DataFrame(columns=['scene', 'nl_cmd', 'nav_to_target', 'grasped_target_obj', 'nav_to_target_with_obj', 'place_obj_at_goal', 'complete_traj'])
+        os.makedirs(os.path.dirname(results_path), exist_ok=True)
+
+    if os.path.exists(f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl'):
+        with open(f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl', 'rb') as f:
+            completed_dict = pickle.load(f)
+    else:
+        completed_dict = {}
+
+    for task in tqdm(iterable_keys):   
 
         traj_group = train_dataloader.dataset.hdf[task]
         
@@ -315,11 +320,14 @@ def main():
         json_str = traj_group[traj_steps[0]].attrs['metadata']
         traj_json_dict = json.loads(json_str)
 
+        #skip tasks that already rolled out
+        if traj_json_dict['nl_command'] in completed_dict and completed_dict[traj_json_dict['nl_command']] == 1:
+            print("skipped")
+            continue
+
         #extract the NL command
         language_command_embedding = get_text_embedding(np.array([[traj_json_dict['nl_command']]]))
         language_command_embedding = np.repeat(language_command_embedding, 6, axis=1)
-
-        print('TASK: ', traj_json_dict['nl_command'])
 
         # start/reset THOR env for every trajectory/task
         controller, last_event, i = start_reset(traj_json_dict['scene'], controller)
@@ -337,7 +345,10 @@ def main():
 
         def _get_target_obj_pos(all_objs, obj_id):
             pos = []
-            dic = {}
+            if obj_id == 'Tennis_Racquet_5':
+                obj_id = "Tennis_Racket_5"
+            if obj_id == 'Tennis_Racquet_3':
+                obj_id = "Tennis_Racket_3"
             for obj_dic in all_objs:
                 if obj_dic['name'] == obj_id:
                     pos = list(obj_dic['position'].values())
@@ -375,7 +386,14 @@ def main():
         #track data for all steps
         trajectory_data = []
         
-        while (curr_mode != 'stop' or is_terminal) and num_steps < 500:
+        print("\n")
+        print("\n")
+        print('TASK: ', traj_json_dict['nl_command'])
+        print("\n")
+        print("\n")
+        time.sleep(1)
+        pickedup = False
+        while (curr_mode != 'stop' or is_terminal) and num_steps < 400:
             
             #provide the current observation to the model
             if args.use_dist:
@@ -424,6 +442,10 @@ def main():
 
             success, error, last_event, i = take_action(step_args, last_event)
 
+            if last_event.metadata["arm"]['heldObjects'] and not pickedup:
+                pickedup=True
+                time.sleep(0.5)
+                print("GRASPED SOMETHING!!!!")
 
             #fetch new distances from the environment
             if args.use_dist:
@@ -478,6 +500,19 @@ def main():
         # ai2thor_env.controller.stop()
         time.sleep(0.25)
 
+        nav_to_target = input("Enter score for nav_to_target: ")
+        grasped_target_obj = input("Enter score for grasped_target_obj: ")
+        nav_to_target_with_obj = input("Enter score for nav_to_target_with_obj: ")
+        place_obj_at_goal = input("Enter score for place_obj_at_goal: ")
+        complete_traj = input("Enter score for complete_traj: ")
+
+        traj_row = [traj_json_dict['scene'], traj_json_dict['nl_command'], nav_to_target, grasped_target_obj, nav_to_target_with_obj, place_obj_at_goal, complete_traj]
+        results_df.loc[len(results_df)] = traj_row
+        results_df.to_csv(results_path, index=False)
+        
+        completed_dict[traj_json_dict['nl_command']] = 1
+        with open(f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl', 'wb') as f:
+            pickle.dump(completed_dict, f)
         
 if __name__ == "__main__":
     main()
