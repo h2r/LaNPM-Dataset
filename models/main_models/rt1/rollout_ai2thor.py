@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument(
         "--checkpoint-file-path",
         type=str,
-        default="/oscar/data/stellex/ajaafar/LaNMP-Dataset/models/main_models/rt1/results/checkpoints/train_rt1-nodist-k_fold_scene-scene4-HP2/checkpoint_best.pt", #NOTE: change according to checkpoint file that is to be loaded
+        default="/oscar/data/stellex/ajaafar/LaNMP-Dataset/models/main_models/rt1/results/checkpoints/train-lstm-nodist-task_split--scene-HP2/checkpoint_best.pt", #NOTE: change according to checkpoint file that is to be loaded
         help="directory to save checkpoints",
     )
     parser.add_argument(
@@ -71,6 +71,11 @@ def parse_args():
         default = 'test',
         choices = ['train', 'val', 'test'],
         help = "which of the 3 sets (train, val, held-out test) to use for inference rollouts"
+    )
+    parser.add_argument(
+        "--subset-amt",
+        default = None,
+        choices =  ['25', '50', '75'],
     )
     parser.add_argument(
         "--num-diversity-scenes",
@@ -105,7 +110,7 @@ def main():
     else:
         dist='nodist'
     if args.wandb:
-        wandb.init(project=f"rt1-rollout-{dist}-{args.split_type}-{args.test_scene}", config=vars(args))
+        wandb.init(project=f"lstm-rollout-{dist}-{args.split_type}-{args.test_scene}", config=vars(args))
 
 
     os.makedirs(args.trajectory_save_path, exist_ok=True)
@@ -115,7 +120,7 @@ def main():
 
     print("Loading dataset...")
     
-    dataset_manager = DatasetManager(args.use_dist, args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
+    dataset_manager = DatasetManager(args.subset_amt, args.use_dist, args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories)
     
     train_dataloader = DataLoader(dataset_manager.train_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
     val_dataloader = DataLoader(dataset_manager.val_dataset, batch_size = args.eval_batch_size, shuffle=False, num_workers=2, collate_fn= dataset_manager.collate_batches, drop_last = False)
@@ -277,14 +282,14 @@ def main():
     rt1_model_policy.model.eval()
 
     # Total number of params
-    total_params = sum(p.numel() for p in rt1_model_policy.model.parameters())
-    # Transformer params
-    transformer_params = sum(p.numel() for p in rt1_model_policy.model.transformer.parameters())
-    # FiLM-EfficientNet and TokenLearner params
-    tokenizer_params = sum(p.numel() for p in rt1_model_policy.model.image_tokenizer.parameters())
-    print(f"Total params: {total_params}")
-    print(f"Transformer params: {transformer_params}")
-    print(f"FiLM-EfficientNet+TokenLearner params: {tokenizer_params}")
+    # total_params = sum(p.numel() for p in rt1_model_policy.model.parameters())
+    # # Transformer params
+    # transformer_params = sum(p.numel() for p in rt1_model_policy.model.transformer.parameters())
+    # # FiLM-EfficientNet and TokenLearner params
+    # tokenizer_params = sum(p.numel() for p in rt1_model_policy.model.image_tokenizer.parameters())
+    # print(f"Total params: {total_params}")
+    # print(f"Transformer params: {transformer_params}")
+    # print(f"FiLM-EfficientNet+TokenLearner params: {tokenizer_params}")
 
 
     print('Creating pandas dataframe for trajectories...')
@@ -298,15 +303,15 @@ def main():
     else:
         iterable_keys = test_dataloader.dataset.dataset_keys
 
-    results_path = f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/results.csv'
+    results_path = f'traj_rollouts/lstm-rollout-{dist}-{args.split_type}-{args.test_scene}/results.csv'
     if os.path.isfile(results_path):
         results_df = pd.read_csv(results_path)
     else:
         results_df = pd.DataFrame(columns=['scene', 'nl_cmd', 'nav_to_target', 'grasped_target_obj', 'nav_to_target_with_obj', 'place_obj_at_goal', 'complete_traj'])
         os.makedirs(os.path.dirname(results_path), exist_ok=True)
 
-    if os.path.exists(f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl'):
-        with open(f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl', 'rb') as f:
+    if os.path.exists(f'traj_rollouts/lstm-rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl'):
+        with open(f'traj_rollouts/lstm-rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl', 'rb') as f:
             completed_dict = pickle.load(f)
     else:
         completed_dict = {}
@@ -511,7 +516,7 @@ def main():
         results_df.to_csv(results_path, index=False)
         
         completed_dict[traj_json_dict['nl_command']] = 1
-        with open(f'traj_rollouts/rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl', 'wb') as f:
+        with open(f'traj_rollouts/lstm-rollout-{dist}-{args.split_type}-{args.test_scene}/trajs_done.pkl', 'wb') as f:
             pickle.dump(completed_dict, f)
         
 if __name__ == "__main__":
