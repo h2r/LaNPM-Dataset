@@ -258,7 +258,7 @@ class DatasetManager(object):
     '''
     NOTE: kwargs should contain a dictionary with keys {'train_split' : x, 'val_split': y, 'test_split':z} where x+y+z = 1
     '''
-    def __init__(self, use_dist, test_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
+    def __init__(self, subset_amt, use_dist, test_scene=1, train_split=0.8, val_split=0.1, test_split=0.1, split_style='task_split', diversity_scenes=1, max_trajectories=100, low_div=True):
         self.use_dist = use_dist
         
         assert( train_split + val_split + test_split == 1.0, 'Error: train, val and test split do not sum to 1.0')
@@ -309,10 +309,13 @@ class DatasetManager(object):
                 
                 scene_keys = copy(self.scene_to_keys[scene])
                 np.random.shuffle(scene_keys)
-
+                if subset_amt is not None:
+                    num_samples = int(len(scene_keys) * (int(subset_amt) / 100))
+                    scene_keys = np.random.choice(scene_keys, size=num_samples, replace=False).tolist()
+                    
                 split_idx = int(len(scene_keys)*(train_split))
                 split_idx2 = int(len(scene_keys)*(train_split+val_split))
-
+                
                 train_keys += scene_keys[:split_idx]
                 val_keys += scene_keys[split_idx:split_idx2]
                 test_keys += scene_keys[split_idx2:]

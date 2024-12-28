@@ -114,7 +114,7 @@ def parse_args():
     parser.add_argument(
         "--load-checkpoint",
         type=str,
-        default='/oscar/data/stellex/shared/rt1-checkpoints/checkpoints/bridge/checkpoint_14400_loss_70.621.pt',
+        default=None,
         help="checkpoint to load from; defaults to None",
     )
     parser.add_argument(
@@ -131,7 +131,12 @@ def parse_args():
     parser.add_argument(
         "--split-type",
         default = 'k_fold_scene',
-        choices =  ['k_fold_scene', 'task_split', 'diversity_ablation', 'low_high_scene', 'cluster'],
+        choices =  ['k_fold_scene', 'task_split','diversity_ablation', 'low_high_scene_ablation', 'cluster_ablation'],
+    )
+    parser.add_argument(
+        "--subset-amt",
+        default = None,
+        choices =  ['25', '50', '75'],
     )
     parser.add_argument(
         '--low_div', 
@@ -171,14 +176,24 @@ def main():
         dist = 'dist'
     else:
         dist='nodist'
+
+    if not args.load_checkpoint:
+        train_type = "train"
+    else:
+        train_type = "ft"
+
+    if args.freeze:
+        freeze = "frozen"
+    else:
+        freeze = "unfrozen" 
     if args.wandb:
-        wandb.init(project=f"rt1-ft-{dist}-{args.split_type}-{args.test_scene}", config=vars(args))
+        wandb.init(project=f"rt1-{train_type}-{freeze}-{dist}-{args.split_type}-{args.subset_amt}-{args.test_scene}", config=vars(args))
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     print("Loading dataset...")
 
-    dataset_manager = DatasetManager(args.use_dist, args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories, low_div=args.low_div)
+    dataset_manager = DatasetManager(args.subset_amt, args.use_dist, args.test_scene, 0.8, 0.1, 0.1, split_style = args.split_type, diversity_scenes = args.num_diversity_scenes, max_trajectories = args.max_diversity_trajectories, low_div=args.low_div)
     
     if args.wandb and args.split_type == 'diversity_ablation':
         wandb.log({"task_keys": dataset_manager.train_dataset.dataset_keys})
@@ -264,15 +279,15 @@ def main():
     )
     
     
-    # Total number of params
-    total_params = sum(p.numel() for p in policy.model.parameters())
-    # Transformer params
-    transformer_params = sum(p.numel() for p in policy.model.transformer.parameters())
-    # FiLM-EfficientNet and TokenLearner params
-    tokenizer_params = sum(p.numel() for p in policy.model.image_tokenizer.parameters())
-    print(f"Total params: {total_params}")
-    print(f"Transformer params: {transformer_params}")
-    print(f"FiLM-EfficientNet+TokenLearner params: {tokenizer_params}")
+    # # Total number of params
+    # total_params = sum(p.numel() for p in policy.model.parameters())
+    # # Transformer params
+    # transformer_params = sum(p.numel() for p in policy.model.transformer.parameters())
+    # # FiLM-EfficientNet and TokenLearner params
+    # tokenizer_params = sum(p.numel() for p in policy.model.image_tokenizer.parameters())
+    # print(f"Total params: {total_params}")
+    # print(f"Transformer params: {transformer_params}")
+    # print(f"FiLM-EfficientNet+TokenLearner params: {tokenizer_params}")
 
     def get_text_embedding(observation: Dict):
         
