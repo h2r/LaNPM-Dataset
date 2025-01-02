@@ -1,11 +1,10 @@
-# LaNPM Dataset Benchmark
+# LAMBDA ($\lambda$) Benchmark
 
 <p align="center">
   Under Review 
   <br>
   <a href="https://lanmpdataset.github.io/">Website</a> |
-  <a href="">arXiv (Coming Soon)</a> |
-  <a href="">RSS24 Workshop Paper</a> |
+  <a href="https://arxiv.org/abs/2412.05313">arXiv</a> |
   <a href="https://drive.google.com/drive/folders/1lWeHINYU7r-KAmCeJqIpftR_QWFNfB7D?usp=sharing">Model Checkpoints</a> |
   <a href="https://www.dropbox.com/scl/fo/c1q9s420pzu1285t1wcud/AGMDPvgD5R1ilUFId0i94KE?rlkey=7lwmxnjagi7k9kgimd4v7fwaq&dl=0">Dataset</a> |
   <a href="https://github.com/h2r/LaNPM-Dataset/blob/main/DataCard.md">Model Card</a>
