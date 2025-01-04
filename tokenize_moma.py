@@ -35,6 +35,8 @@ def get_max_min_ranges():
     all_y = []
     all_z = []
 
+    all_id0 , all_id1 , all_id2 , all_id3, all_id4, all_id5, all_id6 = [],[], [], [], [], [], []
+
     for file in tqdm( all_files):
         if file.split(".")[1] == "pkl":
             path =os.path.join( args.dataset_path , file )
@@ -51,7 +53,17 @@ def get_max_min_ranges():
                         all_x.append(x)
                         all_y.append(y)
                         all_z.append(z)
-
+                    
+                    if val == "MoveArmBase":
+                        id0, id1, id2, id3,id4,id5,id6 =  data[i][j][4][0] , data[i][j][4][1] ,data[i][j][4][2] , data[i][j][4][3] ,data[i][j][4][4],data[i][j][4][5] , data[i][j][4][6]
+                        all_id0.append( id0)
+                        all_id1.append( id1)
+                        all_id2.append( id2)
+                        all_id3.append( id3)
+                        all_id4.append( id4)
+                        all_id5.append( id5)
+                        all_id6.append( id6)
+ 
                     if  val == "RotateAgent":
                         yaw = data[i][j][4][ 3]
                         all_yaw.append(yaw)
@@ -61,7 +73,16 @@ def get_max_min_ranges():
     z_min, z_max = np.min(all_z) , np.max(all_z)
     yaw_min, yaw_max = np.min(all_yaw) , np.max(all_yaw)
 
-    return [yaw_min , yaw_max] , [ x_min, x_max ] , [ y_min, y_max  ] ,[z_min, z_max] 
+    id0_min, id0_max = np.min(all_id0) , np.max(all_id0)
+    id1_min, id1_max = np.min(all_id1) , np.max(all_id1)
+    id2_min, id2_max = np.min(all_id2) , np.max(all_id2)
+    id3_min, id3_max = np.min(all_id3) , np.max(all_id3)
+    id4_min, id4_max = np.min(all_id4) , np.max(all_id4)
+    id5_min, id5_max = np.min(all_id5) , np.max(all_id5)
+    id6_min, id6_max = np.min(all_id6) , np.max(all_id6)
+
+
+    return [yaw_min , yaw_max] , [ x_min, x_max ] , [ y_min, y_max  ] ,[z_min, z_max] , [ id0_min, id0_max ] , [id1_min, id1_max] , [id2_min, id2_max] , [id3_min, id3_max] , [id4_min, id4_max] , [id5_min, id5_max] ,[id6_min, id6_max] 
 
 def get_bin_index(x, min_val, max_val, num_bins):
     """
@@ -91,7 +112,7 @@ def get_bin_index(x, min_val, max_val, num_bins):
 
 def load_traj():
     all_files = os.listdir(args.dataset_path )
-    yaw, eef_x, eef_y, eef_z = get_max_min_ranges()
+    yaw, eef_x, eef_y, eef_z , id0_range, id1_range, id2_range,id3_range, id4_range,id5_range,id6_range = get_max_min_ranges()
 
     all_text = []
     all_imgs = []
@@ -122,6 +143,18 @@ def load_traj():
                         yaw_idx = get_bin_index( yaw1 , yaw[0] , yaw[1], args.num_bins )
 
                         string_val = "RotateAgent " + str( yaw_idx )
+                    elif val == "MoveArmBase":
+                        id0, id1, id2, id3,id4,id5,id6 =  data[i][j][4][0] , data[i][j][4][1] ,data[i][j][4][2] , data[i][j][4][3] ,data[i][j][4][4],data[i][j][4][5] , data[i][j][4][6]
+
+                        id0_idx = 0#get_bin_index( id0 , id0_range[0] , id0_range[1] , args.num_bins)
+                        id1_idx = 0#get_bin_index(id1  , id1_range[0] , id1_range[1], args.num_bins )
+                        id2_idx = 0#get_bin_index(id2 , id2_range[0] , id2_range[1] , args.num_bins)
+                        id3_idx = 0#get_bin_index(id3 , id3_range[0] , id3_range[1] , args.num_bins)
+                        id4_idx = get_bin_index(id4 , id4_range[0] , id4_range[1] , args.num_bins)
+                        id5_idx = get_bin_index(id5  , id5_range[0] , id5_range[1] , args.num_bins )
+                        id6_idx = get_bin_index(id6  , id6_range[0] , id6_range[1] , args.num_bins )
+
+                        string_val = "MoveArmBase" + str( id0_idx ) + " , " + str( id1_idx ) + " , " +  str( id2_idx ) + " , " +  str( id3_idx ) + " , " + str( id4_idx ) + " , " + str( id5_idx ) + " , " + str( id6_idx ) 
                     else:
                         string_val = str(val)
                     
@@ -285,7 +318,5 @@ if __name__ == "__main__":
 
     tokenizer.save_pretrained("lambda_tokenizer/moma")
 
-    with open("train_data_lambda/moma.pkl", "wb") as f:
+    with open("train_data_lambda/moma2.pkl", "wb") as f:
         pickle.dump(DATA , f)
-
-
